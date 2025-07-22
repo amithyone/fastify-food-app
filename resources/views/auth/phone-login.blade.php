@@ -227,9 +227,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 showMessage(data.message, 'success');
                 
+                // Show WhatsApp status if available
+                if (data.whatsapp_status) {
+                    let whatsappMessage = `WhatsApp Status: ${data.whatsapp_status}`;
+                    if (data.whatsapp_error) {
+                        whatsappMessage += ` (Error: ${data.whatsapp_error})`;
+                    }
+                    showMessage(whatsappMessage, 'info');
+                }
+                
                 // In development, show the debug code
                 if (data.debug_code) {
-                    showMessage(`Debug Code: ${data.debug_code}`, 'info');
+                    showMessage(`Verification Code: ${data.debug_code}`, 'info');
                 }
                 
                 verificationSection.classList.remove('hidden');

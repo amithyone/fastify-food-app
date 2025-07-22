@@ -73,21 +73,33 @@ class PhoneAuthController extends Controller
             \Log::info('Verification code generated', ['code' => $verification->verification_code]);
             
             // Send WhatsApp message
-            $this->sendWhatsAppMessage($phoneNumber, $verification->verification_code);
+            $whatsappResult = $this->sendWhatsAppMessage($phoneNumber, $verification->verification_code);
 
-            // For development, include the code in the response
+            // Prepare response based on WhatsApp result
             $responseData = [
                 'success' => true,
-                'message' => 'Verification code sent to your WhatsApp!',
                 'phone_number' => $phoneNumber,
                 'expires_in' => $verification->getRemainingMinutes(),
+                'debug_code' => $verification->verification_code,
+                'whatsapp_message' => "🔐 Fastify Verification Code\n\nYour verification code is: *{$verification->verification_code}*\n\nThis code will expire in 10 minutes.\n\nThank you for choosing Fastify! 🍽️"
             ];
+
+            // Set message based on WhatsApp result
+            if ($whatsappResult['sent']) {
+                $responseData['message'] = 'Verification code sent to your WhatsApp! 📱';
+                $responseData['notification_type'] = 'whatsapp';
+                $responseData['whatsapp_status'] = $whatsappResult['status'];
+            } else {
+                $responseData['message'] = 'Verification code generated! Use the code below to continue.';
+                $responseData['notification_type'] = 'manual';
+                $responseData['whatsapp_status'] = 'not_sent';
+                $responseData['whatsapp_error'] = $whatsappResult['error'] ?? 'WhatsApp not available';
+            }
 
             // In development, always include the code for testing
             if (app()->environment('local', 'development')) {
-                $responseData['debug_code'] = $verification->verification_code;
-                $responseData['message'] = 'Verification code sent! (Check logs for details)';
-                $responseData['whatsapp_message'] = "🔐 Fastify Verification Code\n\nYour verification code is: *{$verification->verification_code}*\n\nThis code will expire in 10 minutes.\n\nThank you for choosing Fastify! 🍽️";
+                $responseData['development_mode'] = true;
+                $responseData['message'] = 'Development Mode: Verification code shown below for testing.';
             }
 
             \Log::info('Phone verification successful', $responseData);
@@ -247,7 +259,7 @@ class PhoneAuthController extends Controller
     /**
      * Send WhatsApp message with verification code
      */
-    private function sendWhatsAppMessage(string $phoneNumber, string $code): void
+    private function sendWhatsAppMessage(string $phoneNumber, string $code): array
     {
         $message = "🔐 Fastify Verification Code\n\n";
         $message .= "Your verification code is: *{$code}*\n\n";
@@ -259,7 +271,7 @@ class PhoneAuthController extends Controller
         if (app()->environment('local', 'development') && !env('ENABLE_REAL_WHATSAPP', false)) {
             \Log::info("WhatsApp message to {$phoneNumber}: {$message}");
             \Log::info("Verification code: {$code}");
-            return;
+            return ['sent' => true, 'status' => 'simulated_sent'];
         }
 
         // For production, use Twilio WhatsApp API
@@ -272,7 +284,7 @@ class PhoneAuthController extends Controller
                 \Log::warning('Twilio credentials not configured, falling back to development mode');
                 \Log::info("WhatsApp message to {$phoneNumber}: {$message}");
                 \Log::info("Verification code: {$code}");
-                return;
+                return ['sent' => false, 'error' => 'Twilio credentials not configured'];
             }
             
             $twilio = new Client($sid, $token);
@@ -299,6 +311,8 @@ class PhoneAuthController extends Controller
                 'error_message' => $twilioMessage->errorMessage ?? null
             ]);
 
+            return ['sent' => true, 'status' => $twilioMessage->status];
+
         } catch (\Exception $e) {
             \Log::error('WhatsApp message failed: ' . $e->getMessage());
             \Log::error('Twilio error details', [
@@ -313,6 +327,7 @@ class PhoneAuthController extends Controller
             
             // Don't throw the exception, just log it
             // This allows the verification process to continue
+            return ['sent' => false, 'error' => $e->getMessage()];
         }
     }
 
