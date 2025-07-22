@@ -70,6 +70,7 @@
                 type="button" 
                 id="sendCodeBtn"
                 class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2"
+                style="background-color: #10b981 !important; color: white !important;"
             >
                 <i class="fab fa-whatsapp text-lg"></i>
                 Send Verification Code
