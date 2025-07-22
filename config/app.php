@@ -7,9 +7,9 @@ return [
     | Application Name
     |--------------------------------------------------------------------------
     |
-    | This value is the name of your application, which will be used when the
+    | This value is the name of your application. This value is used when the
     | framework needs to place the application's name in a notification or
-    | other UI elements where an application name needs to be displayed.
+    | any other location as required by the application or its packages.
     |
     */
 
@@ -27,6 +27,18 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | WhatsApp Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This value determines whether to use real WhatsApp messaging or
+    | simulation mode for development and testing.
+    |
+    */
+
+    'enable_real_whatsapp' => env('ENABLE_REAL_WHATSAPP', false),
 
     /*
     |--------------------------------------------------------------------------

@@ -263,72 +263,96 @@ class PhoneAuthController extends Controller
     {
         $message = "🔐 Fastify Verification Code\n\n";
         $message .= "Your verification code is: *{$code}*\n\n";
-        $message .= "This code will expire in 10 minutes.\n";
-        $message .= "If you didn't request this code, please ignore this message.\n\n";
+        $message .= "This code will expire in 10 minutes.\n\n";
         $message .= "Thank you for choosing Fastify! 🍽️";
 
-        // For development/testing, we'll log the message and show it in response
-        if (app()->environment('local', 'development') && !env('ENABLE_REAL_WHATSAPP', false)) {
-            \Log::info("WhatsApp message to {$phoneNumber}: {$message}");
+        // Check if real WhatsApp is enabled
+        if (!config('app.enable_real_whatsapp', false)) {
+            \Log::info("WhatsApp simulation mode - message would be sent to {$phoneNumber}: {$message}");
             \Log::info("Verification code: {$code}");
             return ['sent' => true, 'status' => 'simulated_sent'];
         }
 
-        // For production, use Twilio WhatsApp API
+        // Check if Twilio credentials are configured
+        $sid = config('services.twilio.sid');
+        $token = config('services.twilio.token');
+        $from = config('services.twilio.whatsapp_from');
+
+        if (!$sid || !$token || !$from) {
+            \Log::warning('Twilio credentials not configured for WhatsApp');
+            \Log::info("WhatsApp message to {$phoneNumber}: {$message}");
+            \Log::info("Verification code: {$code}");
+            return ['sent' => false, 'error' => 'Twilio credentials not configured'];
+        }
+
         try {
-            $sid = config('services.twilio.account_sid');
-            $token = config('services.twilio.auth_token');
-            $whatsappFrom = config('services.twilio.whatsapp_from');
+            // Format phone number for WhatsApp
+            $whatsappTo = $this->formatWhatsAppNumber($phoneNumber);
             
-            if (!$sid || !$token) {
-                \Log::warning('Twilio credentials not configured, falling back to development mode');
-                \Log::info("WhatsApp message to {$phoneNumber}: {$message}");
-                \Log::info("Verification code: {$code}");
-                return ['sent' => false, 'error' => 'Twilio credentials not configured'];
-            }
-            
-            $twilio = new Client($sid, $token);
+            \Log::info("Sending WhatsApp message", [
+                'to' => $whatsappTo,
+                'from' => $from,
+                'message_length' => strlen($message)
+            ]);
 
-            // For Twilio WhatsApp sandbox, the recipient must first join the sandbox
-            // by sending a specific message to the Twilio WhatsApp number
-            $twilioMessage = $twilio->messages
-                ->create("whatsapp:{$phoneNumber}", // to
-                    array(
-                        "from" => $whatsappFrom,
-                        "body" => $message
-                    )
-                );
+            $twilio = new \Twilio\Rest\Client($sid, $token);
 
-            \Log::info('WhatsApp message sent successfully to ' . $phoneNumber . ' with SID: ' . $twilioMessage->sid);
-            
-            // Log additional details for debugging
-            \Log::info('Twilio message details', [
-                'to' => $phoneNumber,
-                'from' => $whatsappFrom,
+            $twilioMessage = $twilio->messages->create(
+                $whatsappTo, // To (formatted for WhatsApp)
+                [
+                    "from" => $from, // From (WhatsApp number)
+                    "body" => $message,
+                ]
+            );
+
+            \Log::info("WhatsApp message sent successfully", [
+                'message_sid' => $twilioMessage->sid,
                 'status' => $twilioMessage->status,
-                'sid' => $twilioMessage->sid,
-                'error_code' => $twilioMessage->errorCode ?? null,
-                'error_message' => $twilioMessage->errorMessage ?? null
+                'to' => $whatsappTo,
+                'error_code' => $twilioMessage->errorCode,
+                'error_message' => $twilioMessage->errorMessage
             ]);
 
             return ['sent' => true, 'status' => $twilioMessage->status];
 
         } catch (\Exception $e) {
-            \Log::error('WhatsApp message failed: ' . $e->getMessage());
-            \Log::error('Twilio error details', [
-                'error_code' => $e->getCode(),
-                'error_message' => $e->getMessage(),
-                'phone_number' => $phoneNumber
+            \Log::error('WhatsApp message failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'phone_number' => $phoneNumber,
+                'whatsapp_to' => $whatsappTo ?? 'not_formatted'
             ]);
-            
-            // Fallback: log the message for manual sending
-            \Log::info("FALLBACK - WhatsApp message to {$phoneNumber}: {$message}");
-            \Log::info("FALLBACK - Verification code: {$code}");
             
             // Don't throw the exception, just log it
             // This allows the verification process to continue
             return ['sent' => false, 'error' => $e->getMessage()];
         }
+    }
+
+    /**
+     * Format phone number for WhatsApp API
+     */
+    private function formatWhatsAppNumber(string $phoneNumber): string
+    {
+        // Remove any non-digit characters
+        $cleanNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+        
+        // If it's a Nigerian number (starts with 0), convert to international
+        if (strlen($cleanNumber) === 11 && substr($cleanNumber, 0, 1) === '0') {
+            $cleanNumber = '234' . substr($cleanNumber, 1);
+        }
+        
+        // If it's already international (starts with 234), use as is
+        if (strlen($cleanNumber) === 13 && substr($cleanNumber, 0, 3) === '234') {
+            return "whatsapp:+{$cleanNumber}";
+        }
+        
+        // If it's already in international format (starts with +), use as is
+        if (substr($phoneNumber, 0, 1) === '+') {
+            return "whatsapp:{$phoneNumber}";
+        }
+        
+        // Default: assume it's a Nigerian number and add 234
+        return "whatsapp:+234{$cleanNumber}";
     }
 
     /**
