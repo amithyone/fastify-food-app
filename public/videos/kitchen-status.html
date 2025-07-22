@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Status Video</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .video-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .video-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            animation: gradient 3s ease infinite;
+            background-size: 400% 400%;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .info {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        .download-links {
+            margin-top: 20px;
+        }
+        .download-links a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .download-links a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <h1>🍳 Kitchen Status Video</h1>
+        <div class="video-placeholder">
+            <div>
+                <div style="font-size: 48px; margin-bottom: 10px;">👨‍🍳</div>
+                <div>Kitchen Live Stream</div>
+                <div style="font-size: 16px; margin-top: 10px; opacity: 0.8;">Video Placeholder</div>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>About This Video</h3>
+            <p>This is a placeholder for the kitchen status video. In a real implementation, this would show:</p>
+            <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>Live kitchen camera feed</li>
+                <li>Chefs preparing orders</li>
+                <li>Real-time cooking process</li>
+                <li>Order status updates</li>
+            </ul>
+        </div>
+        
+        <div class="download-links">
+            <h3>Sample Video Files</h3>
+            <p>For testing local video functionality, you can download sample videos:</p>
+            <a href="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" target="_blank">
+                📹 Download Sample MP4 (1MB)
+            </a>
+            <br>
+            <a href="https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4" target="_blank">
+                📹 Download Sample MP4 (2MB)
+            </a>
+        </div>
+        
+        <div class="info" style="margin-top: 30px;">
+            <h3>Implementation Notes</h3>
+            <p>To use local videos:</p>
+            <ol style="text-align: left; max-width: 500px; margin: 0 auto;">
+                <li>Download a sample video file</li>
+                <li>Rename it to <code>kitchen-status.mp4</code></li>
+                <li>Place it in the <code>public/videos/</code> directory</li>
+                <li>The video will automatically load in the order status page</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html> 
