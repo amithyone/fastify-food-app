@@ -77,6 +77,11 @@ Route::post('/api/phone/resend', [PhoneAuthController::class, 'resendCode']);
 Route::get('/phone/login', [PhoneAuthController::class, 'showLoginForm'])->name('phone.login');
 Route::get('/phone/register', [PhoneAuthController::class, 'showRegisterForm'])->name('phone.register');
 
+// WhatsApp Test Route
+Route::get('/test-whatsapp', function () {
+    return view('test-whatsapp');
+})->name('test.whatsapp');
+
 // Authentication Routes
 Route::get('/login', function () {
     return view('auth.login');

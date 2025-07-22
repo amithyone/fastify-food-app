@@ -142,7 +142,7 @@ class PhoneAuthController extends Controller
                     'name' => $request->name,
                     'phone_number' => $phoneNumber,
                     'phone_verified_at' => Carbon::now(),
-                    'email' => $phoneNumber . '@abujaeat.com', // Temporary email
+                    'email' => $phoneNumber . '@fastify.com', // Temporary email
                     'password' => Hash::make(Str::random(16)), // Temporary password
                 ]);
 
