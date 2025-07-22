@@ -277,6 +277,8 @@ class PhoneAuthController extends Controller
             
             $twilio = new Client($sid, $token);
 
+            // For Twilio WhatsApp sandbox, the recipient must first join the sandbox
+            // by sending a specific message to the Twilio WhatsApp number
             $twilioMessage = $twilio->messages
                 ->create("whatsapp:{$phoneNumber}", // to
                     array(
@@ -286,9 +288,24 @@ class PhoneAuthController extends Controller
                 );
 
             \Log::info('WhatsApp message sent successfully to ' . $phoneNumber . ' with SID: ' . $twilioMessage->sid);
+            
+            // Log additional details for debugging
+            \Log::info('Twilio message details', [
+                'to' => $phoneNumber,
+                'from' => $whatsappFrom,
+                'status' => $twilioMessage->status,
+                'sid' => $twilioMessage->sid,
+                'error_code' => $twilioMessage->errorCode ?? null,
+                'error_message' => $twilioMessage->errorMessage ?? null
+            ]);
 
         } catch (\Exception $e) {
             \Log::error('WhatsApp message failed: ' . $e->getMessage());
+            \Log::error('Twilio error details', [
+                'error_code' => $e->getCode(),
+                'error_message' => $e->getMessage(),
+                'phone_number' => $phoneNumber
+            ]);
             
             // Fallback: log the message for manual sending
             \Log::info("FALLBACK - WhatsApp message to {$phoneNumber}: {$message}");
