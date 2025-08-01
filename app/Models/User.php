@@ -27,6 +27,8 @@ class User extends Authenticatable
         'city',
         'state',
         'postal_code',
+        'restaurant_id',
+        'is_admin',
     ];
 
     /**
@@ -50,6 +52,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -104,5 +107,29 @@ class User extends Authenticatable
         }
 
         return null;
+    }
+
+    /**
+     * Get the restaurant that the user manages.
+     */
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class);
+    }
+
+    /**
+     * Check if user is a restaurant owner.
+     */
+    public function isRestaurantOwner()
+    {
+        return !is_null($this->restaurant_id);
+    }
+
+    /**
+     * Check if user is an admin.
+     */
+    public function isAdmin()
+    {
+        return $this->is_admin;
     }
 }

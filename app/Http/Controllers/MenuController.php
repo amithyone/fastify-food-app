@@ -9,13 +9,24 @@ use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
-    public function index()
+    public function index($slug = null)
     {
-        $categories = Category::with('menuItems')->where('is_active', true)->get();
-        $menuItems = MenuItem::with('category')->where('is_available', true)->get();
-        $stories = Story::active()->ordered()->get();
-        
-        return view('menu.index', compact('categories', 'menuItems', 'stories'));
+        if ($slug) {
+            // Restaurant-specific menu
+            $restaurant = Restaurant::where('slug', $slug)->where('is_active', true)->firstOrFail();
+            $categories = $restaurant->categories()->with('menuItems')->where('is_active', true)->get();
+            $menuItems = $restaurant->menuItems()->with('category')->where('is_available', true)->get();
+            $stories = $restaurant->stories()->active()->ordered()->get();
+            
+            return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurant'));
+        } else {
+            // Default menu (for backward compatibility)
+            $categories = Category::with('menuItems')->where('is_active', true)->get();
+            $menuItems = MenuItem::with('category')->where('is_available', true)->get();
+            $stories = Story::active()->ordered()->get();
+            
+            return view('menu.index', compact('categories', 'menuItems', 'stories'));
+        }
     }
 
     public function show($id)

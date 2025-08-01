@@ -8,6 +8,7 @@ use App\Http\Controllers\PWAController;
 use App\Http\Controllers\Auth\PhoneAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\RestaurantController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,7 @@ Route::post('/api/push-send', [PWAController::class, 'sendPushNotification']);
 
 // Menu Routes
 Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
+Route::get('/menu/{slug}', [MenuController::class, 'index'])->name('menu.restaurant');
 Route::get('/menu/search', [MenuController::class, 'search'])->name('menu.search');
 Route::get('/menu/category/{category}', [MenuController::class, 'category'])->name('menu.category');
 Route::get('/menu/items', [MenuController::class, 'items'])->name('menu.items');
@@ -139,6 +141,19 @@ Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->n
 // Phone Verification Routes
 Route::post('/verify-phone', [OrderController::class, 'verifyPhone'])->name('verify.phone');
 Route::post('/verify-code', [OrderController::class, 'verifyCode'])->name('verify.code');
+
+// Restaurant Onboarding Routes
+Route::get('/restaurant/onboarding', [RestaurantController::class, 'onboarding'])->name('restaurant.onboarding');
+Route::post('/restaurant/store', [RestaurantController::class, 'store'])->name('restaurant.store');
+
+// Restaurant Management Routes
+Route::middleware(['auth'])->prefix('restaurant')->group(function () {
+    Route::get('/{slug}/dashboard', [RestaurantController::class, 'dashboard'])->name('restaurant.dashboard');
+    Route::get('/{slug}/edit', [RestaurantController::class, 'edit'])->name('restaurant.edit');
+    Route::put('/{slug}/update', [RestaurantController::class, 'update'])->name('restaurant.update');
+    Route::get('/{slug}/qr-codes', [RestaurantController::class, 'qrCodes'])->name('restaurant.qr-codes');
+    Route::post('/{slug}/generate-qr', [RestaurantController::class, 'generateQrCode'])->name('restaurant.generate-qr');
+});
 
 // Admin Routes (for restaurant management)
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
