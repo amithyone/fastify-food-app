@@ -322,6 +322,23 @@ Route::get('/quick-login', function() {
         ]);
     }
 });
+Route::post('/test-story-creation', function () {
+    try {
+        $restaurant = \App\Models\Restaurant::first();
+        $story = \App\Models\Story::create([
+            'restaurant_id' => $restaurant->id,
+            'type' => 'test',
+            'title' => 'Test Story',
+            'content' => 'This is a test story',
+            'is_active' => true,
+            'sort_order' => 0
+        ]);
+        return response()->json(['success' => true, 'story_id' => $story->id]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+})->name('test.story.creation');
+
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes

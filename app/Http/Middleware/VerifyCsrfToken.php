@@ -16,5 +16,6 @@ class VerifyCsrfToken extends Middleware
         'test-menu-item',
         'test-image-upload',
         'quick-login',
+        'test-story-creation',
     ];
 } 

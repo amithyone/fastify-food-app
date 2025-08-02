@@ -254,14 +254,24 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
         ? `/restaurant/{{ $restaurant->slug }}/stories/${currentStoryId}`
         : `/restaurant/{{ $restaurant->slug }}/stories`;
     
+    // Get CSRF token from the form
+    const csrfToken = document.querySelector('input[name="_token"]').value;
+    
     fetch(url, {
         method: currentStoryId ? 'PUT' : 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-CSRF-TOKEN': csrfToken,
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error('Server returned: ' + text);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             closeModal();
@@ -272,7 +282,7 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error saving story');
+        alert('Error saving story: ' + error.message);
     });
 });
 
