@@ -74,8 +74,9 @@ class RestaurantController extends Controller
                 $businessHours[$day] = ['open' => '09:00', 'close' => '22:00'];
             }
 
-            // Create restaurant
+            // Create restaurant with owner_id
             $restaurant = Restaurant::create([
+                'owner_id' => Auth::id(), // Set owner_id during creation
                 'name' => $request->name,
                 'slug' => $slug,
                 'description' => $request->description,
@@ -104,11 +105,6 @@ class RestaurantController extends Controller
                 ],
             ]);
 
-            // Assign restaurant to current user if authenticated
-            if (Auth::check()) {
-                $restaurant->update(['owner_id' => Auth::id()]);
-            }
-
             return redirect()->route('restaurant.dashboard', $restaurant->slug)
                 ->with('success', 'Restaurant created successfully! You can now start adding your menu items.');
 
@@ -128,8 +124,8 @@ class RestaurantController extends Controller
                 abort(403, 'Unauthorized access to restaurant dashboard.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant dashboard.');
         }
 
         // Calculate today's earnings (confirmed orders from today)
@@ -160,8 +156,8 @@ class RestaurantController extends Controller
                 abort(403, 'Unauthorized access to restaurant dashboard.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant dashboard.');
         }
 
         return view('restaurant.edit', compact('restaurant'));
@@ -177,8 +173,8 @@ class RestaurantController extends Controller
                 abort(403, 'Unauthorized access to restaurant dashboard.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant dashboard.');
         }
 
         $request->validate([
