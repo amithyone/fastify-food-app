@@ -41,16 +41,40 @@
                     <div class="p-6">
                         <!-- Order Status -->
                         <div class="mb-6">
-                            <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Status</h4>
-                            <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full 
-                                @if($order->status === 'pending') bg-yellow-100 text-yellow-800
-                                @elseif($order->status === 'confirmed') bg-blue-100 text-blue-800
-                                @elseif($order->status === 'preparing') bg-orange-100 text-orange-800
-                                @elseif($order->status === 'ready') bg-green-100 text-green-800
-                                @elseif($order->status === 'delivered') bg-gray-100 text-gray-800
-                                @else bg-red-100 text-red-800 @endif">
-                                {{ ucfirst($order->status) }}
-                            </span>
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</h4>
+                                <button onclick="updateOrderStatus({{ $order->id }}, '{{ $order->status }}')" 
+                                        class="text-sm text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
+                                    <i class="fas fa-edit mr-1"></i>Update Status
+                                </button>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full 
+                                    @if($order->status === 'pending') bg-yellow-100 text-yellow-800
+                                    @elseif($order->status === 'confirmed') bg-blue-100 text-blue-800
+                                    @elseif($order->status === 'preparing') bg-orange-100 text-orange-800
+                                    @elseif($order->status === 'ready') bg-green-100 text-green-800
+                                    @elseif($order->status === 'delivered') bg-gray-100 text-gray-800
+                                    @else bg-red-100 text-red-800 @endif">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                                @if($order->status_updated_at)
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        Updated {{ $order->status_updated_at->diffForHumans() }}
+                                        @if($order->statusUpdater)
+                                            by {{ $order->statusUpdater->name }}
+                                        @endif
+                                    </span>
+                                @endif
+                            </div>
+                            @if($order->status_note)
+                                <div class="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                    <p class="text-sm text-blue-800 dark:text-blue-200">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        {{ $order->status_note }}
+                                    </p>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Table Number -->
@@ -184,15 +208,19 @@
                         <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
                             <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Update Status</h4>
                             <form id="statusForm" class="space-y-3">
-                                <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
-                                    <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                    <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparing</option>
-                                    <option value="ready" {{ $order->status === 'ready' ? 'selected' : '' }}>Ready</option>
-                                    <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                    <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                @csrf
+                                <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>🕐 Pending - Order received</option>
+                                    <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>✅ Confirmed - Order accepted</option>
+                                    <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>👨‍🍳 Preparing - Cooking in progress</option>
+                                    <option value="ready" {{ $order->status === 'ready' ? 'selected' : '' }}>🚀 Ready - Order ready for pickup/delivery</option>
+                                    <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>📦 Delivered - Order completed</option>
+                                    <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled - Order cancelled</option>
                                 </select>
-                                <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
+                                <textarea id="statusNote" name="status_note" rows="3" 
+                                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                                          placeholder="Add a note about this status update (e.g., 'Will be ready in 15 minutes', 'Out for delivery', etc.)">{{ $order->status_note }}</textarea>
+                                <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600 transition-colors">
                                     Update Status
                                 </button>
                             </form>
@@ -208,27 +236,29 @@
 document.getElementById('statusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const status = document.getElementById('status').value;
+    const formData = new FormData(e.target);
     
-    fetch(`/restaurant/{{ $restaurant->slug }}/orders/{{ $order->id }}/status`, {
+    fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => $order->id]) }}`, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ status: status })
+        body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
     .then(data => {
         if (data.success) {
             location.reload();
         } else {
-            alert('Failed to update order status');
+            alert('Failed to update order status: ' + (data.message || 'Unknown error'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to update order status');
+        alert('Failed to update order status. Please try again.');
     });
 });
 </script>

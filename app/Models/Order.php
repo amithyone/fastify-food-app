@@ -20,6 +20,9 @@ class Order extends Model
         'delivery_time',
         'total_amount',
         'status',
+        'status_note',
+        'status_updated_at',
+        'status_updated_by',
         'notes',
         'tracking_code',
         'tracking_code_expires_at'
@@ -28,6 +31,7 @@ class Order extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'tracking_code_expires_at' => 'datetime',
+        'status_updated_at' => 'datetime',
     ];
 
     public function orderItems()
@@ -43,6 +47,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function statusUpdater()
+    {
+        return $this->belongsTo(User::class, 'status_updated_by');
     }
 
     public function getFormattedTotalAttribute()

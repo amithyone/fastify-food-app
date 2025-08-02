@@ -208,17 +208,30 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Update Order Status</h3>
             <form id="statusForm">
+                @csrf
                 <input type="hidden" id="orderId" name="orderId">
                 <div class="mb-4">
                     <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                    <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="preparing">Preparing</option>
-                        <option value="ready">Ready</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
+                    <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                        <option value="pending">🕐 Pending - Order received</option>
+                        <option value="confirmed">✅ Confirmed - Order accepted</option>
+                        <option value="preparing">👨‍🍳 Preparing - Cooking in progress</option>
+                        <option value="ready">🚀 Ready - Order ready for pickup/delivery</option>
+                        <option value="delivered">📦 Delivered - Order completed</option>
+                        <option value="cancelled">❌ Cancelled - Order cancelled</option>
                     </select>
+                </div>
+                <div class="mb-4">
+                    <label for="statusNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status Note (Optional)</label>
+                    <textarea id="statusNote" name="status_note" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                              placeholder="Add a note about this status update (e.g., 'Will be ready in 15 minutes', 'Out for delivery', etc.)"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status Description</label>
+                    <div id="statusDescription" class="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                        Select a status to see its description
+                    </div>
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeStatusModal()" 
@@ -226,8 +239,8 @@
                         Cancel
                     </button>
                     <button type="submit" 
-                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                        Update
+                        class="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600">
+                        Update Status
                     </button>
                 </div>
             </form>
@@ -236,9 +249,20 @@
 </div>
 
 <script>
+const statusDescriptions = {
+    'pending': 'Order has been received and is waiting to be confirmed by the restaurant.',
+    'confirmed': 'Order has been accepted and confirmed by the restaurant. Preparation will begin soon.',
+    'preparing': 'Your order is being prepared in the kitchen. This usually takes 15-30 minutes.',
+    'ready': 'Your order is ready! You can pick it up or it will be delivered shortly.',
+    'delivered': 'Order has been successfully delivered or picked up. Thank you for your order!',
+    'cancelled': 'Order has been cancelled. Please contact the restaurant if you have questions.'
+};
+
 function updateOrderStatus(orderId, currentStatus) {
     document.getElementById('orderId').value = orderId;
     document.getElementById('status').value = currentStatus;
+    document.getElementById('statusNote').value = '';
+    updateStatusDescription(currentStatus);
     document.getElementById('statusModal').classList.remove('hidden');
 }
 
@@ -246,32 +270,43 @@ function closeStatusModal() {
     document.getElementById('statusModal').classList.add('hidden');
 }
 
+function updateStatusDescription(status) {
+    const description = statusDescriptions[status] || 'Select a status to see its description';
+    document.getElementById('statusDescription').textContent = description;
+}
+
+document.getElementById('status').addEventListener('change', function() {
+    updateStatusDescription(this.value);
+});
+
 document.getElementById('statusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    const formData = new FormData(this);
     const orderId = document.getElementById('orderId').value;
-    const status = document.getElementById('status').value;
     
-    fetch(`/restaurant/{{ $restaurant->slug }}/orders/${orderId}/status`, {
+    fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => 'ORDER_ID']) }}`.replace('ORDER_ID', orderId), {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ status: status })
+        body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
     .then(data => {
         if (data.success) {
             closeStatusModal();
             location.reload();
         } else {
-            alert('Failed to update order status');
+            alert('Failed to update order status: ' + (data.message || 'Unknown error'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to update order status');
+        alert('Failed to update order status. Please try again.');
     });
 });
 </script>

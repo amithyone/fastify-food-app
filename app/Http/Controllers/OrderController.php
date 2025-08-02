@@ -551,7 +551,8 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled'
+            'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled',
+            'status_note' => 'nullable|string|max:500'
         ]);
 
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
@@ -565,6 +566,7 @@ class OrderController extends Controller
             'restaurant_name' => $restaurant->name,
             'order_id' => $order->id,
             'new_status' => $request->status,
+            'status_note' => $request->status_note,
         ]);
         
         // Check if user can access this restaurant
@@ -586,11 +588,28 @@ class OrderController extends Controller
             abort(403, 'Order does not belong to this restaurant.');
         }
         
-        $order->update(['status' => $request->status]);
+        // Update order status
+        $order->update([
+            'status' => $request->status,
+            'status_note' => $request->status_note,
+            'status_updated_at' => now(),
+            'status_updated_by' => $user->id
+        ]);
+
+        // Log the status change
+        \Log::info('Order status updated', [
+            'order_id' => $order->id,
+            'old_status' => $order->getOriginal('status'),
+            'new_status' => $request->status,
+            'updated_by' => $user->id,
+            'status_note' => $request->status_note
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Order status updated successfully!'
+            'message' => 'Order status updated successfully!',
+            'new_status' => $request->status,
+            'status_note' => $request->status_note
         ]);
     }
 
