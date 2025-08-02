@@ -29,12 +29,12 @@ class RestaurantController extends Controller
             'city' => 'required|string|max:100',
             'state' => 'required|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'country' => 'required|string|max:100',
+            'country' => 'nullable|string|max:100',
             'currency' => 'required|string|max:10',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'theme_color' => 'required|string|max:7',
-            'secondary_color' => 'required|string|max:7',
+            'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'business_days' => 'nullable|array',
+            'business_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
         ]);
 
         try {
@@ -56,8 +56,16 @@ class RestaurantController extends Controller
 
             // Handle banner upload
             $bannerPath = null;
-            if ($request->hasFile('banner_image')) {
-                $bannerPath = $request->file('banner_image')->store('restaurants/banners', 'public');
+            if ($request->hasFile('banner')) {
+                $bannerPath = $request->file('banner')->store('restaurants/banners', 'public');
+            }
+
+            // Build business hours based on selected days
+            $businessHours = [];
+            $selectedDays = $request->business_days ?? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            
+            foreach ($selectedDays as $day) {
+                $businessHours[$day] = ['open' => '09:00', 'close' => '22:00'];
             }
 
             // Create restaurant
@@ -72,23 +80,15 @@ class RestaurantController extends Controller
                 'city' => $request->city,
                 'state' => $request->state,
                 'postal_code' => $request->postal_code,
-                'country' => $request->country,
+                'country' => $request->country ?? 'Nigeria',
                 'currency' => $request->currency,
                 'logo' => $logoPath,
                 'banner_image' => $bannerPath,
-                'theme_color' => $request->theme_color,
-                'secondary_color' => $request->secondary_color,
+                'theme_color' => '#f97316', // Default orange
+                'secondary_color' => '#ea580c', // Default dark orange
                 'is_active' => true,
                 'is_verified' => false, // Will be verified by admin
-                'business_hours' => [
-                    'monday' => ['open' => '09:00', 'close' => '22:00'],
-                    'tuesday' => ['open' => '09:00', 'close' => '22:00'],
-                    'wednesday' => ['open' => '09:00', 'close' => '22:00'],
-                    'thursday' => ['open' => '09:00', 'close' => '22:00'],
-                    'friday' => ['open' => '09:00', 'close' => '23:00'],
-                    'saturday' => ['open' => '10:00', 'close' => '23:00'],
-                    'sunday' => ['open' => '10:00', 'close' => '22:00'],
-                ],
+                'business_hours' => $businessHours,
                 'settings' => [
                     'delivery_enabled' => true,
                     'dine_in_enabled' => true,

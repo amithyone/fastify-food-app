@@ -160,17 +160,42 @@
                                     </label>
                                     <input type="text" id="city" name="city" required
                                         class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-                                        placeholder="City">
+                                        placeholder="Abuja" value="Abuja">
                                 </div>
 
                                 <div>
                                     <label for="state" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
-                                        State *
+                                        Area *
                                     </label>
-                                    <input type="text" id="state" name="state" required
-                                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-                                        placeholder="State">
+                                    <select id="state" name="state" required
+                                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200">
+                                        <option value="">Select Area</option>
+                                        <option value="Wuse">Wuse</option>
+                                        <option value="Maitama">Maitama</option>
+                                        <option value="Garki">Garki</option>
+                                        <option value="Gudu">Gudu</option>
+                                        <option value="Asokoro">Asokoro</option>
+                                        <option value="Jabi">Jabi</option>
+                                        <option value="Utako">Utako</option>
+                                        <option value="Kubwa">Kubwa</option>
+                                        <option value="Nyanya">Nyanya</option>
+                                        <option value="Karu">Karu</option>
+                                        <option value="Lugbe">Lugbe</option>
+                                        <option value="Kuje">Kuje</option>
+                                        <option value="Kwali">Kwali</option>
+                                        <option value="Abaji">Abaji</option>
+                                        <option value="Gwagwalada">Gwagwalada</option>
+                                    </select>
                                 </div>
+                            </div>
+
+                            <div>
+                                <label for="postal_code" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Zip Code
+                                </label>
+                                <input type="text" id="postal_code" name="postal_code"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="e.g., 900001">
                             </div>
                         </div>
                     </div>
@@ -202,12 +227,39 @@
                             </div>
 
                             <div>
-                                <label for="opening_hours" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
-                                    Opening Hours
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Business Hours
                                 </label>
-                                <input type="text" id="opening_hours" name="opening_hours"
-                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-                                    placeholder="e.g., Mon-Sun: 8AM-10PM">
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="monday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Monday</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="tuesday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Tuesday</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="wednesday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Wednesday</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="thursday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Thursday</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="friday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Friday</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="saturday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Saturday</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="business_days[]" value="sunday" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                                        <span class="text-sm text-gray-700 dark:text-white">Sunday</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
