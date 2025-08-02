@@ -9,11 +9,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-8">
                 <div class="flex items-center space-x-4">
-                    @if($restaurant->logo)
-                        <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
-                    @else
-                        <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
-                    @endif
+                    <img src="{{ \App\Helpers\PWAHelper::getRestaurantImage($restaurant->logo, 'square') }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $restaurant->name }}</h1>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Restaurant Dashboard</p>

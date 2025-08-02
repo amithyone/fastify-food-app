@@ -324,8 +324,8 @@
                                 class="hidden" onchange="previewImage(this, 'logo-preview')">
                             <label for="logo" class="cursor-pointer">
                                 <div id="logo-preview" class="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                    @if($restaurant->logo)
-                                        <img src="{{ Storage::url($restaurant->logo) }}" class="w-full h-full object-cover rounded-lg">
+                                    @if(\App\Helpers\PWAHelper::hasValidRestaurantImage($restaurant->logo))
+                                        <img src="{{ \App\Helpers\PWAHelper::getRestaurantImage($restaurant->logo) }}" class="w-full h-full object-cover rounded-lg" onerror="this.parentElement.innerHTML='<i class=\'fas fa-camera text-2xl text-gray-400\'></i>'">
                                     @else
                                         <i class="fas fa-camera text-2xl text-gray-400"></i>
                                     @endif
@@ -344,8 +344,8 @@
                                 class="hidden" onchange="previewImage(this, 'banner-preview')">
                             <label for="banner_image" class="cursor-pointer">
                                 <div id="banner-preview" class="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                    @if($restaurant->banner_image)
-                                        <img src="{{ Storage::url($restaurant->banner_image) }}" class="w-full h-full object-cover rounded-lg">
+                                    @if(\App\Helpers\PWAHelper::hasValidRestaurantImage($restaurant->banner_image))
+                                        <img src="{{ \App\Helpers\PWAHelper::getRestaurantImage($restaurant->banner_image) }}" class="w-full h-full object-cover rounded-lg" onerror="this.parentElement.innerHTML='<i class=\'fas fa-image text-2xl text-gray-400\'></i>'">
                                     @else
                                         <i class="fas fa-image text-2xl text-gray-400"></i>
                                     @endif

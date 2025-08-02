@@ -242,9 +242,29 @@ class PWAHelper
      */
     public static function getMenuItemImage($imagePath = null, $type = 'square')
     {
-        if ($imagePath && file_exists(public_path($imagePath))) {
-            return $imagePath;
+        if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
+            return \Storage::disk('public')->url($imagePath);
         }
         return self::getPlaceholderImage($type);
+    }
+
+    /**
+     * Get restaurant image (logo/banner) with fallback
+     */
+    public static function getRestaurantImage($imagePath = null, $type = 'square', $fallbackIcon = 'fas fa-store')
+    {
+        if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
+            return \Storage::disk('public')->url($imagePath);
+        }
+        
+        return self::getPlaceholderImage($type);
+    }
+
+    /**
+     * Check if restaurant image exists and is valid
+     */
+    public static function hasValidRestaurantImage($imagePath = null)
+    {
+        return $imagePath && \Storage::disk('public')->exists($imagePath);
     }
 } 

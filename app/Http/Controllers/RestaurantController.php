@@ -254,22 +254,50 @@ class RestaurantController extends Controller
         try {
             // Handle logo upload
             if ($request->hasFile('logo')) {
+                \Log::info('Logo upload detected', [
+                    'file_name' => $request->file('logo')->getClientOriginalName(),
+                    'file_size' => $request->file('logo')->getSize(),
+                    'file_mime' => $request->file('logo')->getMimeType(),
+                ]);
+                
                 // Delete old logo
                 if ($restaurant->logo) {
                     Storage::disk('public')->delete($restaurant->logo);
+                    \Log::info('Old logo deleted', ['old_path' => $restaurant->logo]);
                 }
+                
                 $logoPath = $request->file('logo')->store('restaurants/logos', 'public');
                 $restaurant->logo = $logoPath;
+                
+                \Log::info('Logo uploaded successfully', [
+                    'new_path' => $logoPath,
+                    'full_url' => Storage::disk('public')->url($logoPath),
+                    'file_exists' => Storage::disk('public')->exists($logoPath)
+                ]);
             }
 
             // Handle banner upload
             if ($request->hasFile('banner_image')) {
+                \Log::info('Banner upload detected', [
+                    'file_name' => $request->file('banner_image')->getClientOriginalName(),
+                    'file_size' => $request->file('banner_image')->getSize(),
+                    'file_mime' => $request->file('banner_image')->getMimeType(),
+                ]);
+                
                 // Delete old banner
                 if ($restaurant->banner_image) {
                     Storage::disk('public')->delete($restaurant->banner_image);
+                    \Log::info('Old banner deleted', ['old_path' => $restaurant->banner_image]);
                 }
+                
                 $bannerPath = $request->file('banner_image')->store('restaurants/banners', 'public');
                 $restaurant->banner_image = $bannerPath;
+                
+                \Log::info('Banner uploaded successfully', [
+                    'new_path' => $bannerPath,
+                    'full_url' => Storage::disk('public')->url($bannerPath),
+                    'file_exists' => Storage::disk('public')->exists($bannerPath)
+                ]);
             }
 
             // Update restaurant
