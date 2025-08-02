@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PhoneAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\StoryController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
