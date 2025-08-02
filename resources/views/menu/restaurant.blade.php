@@ -208,67 +208,100 @@
 
 <script>
 // Cart functionality
-let cart = [];
 
 function addToCart(itemId, name, price) {
-    const existingItem = cart.find(item => item.id === itemId);
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({ id: itemId, name, price, quantity: 1 });
-    }
-    updateCartDisplay();
-    showCartButton();
+    console.log('addToCart called with:', itemId, name, price);
+    
+    // Send request to server to add item to cart
+    fetch('/cart/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            menu_item_id: itemId,
+            quantity: 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Item added to cart successfully');
+            showCartNotification(name);
+            updateCartDisplay();
+        } else {
+            console.error('Failed to add item to cart:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding item to cart:', error);
+    });
 }
 
 function updateCartDisplay() {
-    const cartItems = document.getElementById('cartItems');
-    const cartCount = document.getElementById('cartCount');
-    const cartTotal = document.getElementById('cartTotal');
-    
-    cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    let total = 0;
-    let html = '';
-    
-    cart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        total += itemTotal;
-        html += `
-            <div class="flex items-center justify-between py-2">
-                <div class="flex-1">
-                    <h4 class="font-medium text-gray-900 dark:text-white">${item.name}</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $restaurant->currency }}${(item.price / 100).toFixed(2)}</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="updateQuantity(${item.id}, -1)" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                        <i class="fas fa-minus text-xs"></i>
-                    </button>
-                    <span class="w-8 text-center">${item.quantity}</span>
-                    <button onclick="updateQuantity(${item.id}, 1)" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                        <i class="fas fa-plus text-xs"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-    
-    cartItems.innerHTML = html;
-    cartTotal.textContent = `{{ $restaurant->currency }}${(total / 100).toFixed(2)}`;
+    // Fetch cart data from server
+    fetch('/cart')
+        .then(response => response.text())
+        .then(html => {
+            // Create a temporary div to parse the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extract cart items from the response
+            const cartItemsContainer = tempDiv.querySelector('#cartItems');
+            const cartTotalElement = tempDiv.querySelector('#cartTotal');
+            const cartCountElement = document.getElementById('cartCount');
+            
+            if (cartItemsContainer && cartTotalElement) {
+                document.getElementById('cartItems').innerHTML = cartItemsContainer.innerHTML;
+                document.getElementById('cartTotal').innerHTML = cartTotalElement.innerHTML;
+                
+                // Update cart count
+                if (cartCountElement) {
+                    const totalItems = cartItemsContainer.children.length;
+                    cartCountElement.textContent = totalItems;
+                    cartCountElement.classList.toggle('hidden', totalItems === 0);
+                }
+                
+                // Show/hide cart button based on items
+                if (totalItems > 0) {
+                    showCartButton();
+                } else {
+                    hideCartButton();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching cart data:', error);
+        });
 }
 
 function updateQuantity(itemId, change) {
-    const item = cart.find(item => item.id === itemId);
-    if (item) {
-        item.quantity += change;
-        if (item.quantity <= 0) {
-            cart = cart.filter(item => item.id !== itemId);
+    // Send request to server to update quantity
+    fetch('/cart/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            menu_item_id: itemId,
+            quantity: change
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Cart updated successfully');
+            updateCartDisplay();
+        } else {
+            console.error('Failed to update cart:', data.message);
         }
-        updateCartDisplay();
-        if (cart.length === 0) {
-            hideCartButton();
-        }
-    }
+    })
+    .catch(error => {
+        console.error('Error updating cart:', error);
+    });
 }
 
 function showCartButton() {
@@ -288,9 +321,7 @@ function hideCart() {
 }
 
 function proceedToCheckout() {
-    // Redirect to checkout with cart data
-    localStorage.setItem('cart', JSON.stringify(cart));
-    localStorage.setItem('restaurant_id', '{{ $restaurant->id }}');
+    // Redirect to checkout - cart data is already in session
     window.location.href = '{{ route("checkout.index") }}';
 }
 

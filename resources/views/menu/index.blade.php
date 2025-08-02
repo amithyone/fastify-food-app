@@ -696,17 +696,6 @@ function openCart() {
     window.location.href = '/cart';
 }
 
-// Update cart count in side menu
-function updateMenuCartCount() {
-    const menuCartCount = document.getElementById('menuCartCount');
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    if (menuCartCount) {
-        menuCartCount.textContent = totalItems;
-        menuCartCount.classList.toggle('hidden', totalItems === 0);
-    }
-}
-
 // Dish Details Modal
 function showDishDetails(event, itemId, name, description, price, category, ingredients, allergens) {
     event.stopPropagation(); // Prevent card click from triggering
