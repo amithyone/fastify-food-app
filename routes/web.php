@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cart/update', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
     Route::post('/cart/remove', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');
     
     // Orders Routes
     Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');

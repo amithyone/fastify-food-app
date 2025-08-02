@@ -24,13 +24,6 @@
 
     <!-- Stories Section -->
     <div class="mb-4" style="margin-top: 60px;">
-        <!-- Manual PWA Install Button (for testing) -->
-        <div class="mb-4 text-center">
-            <button id="manualPWAInstall" class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-600 transition-colors">
-                📱 Install App
-            </button>
-        </div>
-        
         <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar w-full whitespace-nowrap" >
             <!-- Today's Special -->
             <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-orange-200 to-orange-400 dark:from-orange-700 dark:to-orange-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('special')" >
@@ -397,16 +390,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Initialize cart array
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let cartTotal = 0;
 let currentMenuItems = [];
 let selectedItems = new Set(); // Track selected items
 
 // Initialize cart display on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing cart from localStorage:', cart);
+    console.log('Initializing cart display');
     updateCartDisplay();
-    updateMenuCartCount();
 });
 
 // Story functionality
@@ -645,41 +636,60 @@ function showCartNotification(itemName) {
 function addToCart(itemId, name, price) {
     console.log('addToCart called with:', itemId, name, price); // Debug log
     
-    const existingItem = cart.find(item => item.id === itemId);
-    
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({
-            id: itemId,
-            name: name,
-            price: price,
+    // Send request to server to add item to cart
+    fetch('/cart/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            menu_item_id: itemId,
             quantity: 1
-        });
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartDisplay();
-    console.log('Calling showCartNotification with:', name); // Debug log
-    showCartNotification(name);
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Item added to cart successfully');
+            showCartNotification(name);
+            updateCartDisplay();
+        } else {
+            console.error('Failed to add item to cart:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding item to cart:', error);
+    });
 }
 
 function updateCartDisplay() {
-    const cartCount = document.getElementById('cartCount');
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    
-    console.log('updateCartDisplay called - totalItems:', totalItems);
-    console.log('cartCount element:', cartCount);
-    
-    if (cartCount) {
-        cartCount.textContent = totalItems;
-        cartCount.classList.toggle('hidden', totalItems === 0);
-        console.log('Cart count updated to:', totalItems);
-        console.log('Cart count element classes:', cartCount.className);
-        console.log('Cart count element style:', cartCount.style.cssText);
-    } else {
-        console.error('cartCount element not found!');
-    }
+    // Fetch cart count from server
+    fetch('/cart/count')
+        .then(response => response.json())
+        .then(data => {
+            const cartCount = document.getElementById('cartCount');
+            const menuCartCount = document.getElementById('menuCartCount');
+            const totalItems = data.count || 0;
+            
+            console.log('updateCartDisplay called - totalItems:', totalItems);
+            
+            if (cartCount) {
+                cartCount.textContent = totalItems;
+                cartCount.classList.toggle('hidden', totalItems === 0);
+                console.log('Cart count updated to:', totalItems);
+            } else {
+                console.error('cartCount element not found!');
+            }
+            
+            if (menuCartCount) {
+                menuCartCount.textContent = totalItems;
+                menuCartCount.classList.toggle('hidden', totalItems === 0);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching cart count:', error);
+        });
 }
 
 function openCart() {
@@ -780,28 +790,7 @@ function testCart() {
     updateMenuCartCount();
 }
 
-// Manual PWA Install
-document.addEventListener('DOMContentLoaded', function() {
-    const manualPWAInstall = document.getElementById('manualPWAInstall');
-    if (manualPWAInstall) {
-        manualPWAInstall.addEventListener('click', function() {
-            console.log('Manual PWA install button clicked');
-            
-            // Check if we have a deferred prompt
-            if (window.deferredPrompt) {
-                console.log('Triggering install prompt');
-                window.deferredPrompt.prompt();
-                window.deferredPrompt.userChoice.then((choiceResult) => {
-                    console.log('User choice:', choiceResult.outcome);
-                    window.deferredPrompt = null;
-                });
-            } else {
-                console.log('No deferred prompt available');
-                alert('PWA install prompt not available. Try refreshing the page or check browser compatibility.');
-            }
-        });
-    }
-});
+
 </script>
 
 <!-- Pass stories from PHP to JavaScript -->

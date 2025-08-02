@@ -162,4 +162,11 @@ class CartController extends Controller
 
         return $count;
     }
+
+    public function count()
+    {
+        return response()->json([
+            'count' => $this->getCartCount()
+        ]);
+    }
 } 
