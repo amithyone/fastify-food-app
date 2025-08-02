@@ -49,50 +49,50 @@
             </div>
         @endif
 
-        <!-- 3-Column Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+        <!-- Improved 3-Column Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             
-            <!-- Column 1: Category Management -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <!-- Column 1: Category Management (2 columns) -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="px-4 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Categories</h2>
-                        <button onclick="openCategoryModal()" class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
-                            <i class="fas fa-plus mr-1"></i>Add
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Categories</h2>
+                        <button onclick="openCategoryModal()" class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
                 
-                <div class="p-6">
-                    <div class="space-y-3">
+                <div class="p-4">
+                    <div class="space-y-2">
                         @foreach($categories as $category)
-                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                                <div class="flex items-center">
-                                    <i class="fas fa-folder text-blue-500 mr-3"></i>
-                                    <div>
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $category->name }}</span>
+                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                <div class="flex items-center min-w-0 flex-1">
+                                    <i class="fas fa-folder text-blue-500 mr-2 text-sm"></i>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
                                         <div class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $category->menuItems->count() }} items
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-1 ml-2">
                                     <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}')" class="text-gray-400 hover:text-blue-600">
-                                        <i class="fas fa-edit text-sm"></i>
+                                        <i class="fas fa-edit text-xs"></i>
                                     </button>
                                     <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
-                                        <i class="fas fa-trash text-sm"></i>
+                                        <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 </div>
                             </div>
                         @endforeach
                         
                         @if($categories->count() == 0)
-                            <div class="text-center py-8">
-                                <i class="fas fa-folder-open text-4xl text-gray-400 mb-3"></i>
-                                <p class="text-gray-500 dark:text-gray-400">No categories yet</p>
-                                <button onclick="openCategoryModal()" class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
-                                    <i class="fas fa-plus mr-1"></i>Create First Category
+                            <div class="text-center py-4">
+                                <i class="fas fa-folder-open text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">No categories</p>
+                                <button onclick="openCategoryModal()" class="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
+                                    <i class="fas fa-plus mr-1"></i>Add
                                 </button>
                             </div>
                         @endif
@@ -100,30 +100,35 @@
                 </div>
             </div>
 
-            <!-- Column 2: Menu Items Management (Fixed Center) -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+            <!-- Column 2: Menu Items Management (8 columns - wider) -->
+            <div class="lg:col-span-8 bg-white dark:bg-gray-800 rounded-lg shadow">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Menu Items ({{ $menuItems->count() }})</h2>
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Menu Items ({{ $menuItems->count() }})</h2>
+                        <button onclick="openMenuItemModal()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                            <i class="fas fa-plus mr-2"></i>Add Item
+                        </button>
+                    </div>
                 </div>
                 
                 @if($menuItems->count() > 0)
-                    <div class="overflow-hidden">
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/3">
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-2/5">
                                         Item
                                     </th>
-                                    <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
                                         Price
                                     </th>
-                                    <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
                                         Status
                                     </th>
-                                    <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
                                         Options
                                     </th>
-                                    <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
                                         Actions
                                     </th>
                                 </tr>
@@ -131,15 +136,15 @@
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($menuItems as $item)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="px-3 py-3 whitespace-nowrap">
+                                        <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-8 w-8">
+                                                <div class="flex-shrink-0 h-10 w-10">
                                                     <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
                                                          alt="{{ $item->name }}" 
-                                                         class="h-8 w-8 rounded-lg object-cover"
+                                                         class="h-10 w-10 rounded-lg object-cover"
                                                          onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
                                                 </div>
-                                                <div class="ml-2 min-w-0 flex-1">
+                                                <div class="ml-3 min-w-0 flex-1">
                                                     <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
                                                         {{ $item->name }}
                                                     </div>
@@ -149,21 +154,21 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
                                             {{ $restaurant->currency }}{{ number_format($item->price / 100, 2) }}
                                         </td>
-                                        <td class="px-2 py-3 whitespace-nowrap">
+                                        <td class="px-3 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <button onclick="toggleItemStatus({{ $item->id }}, {{ $item->is_available ? 'false' : 'true' }})" 
-                                                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors {{ $item->is_available ? 'bg-green-600' : 'bg-gray-200' }}">
-                                                    <span class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform {{ $item->is_available ? 'translate-x-5' : 'translate-x-1' }}"></span>
+                                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {{ $item->is_available ? 'bg-green-600' : 'bg-gray-200' }}">
+                                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $item->is_available ? 'translate-x-6' : 'translate-x-1' }}"></span>
                                                 </button>
-                                                <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ $item->is_available ? 'On' : 'Off' }}
+                                                <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $item->is_available ? 'Available' : 'Hidden' }}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td class="px-2 py-3 whitespace-nowrap">
+                                        <td class="px-3 py-4 whitespace-nowrap">
                                             <div class="flex items-center space-x-1">
                                                 @if($item->is_featured)
                                                     <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full">
@@ -182,15 +187,15 @@
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-2 py-3 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex items-center space-x-1">
+                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex items-center space-x-2">
                                                 <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image ? Storage::url($item->image) : null }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }})" 
-                                                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1">
-                                                    <i class="fas fa-edit text-xs"></i>
+                                                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded">
+                                                    <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button onclick="deleteMenuItem({{ $item->id }})" 
-                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1">
-                                                    <i class="fas fa-trash text-xs"></i>
+                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                                                    <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -214,39 +219,39 @@
                 @endif
             </div>
 
-            <!-- Column 3: Flexible Widgets -->
-            <div class="space-y-6">
+            <!-- Column 3: Quick Actions & Widgets (2 columns) -->
+            <div class="lg:col-span-2 space-y-4">
                 <!-- Widget Container -->
-                <div id="widgets-container" class="space-y-6">
+                <div id="widgets-container" class="space-y-4">
                     
                     <!-- Top Selling Items Widget -->
-                    <div class="widget bg-white dark:bg-gray-800 rounded-lg shadow p-6" data-widget="top-selling">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Top Selling Items</h3>
-                            <div class="flex items-center space-x-2">
-                                <button class="widget-toggle text-gray-400 hover:text-gray-600" onclick="toggleWidget(this)">
+                    <div class="widget bg-white dark:bg-gray-800 rounded-lg shadow p-4" data-widget="top-selling">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Top Items</h3>
+                            <div class="flex items-center space-x-1">
+                                <button class="widget-toggle text-gray-400 hover:text-gray-600 text-xs" onclick="toggleWidget(this)">
                                     <i class="fas fa-chevron-up"></i>
                                 </button>
-                                <button class="widget-drag text-gray-400 hover:text-gray-600 cursor-move" onclick="startDrag(this)">
+                                <button class="widget-drag text-gray-400 hover:text-gray-600 cursor-move text-xs" onclick="startDrag(this)">
                                     <i class="fas fa-grip-vertical"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="widget-content">
-                            <div class="space-y-3">
-                                @foreach($menuItems->take(5) as $index => $item)
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                        <div class="flex items-center">
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400 mr-2">#{{ $index + 1 }}</span>
-                                            <div class="w-8 h-8 rounded-lg overflow-hidden mr-3">
+                            <div class="space-y-2">
+                                @foreach($menuItems->take(3) as $index => $item)
+                                    <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <div class="flex items-center min-w-0 flex-1">
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2">#{{ $index + 1 }}</span>
+                                            <div class="w-6 h-6 rounded overflow-hidden mr-2">
                                                 <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
                                                      alt="{{ $item->name }}" 
                                                      class="w-full h-full object-cover"
                                                      onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
                                             </div>
-                                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $item->name }}</span>
+                                            <span class="text-xs font-medium text-gray-900 dark:text-white truncate">{{ $item->name }}</span>
                                         </div>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ $restaurant->currency }}{{ number_format($item->price / 100, 2) }}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ $restaurant->currency }}{{ number_format($item->price / 100, 2) }}</span>
                                     </div>
                                 @endforeach
                             </div>
@@ -254,42 +259,42 @@
                     </div>
 
                     <!-- Quick Actions Widget -->
-                    <div class="widget bg-white dark:bg-gray-800 rounded-lg shadow p-6" data-widget="quick-actions">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h3>
-                            <div class="flex items-center space-x-2">
-                                <button class="widget-toggle text-gray-400 hover:text-gray-600" onclick="toggleWidget(this)">
+                    <div class="widget bg-white dark:bg-gray-800 rounded-lg shadow p-4" data-widget="quick-actions">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Quick Actions</h3>
+                            <div class="flex items-center space-x-1">
+                                <button class="widget-toggle text-gray-400 hover:text-gray-600 text-xs" onclick="toggleWidget(this)">
                                     <i class="fas fa-chevron-up"></i>
                                 </button>
-                                <button class="widget-drag text-gray-400 hover:text-gray-600 cursor-move" onclick="startDrag(this)">
+                                <button class="widget-drag text-gray-400 hover:text-gray-600 cursor-move text-xs" onclick="startDrag(this)">
                                     <i class="fas fa-grip-vertical"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="widget-content">
-                            <div class="space-y-3">
-                                <button onclick="importMenu()" class="w-full text-left p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                            <div class="space-y-2">
+                                <button onclick="importMenu()" class="w-full text-left p-2 bg-blue-50 dark:bg-blue-900/20 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
                                     <div class="flex items-center">
-                                        <i class="fas fa-upload text-blue-500 mr-3"></i>
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Import Menu (CSV)</span>
+                                        <i class="fas fa-upload text-blue-500 mr-2 text-xs"></i>
+                                        <span class="text-xs font-medium text-gray-900 dark:text-white">Import Menu</span>
                                     </div>
                                 </button>
-                                <button onclick="exportMenu()" class="w-full text-left p-3 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                                <button onclick="exportMenu()" class="w-full text-left p-2 bg-green-50 dark:bg-green-900/20 rounded hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
                                     <div class="flex items-center">
-                                        <i class="fas fa-download text-green-500 mr-3"></i>
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Export Menu</span>
+                                        <i class="fas fa-download text-green-500 mr-2 text-xs"></i>
+                                        <span class="text-xs font-medium text-gray-900 dark:text-white">Export Menu</span>
                                     </div>
                                 </button>
-                                <button onclick="bulkPriceUpdate()" class="w-full text-left p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                                <button onclick="bulkPriceUpdate()" class="w-full text-left p-2 bg-purple-50 dark:bg-purple-900/20 rounded hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
                                     <div class="flex items-center">
-                                        <i class="fas fa-tags text-purple-500 mr-3"></i>
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Bulk Price Update</span>
+                                        <i class="fas fa-tags text-purple-500 mr-2 text-xs"></i>
+                                        <span class="text-xs font-medium text-gray-900 dark:text-white">Bulk Update</span>
                                     </div>
                                 </button>
-                                <button onclick="menuTemplates()" class="w-full text-left p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
+                                <button onclick="menuTemplates()" class="w-full text-left p-2 bg-orange-50 dark:bg-orange-900/20 rounded hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
                                     <div class="flex items-center">
-                                        <i class="fas fa-layer-group text-orange-500 mr-3"></i>
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Menu Templates</span>
+                                        <i class="fas fa-layer-group text-orange-500 mr-2 text-xs"></i>
+                                        <span class="text-xs font-medium text-gray-900 dark:text-white">Templates</span>
                                     </div>
                                 </button>
                             </div>

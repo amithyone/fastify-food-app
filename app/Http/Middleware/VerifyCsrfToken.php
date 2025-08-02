@@ -13,5 +13,8 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         'phone/*',
+        'test-menu-item',
+        'test-image-upload',
+        'quick-login',
     ];
 } 
