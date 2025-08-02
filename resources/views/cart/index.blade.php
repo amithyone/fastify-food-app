@@ -77,7 +77,7 @@
                                     <!-- Restaurant Items -->
                                     <div class="space-y-2">
                                         @foreach($restaurantCart['items'] as $item)
-                                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div class="cart-item flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                                                 <div class="flex items-center">
                                                     @if($item['image'])
                                                         <img src="{{ Storage::url($item['image']) }}" 
@@ -89,8 +89,8 @@
                                                              class="w-12 h-12 rounded-lg object-cover mr-3">
                                                     @endif
                                                     <div>
-                                                        <h4 class="font-medium text-gray-900 dark:text-white text-sm">{{ $item['name'] }}</h4>
-                                                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['price'] / 100, 2) }}</p>
+                                                        <h4 class="item-name font-medium text-gray-900 dark:text-white text-sm">{{ $item['name'] }}</h4>
+                                                        <p class="item-price text-xs text-gray-600 dark:text-gray-400">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['price'] / 100, 2) }}</p>
                                                     </div>
                                                 </div>
                                                 
@@ -100,7 +100,7 @@
                                                                 class="px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                             <i class="fas fa-minus text-xs"></i>
                                                         </button>
-                                                        <span class="px-2 py-1 text-gray-900 dark:text-white font-medium text-sm">{{ $item['quantity'] }}</span>
+                                                        <span class="item-quantity px-2 py-1 text-gray-900 dark:text-white font-medium text-sm">{{ $item['quantity'] }}</span>
                                                         <button onclick="updateQuantity({{ $item['id'] }}, {{ $item['quantity'] + 1 }})" 
                                                                 class="px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                             <i class="fas fa-plus text-xs"></i>

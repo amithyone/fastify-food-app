@@ -9,6 +9,8 @@ use App\Models\UserReward;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use App\Models\Restaurant;
 
 class OrderController extends Controller
 {
@@ -19,7 +21,49 @@ class OrderController extends Controller
 
     public function checkout()
     {
-        return view('checkout.index');
+        $cart = Session::get('cart', []);
+        $cartItems = [];
+        $total = 0;
+
+        foreach ($cart as $restaurantId => $items) {
+            $restaurant = Restaurant::find($restaurantId);
+            if ($restaurant) {
+                $restaurantItems = [];
+                $restaurantTotal = 0;
+
+                foreach ($items as $itemId => $quantity) {
+                    $menuItem = MenuItem::find($itemId);
+                    if ($menuItem && $menuItem->is_available) {
+                        $itemTotal = $menuItem->price * $quantity;
+                        $restaurantItems[] = [
+                            'id' => $menuItem->id,
+                            'name' => $menuItem->name,
+                            'price' => $menuItem->price,
+                            'quantity' => $quantity,
+                            'total' => $itemTotal,
+                            'image' => $menuItem->image
+                        ];
+                        $restaurantTotal += $itemTotal;
+                    }
+                }
+
+                if (!empty($restaurantItems)) {
+                    $cartItems[] = [
+                        'restaurant' => $restaurant,
+                        'items' => $restaurantItems,
+                        'total' => $restaurantTotal
+                    ];
+                    $total += $restaurantTotal;
+                }
+            }
+        }
+
+        // Ensure cartItems is always an array
+        if (!is_array($cartItems)) {
+            $cartItems = [];
+        }
+
+        return view('checkout.index', compact('cartItems', 'total'));
     }
 
     public function addToCart(Request $request)

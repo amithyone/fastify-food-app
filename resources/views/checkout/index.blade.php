@@ -108,6 +108,7 @@
                         <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City *</label>
                         <input type="text" id="city" name="city" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
                     </div>
+                    
                     <div>
                         <label for="state" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State *</label>
                         <input type="text" id="state" name="state" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
@@ -115,13 +116,13 @@
                 </div>
                 
                 <div>
-                    <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Postal Code</label>
+                    <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Postal Code (Optional)</label>
                     <input type="text" id="postal_code" name="postal_code" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
                 </div>
                 
                 <div>
                     <label for="instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Instructions (Optional)</label>
-                    <textarea id="instructions" name="instructions" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Any special instructions for delivery..."></textarea>
+                    <textarea id="instructions" name="instructions" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Any special delivery instructions..."></textarea>
                 </div>
             </div>
         </div>
@@ -130,12 +131,31 @@
         <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Summary</h2>
             <div id="orderItems" class="space-y-3 mb-4">
-                <!-- Order items will be populated here -->
+                @if(empty($cartItems))
+                    <p class="text-gray-500 dark:text-gray-400 text-center">No items in cart</p>
+                @else
+                    @foreach($cartItems as $restaurantGroup)
+                        @foreach($restaurantGroup['items'] as $item)
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                                        <span class="text-orange-600 dark:text-orange-400 font-semibold">{{ $item['quantity'] }}</span>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 dark:text-white">{{ $item['name'] }}</div>
+                                        <div class="text-sm text-gray-600 dark:text-gray-400">₦{{ number_format($item['price']) }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-gray-900 dark:text-white font-semibold">₦{{ number_format($item['total']) }}</div>
+                            </div>
+                        @endforeach
+                    @endforeach
+                @endif
             </div>
             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                    <span id="subtotal" class="text-gray-900 dark:text-white">₦0</span>
+                    <span id="subtotal" class="text-gray-900 dark:text-white">₦{{ number_format($total) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400">Delivery Fee:</span>
@@ -143,7 +163,7 @@
                 </div>
                 <div class="flex justify-between text-lg font-semibold">
                     <span class="text-gray-900 dark:text-white">Total:</span>
-                    <span id="total" class="text-orange-600 dark:text-orange-400">₦0</span>
+                    <span id="total" class="text-orange-600 dark:text-orange-400">₦{{ number_format($total) }}</span>
                 </div>
             </div>
         </div>
@@ -381,42 +401,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Load cart data
+// Load cart data from server
 function loadCart() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const orderItemsContainer = document.getElementById('orderItems');
-    
-    if (cart.length === 0) {
-        orderItemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">No items in cart</p>';
-        return;
-    }
-    
-    orderItemsContainer.innerHTML = cart.map(item => `
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                    <span class="text-orange-600 dark:text-orange-400 font-semibold">${item.quantity}</span>
-                </div>
-                <div>
-                    <div class="font-medium text-gray-900 dark:text-white">${item.name}</div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">₦${item.price}</div>
-                </div>
-            </div>
-            <div class="text-gray-900 dark:text-white font-semibold">₦${(item.price * item.quantity).toLocaleString()}</div>
-        </div>
-    `).join('');
-    
+    // Cart data is now loaded from server and displayed in the Blade template
+    // No need to fetch from localStorage
     updateOrderSummary();
 }
 
 function updateOrderSummary() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Get the current subtotal from the server-side data
+    const subtotalElement = document.getElementById('subtotal');
+    const subtotalText = subtotalElement.textContent;
+    const subtotal = parseFloat(subtotalText.replace('₦', '').replace(',', '')) || 0;
+    
     const restaurantRadio = document.getElementById('restaurantRadio');
     const deliveryFee = restaurantRadio && restaurantRadio.checked ? 0 : 500;
     const total = subtotal + deliveryFee;
     
-    document.getElementById('subtotal').textContent = `₦${subtotal.toLocaleString()}`;
     document.getElementById('deliveryFee').textContent = `₦${deliveryFee.toLocaleString()}`;
     document.getElementById('total').textContent = `₦${total.toLocaleString()}`;
 }
@@ -426,16 +427,17 @@ function updateDeliveryFee(fee) {
     updateOrderSummary();
 }
 
-// Update cart count
+// Update cart count from server
 function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const cartCount = document.getElementById('cartCount');
-    
-    if (cartCount) {
-        cartCount.textContent = totalItems;
-        cartCount.classList.toggle('hidden', totalItems === 0);
-    }
+    fetch('/cart/count')
+        .then(response => response.json())
+        .then(data => {
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.textContent = data.count;
+                cartCount.classList.toggle('hidden', data.count === 0);
+            }
+        });
 }
 
 // Form submission
@@ -443,62 +445,90 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const orderData = {
-        items: JSON.parse(localStorage.getItem('cart')) || [],
-        customer_info: restaurantRadio.checked ? {
-            in_restaurant: true,
-            table_number: formData.get('tableNumber'),
-            restaurant_notes: formData.get('restaurantNotes')
-        } : {
-            name: formData.get('name'),
-            phone: formData.get('phone'),
-            email: formData.get('email'),
-            address: formData.get('address'),
-            city: formData.get('city'),
-            state: formData.get('state'),
-            postal_code: formData.get('postal_code'),
-            instructions: formData.get('instructions'),
-            in_restaurant: false
-        },
-        payment_method: formData.get('payment_method'),
-        subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')),
-        delivery_fee: parseFloat(document.getElementById('deliveryFee').textContent.replace('₦', '').replace(',', '')),
-        total: parseFloat(document.getElementById('total').textContent.replace('₦', '').replace(',', ''))
-    };
+    const restaurantRadio = document.getElementById('restaurantRadio');
     
-    // Debug: Log the order data
-    console.log('Sending order data:', orderData);
-    
-    // Send order to server
-    fetch('/orders', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(orderData)
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            // Clear cart
-            localStorage.removeItem('cart');
-            updateCartCount();
+    // Get cart items from server
+    fetch('/cart')
+        .then(response => response.text())
+        .then(html => {
+            // Create a temporary div to parse the cart HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
             
-            // Redirect to order confirmation
-            window.location.href = `/orders/${data.order_id}`;
-        } else {
-            alert('Error placing order: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error placing order. Please try again.');
-    });
+            // Extract cart items from the cart page
+            const cartItems = [];
+            const itemElements = tempDiv.querySelectorAll('.cart-item');
+            
+            itemElements.forEach(item => {
+                const name = item.querySelector('.item-name').textContent;
+                const price = parseFloat(item.querySelector('.item-price').textContent.replace('₦', '').replace(',', ''));
+                const quantity = parseInt(item.querySelector('.item-quantity').textContent);
+                
+                cartItems.push({
+                    name: name,
+                    price: price,
+                    quantity: quantity
+                });
+            });
+            
+            const orderData = {
+                items: cartItems,
+                customer_info: restaurantRadio.checked ? {
+                    in_restaurant: true,
+                    table_number: formData.get('tableNumber'),
+                    restaurant_notes: formData.get('restaurantNotes')
+                } : {
+                    name: formData.get('name'),
+                    phone: formData.get('phone'),
+                    email: formData.get('email'),
+                    address: formData.get('address'),
+                    city: formData.get('city'),
+                    state: formData.get('state'),
+                    postal_code: formData.get('postal_code'),
+                    instructions: formData.get('instructions'),
+                    in_restaurant: false
+                },
+                payment_method: formData.get('payment_method'),
+                subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')),
+                delivery_fee: parseFloat(document.getElementById('deliveryFee').textContent.replace('₦', '').replace(',', '')),
+                total: parseFloat(document.getElementById('total').textContent.replace('₦', '').replace(',', ''))
+            };
+            
+            // Debug: Log the order data
+            console.log('Sending order data:', orderData);
+            
+            // Send order to server
+            fetch('/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear cart after successful order
+                    fetch('/cart/clear', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    });
+                    
+                    // Redirect to order confirmation
+                    window.location.href = `/orders/${data.order_id}`;
+                } else {
+                    alert('Error placing order: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error placing order. Please try again.');
+            });
+        });
 });
 
 // Initialize
