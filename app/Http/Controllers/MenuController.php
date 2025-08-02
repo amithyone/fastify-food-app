@@ -157,6 +157,12 @@ class MenuController extends Controller
         }
         
         try {
+            \Log::info('Raw request data before validation', [
+                'price' => $request->input('price'),
+                'price_type' => gettype($request->input('price')),
+                'all_data' => $request->all()
+            ]);
+            
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -222,7 +228,10 @@ class MenuController extends Controller
             ]);
             
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation failed', ['errors' => $e->errors()]);
+            \Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
