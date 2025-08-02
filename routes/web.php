@@ -115,13 +115,13 @@ Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.sh
 Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
 
 // User Orders
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
     Route::get('/user/orders/{order}', [OrderController::class, 'userOrderShow'])->name('user.orders.show');
 });
 
 // Wallet Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::get('/wallet/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
     Route::get('/wallet/rewards', [WalletController::class, 'rewards'])->name('wallet.rewards');
@@ -151,7 +151,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
-        return redirect('/profile');
+        return redirect('/dashboard')->with('success', 'Email verified successfully!');
     })->middleware(['signed'])->name('verification.verify');
 
     Route::post('/email/verification-notification', function (Request $request) {

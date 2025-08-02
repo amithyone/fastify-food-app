@@ -34,55 +34,9 @@
             </div>
 
             <!-- Restaurants Grid -->
-            <div class="grid grid-cols-1 gap-4" id="restaurantsGrid">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="restaurantsGrid">
                 @forelse($recentRestaurants as $restaurant)
-                    <div class="restaurant-card bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden" data-name="{{ strtolower($restaurant->name) }}" data-cuisine="{{ strtolower($restaurant->cuisine_type ?? '') }}" data-location="{{ strtolower($restaurant->city ?? '') }}">
-                        <div class="flex">
-                            <!-- Restaurant Image -->
-                            <div class="w-24 h-24 flex-shrink-0">
-                                @if($restaurant->banner)
-                                    <img src="{{ Storage::url($restaurant->banner) }}" 
-                                         alt="{{ $restaurant->name }}" 
-                                         class="w-full h-full object-cover">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                                        <i class="fas fa-utensils text-white text-xl"></i>
-                                    </div>
-                                @endif
-                            </div>
-                            
-                            <!-- Restaurant Info -->
-                            <div class="flex-1 p-4">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 class="restaurant-name font-semibold text-gray-900 dark:text-white text-sm">{{ $restaurant->name }}</h3>
-                                        <p class="cuisine-type text-xs text-gray-600 dark:text-gray-400">{{ $restaurant->cuisine_type ?? 'Restaurant' }}</p>
-                                        @if($restaurant->city)
-                                            <p class="text-xs text-gray-500 dark:text-gray-500">{{ $restaurant->city }}, {{ $restaurant->state }}</p>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center space-x-1">
-                                        <div class="flex text-yellow-400">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="fas fa-star text-xs"></i>
-                                            @endfor
-                                        </div>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">(4.5)</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex justify-between items-center">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ $restaurant->menuItems()->count() }} items
-                                    </div>
-                                    <a href="{{ route('menu.restaurant', $restaurant->slug) }}" 
-                                       class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs font-medium transition-colors">
-                                        View Menu
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    @include('components.restaurant-card', ['restaurant' => $restaurant])
                 @empty
                     <div class="text-center py-8">
                         <i class="fas fa-clock text-4xl text-gray-400 mb-4"></i>

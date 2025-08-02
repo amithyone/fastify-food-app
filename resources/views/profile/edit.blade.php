@@ -41,6 +41,21 @@
         </div>
     </div>
 
+    <!-- Email Verification Notice -->
+    @if(!Auth::user()->hasVerifiedEmail())
+        <div class="mb-6 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span>Please verify your email address to access all features.</span>
+                </div>
+                <a href="{{ route('verification.notice') }}" class="text-yellow-800 hover:text-yellow-900 font-medium">
+                    Verify Now
+                </a>
+            </div>
+        </div>
+    @endif
+
     <!-- Profile Information -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 mb-4">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Information</h2>

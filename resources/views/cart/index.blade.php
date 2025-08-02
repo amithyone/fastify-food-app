@@ -26,9 +26,25 @@
         <!-- Content starts after fixed header -->
         <div style="margin-top: 60px;">
             @php
-                // Ensure cartItems is always an array
                 $cartItems = $cartItems ?? [];
             @endphp
+
+            <!-- Email Verification Notice -->
+            @auth
+                @if(!Auth::user()->hasVerifiedEmail())
+                    <div class="mb-6 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <span>Please verify your email address to complete orders.</span>
+                            </div>
+                            <a href="{{ route('verification.notice') }}" class="text-yellow-800 hover:text-yellow-900 font-medium">
+                                Verify Now
+                            </a>
+                        </div>
+                    </div>
+                @endif
+            @endauth
 
             @if($cartItems && count($cartItems) > 0)
                 <div class="space-y-4">

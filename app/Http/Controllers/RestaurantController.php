@@ -417,7 +417,7 @@ class RestaurantController extends Controller
     public function allRestaurants()
     {
         $restaurants = Restaurant::where('is_active', true)
-            ->with(['menuItems', 'categories'])
+            ->with(['menuItems', 'categories', 'ratings'])
             ->orderBy('name')
             ->get();
             
@@ -430,7 +430,7 @@ class RestaurantController extends Controller
         
         // Get recently visited restaurants based on user orders
         $recentRestaurants = $user->orders()
-            ->with('restaurant')
+            ->with(['restaurant.ratings'])
             ->select('restaurant_id')
             ->groupBy('restaurant_id')
             ->orderByRaw('MAX(created_at) DESC')

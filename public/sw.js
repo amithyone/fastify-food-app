@@ -1,13 +1,12 @@
-const CACHE_NAME = 'abuja-eat-v1.0.0';
-const STATIC_CACHE = 'abuja-eat-static-v1.0.0';
-const DYNAMIC_CACHE = 'abuja-eat-dynamic-v1.0.0';
+const CACHE_NAME = 'fastify-v1.0.0';
+const STATIC_CACHE = 'fastify-static-v1.0.0';
+const DYNAMIC_CACHE = 'fastify-dynamic-v1.0.0';
 
 // Files to cache immediately
 const STATIC_FILES = [
     '/',
-    '/css/app.css',
-    '/js/app.js',
     '/manifest.json',
+    '/favicon.png',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
     '/offline.html'

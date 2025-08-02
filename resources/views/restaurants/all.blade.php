@@ -337,25 +337,6 @@ function closeRestaurantModal() {
     modal.classList.add('hidden');
 }
 
-// Generate star rating HTML
-function generateStarRating(rating) {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating - fullStars >= 0.5;
-    let starsHtml = '';
-    
-    for (let i = 1; i <= 5; i++) {
-        if (i <= fullStars) {
-            starsHtml += '<i class="fas fa-star text-sm"></i>';
-        } else if (i === fullStars + 1 && hasHalfStar) {
-            starsHtml += '<i class="fas fa-star-half-alt text-sm"></i>';
-        } else {
-            starsHtml += '<i class="far fa-star text-sm"></i>';
-        }
-    }
-    
-    return starsHtml;
-}
-
 // Rating Modal Functions
 function showRatingModal(restaurantId, restaurantName) {
     currentRestaurantId = restaurantId;
@@ -435,10 +416,21 @@ function submitRating() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            successMessage.textContent = data.message;
+            document.body.appendChild(successMessage);
+            
+            // Remove success message after 3 seconds
+            setTimeout(() => {
+                successMessage.remove();
+            }, 3000);
+            
             closeRatingModal();
-            // Optionally refresh the page to update ratings
-            location.reload();
+            
+            // Update the restaurant card rating display
+            updateRestaurantRating(currentRestaurantId, data.average_rating);
         } else {
             alert('Failed to submit rating. Please try again.');
         }
@@ -451,6 +443,35 @@ function submitRating() {
         submitButton.disabled = false;
         submitButton.textContent = 'Submit Rating';
     });
+}
+
+// Function to update restaurant rating display
+function updateRestaurantRating(restaurantId, newAverageRating) {
+    const restaurantCard = document.querySelector(`[data-restaurant-id="${restaurantId}"]`);
+    if (restaurantCard) {
+        const ratingContainer = restaurantCard.querySelector('.flex.text-orange-400');
+        const ratingText = restaurantCard.querySelector('.text-xs.text-gray-500');
+        
+        if (ratingContainer && ratingText) {
+            // Update stars
+            const stars = ratingContainer.querySelectorAll('i');
+            const fullStars = Math.floor(newAverageRating);
+            const hasHalfStar = newAverageRating - fullStars >= 0.5;
+            
+            stars.forEach((star, index) => {
+                if (index < fullStars) {
+                    star.className = 'fas fa-star text-xs';
+                } else if (index === fullStars && hasHalfStar) {
+                    star.className = 'fas fa-star-half-alt text-xs';
+                } else {
+                    star.className = 'far fa-star text-xs';
+                }
+            });
+            
+            // Update rating text
+            ratingText.textContent = `(${newAverageRating.toFixed(1)})`;
+        }
+    }
 }
 
 // Star rating event listeners

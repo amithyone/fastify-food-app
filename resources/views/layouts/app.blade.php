@@ -59,7 +59,7 @@
     </div>
 
     <!-- PWA Install Prompt -->
-    <div id="pwaInstallPrompt" class="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-200 dark:border-gray-700 z-50 hidden">
+    <div id="pwaInstallPrompt" class="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-200 dark:border-gray-700 z-50 hidden max-w-md mx-auto">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
@@ -68,7 +68,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Install {{ \App\Helpers\PWAHelper::getRestaurantShortName() }}</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Install Fastify</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400">Add to home screen for quick access</p>
                 </div>
             </div>
@@ -89,16 +89,16 @@
     <script>
         // PWA Configuration
         window.PWAConfig = {
-            appName: "{{ \App\Helpers\PWAHelper::getRestaurantName() }}",
-            shortName: "{{ \App\Helpers\PWAHelper::getRestaurantShortName() }}",
-            themeColor: "{{ \App\Helpers\PWAHelper::getThemeColor() }}",
+            appName: "Fastify",
+            shortName: "Fastify",
+            themeColor: "#f97316",
             features: {
-                wallet: {{ \App\Helpers\PWAHelper::isFeatureEnabled('wallet') ? 'true' : 'false' }},
-                rewards: {{ \App\Helpers\PWAHelper::isFeatureEnabled('rewards') ? 'true' : 'false' }},
-                qrOrdering: {{ \App\Helpers\PWAHelper::isFeatureEnabled('qr_ordering') ? 'true' : 'false' }},
-                pushNotifications: {{ \App\Helpers\PWAHelper::isFeatureEnabled('push_notifications') ? 'true' : 'false' }},
-                offlineMode: {{ \App\Helpers\PWAHelper::isFeatureEnabled('offline_mode') ? 'true' : 'false' }},
-                darkMode: {{ \App\Helpers\PWAHelper::isFeatureEnabled('dark_mode') ? 'true' : 'false' }},
+                wallet: true,
+                rewards: true,
+                qrOrdering: true,
+                pushNotifications: true,
+                offlineMode: true,
+                darkMode: true,
             }
         };
     </script>
@@ -124,43 +124,30 @@
         const pwaInstallBtn = document.getElementById('pwaInstallBtn');
         const pwaDismissBtn = document.getElementById('pwaDismissBtn');
 
-        console.log('PWA Install Prompt elements:', {
-            prompt: pwaInstallPrompt,
-            installBtn: pwaInstallBtn,
-            dismissBtn: pwaDismissBtn
-        });
-
         // Check if app is already installed
         function isAppInstalled() {
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+            return window.matchMedia('(display-mode: standalone)').matches ||
                    window.navigator.standalone === true;
-            console.log('Is app installed:', isStandalone);
-            return isStandalone;
         }
 
         // Show install prompt
         function showInstallPrompt() {
-            console.log('showInstallPrompt called');
-            console.log('deferredPrompt:', deferredPrompt);
-            console.log('isAppInstalled:', isAppInstalled());
-            
-            if (!isAppInstalled() && deferredPrompt) {
-                console.log('Showing install prompt');
+            if (!isAppInstalled() && deferredPrompt && pwaInstallPrompt) {
+                console.log('Showing PWA install prompt');
                 pwaInstallPrompt.classList.remove('hidden');
                 
-                // Auto-hide after 15 seconds
+                // Auto-hide after 10 seconds
                 setTimeout(() => {
                     hideInstallPrompt();
-                }, 15000);
-            } else {
-                console.log('Not showing prompt - app installed or no deferred prompt');
+                }, 10000);
             }
         }
 
         // Hide install prompt
         function hideInstallPrompt() {
-            console.log('hideInstallPrompt called');
-            pwaInstallPrompt.classList.add('hidden');
+            if (pwaInstallPrompt) {
+                pwaInstallPrompt.classList.add('hidden');
+            }
             deferredPrompt = null;
         }
 
@@ -171,7 +158,7 @@
             deferredPrompt = e;
             
             // Show prompt after a delay
-            setTimeout(showInstallPrompt, 2000);
+            setTimeout(showInstallPrompt, 3000);
         });
 
         // Handle install button click
@@ -183,8 +170,6 @@
                     const { outcome } = await deferredPrompt.userChoice;
                     console.log('User choice:', outcome);
                     hideInstallPrompt();
-                } else {
-                    console.log('No deferred prompt available');
                 }
             });
         }
@@ -203,9 +188,8 @@
         // Check if app is launched from installed PWA
         if (isAppInstalled()) {
             console.log('App launched from installed PWA');
-            // You can add specific behavior for installed app
         } else {
-            console.log('App not installed - showing install prompt after delay');
+            console.log('App not installed');
             // Show install prompt after 5 seconds if not installed
             setTimeout(() => {
                 if (!isAppInstalled() && deferredPrompt) {

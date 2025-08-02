@@ -28,6 +28,28 @@
         </div>
     </div>
 
+    <!-- Success Message -->
+    @if(session('success'))
+        <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <!-- Email Verification Notice -->
+    @if(!Auth::user()->hasVerifiedEmail())
+        <div class="mb-6 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span>Please verify your email address to view your orders.</span>
+                </div>
+                <a href="{{ route('verification.notice') }}" class="text-yellow-800 hover:text-yellow-900 font-medium">
+                    Verify Now
+                </a>
+            </div>
+        </div>
+    @endif
+
     @if($orders->count() > 0)
         <!-- Orders Grid -->
         <div class="space-y-4 mb-24" id="ordersGrid">

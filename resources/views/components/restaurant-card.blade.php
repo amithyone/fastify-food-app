@@ -47,17 +47,24 @@
                         $hasHalfStar = $rating - $fullStars >= 0.5;
                     @endphp
                     
-                    @for($i = 1; $i <= 5; $i++)
-                        @if($i <= $fullStars)
-                            <i class="fas fa-star text-xs"></i>
-                        @elseif($i == $fullStars + 1 && $hasHalfStar)
-                            <i class="fas fa-star-half-alt text-xs"></i>
-                        @else
+                    @if($rating > 0)
+                        @for($i = 1; $i <= 5; $i++)
+                            @if($i <= $fullStars)
+                                <i class="fas fa-star text-xs"></i>
+                            @elseif($i == $fullStars + 1 && $hasHalfStar)
+                                <i class="fas fa-star-half-alt text-xs"></i>
+                            @else
+                                <i class="far fa-star text-xs"></i>
+                            @endif
+                        @endfor
+                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">({{ number_format($rating, 1) }})</span>
+                    @else
+                        @for($i = 1; $i <= 5; $i++)
                             <i class="far fa-star text-xs"></i>
-                        @endif
-                    @endfor
+                        @endfor
+                        <span class="text-xs text-gray-400 dark:text-gray-500 ml-1">(No ratings)</span>
+                    @endif
                 </div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">({{ number_format($rating, 1) }})</span>
             </div>
             
             <!-- Rating Button - Bottom Right -->

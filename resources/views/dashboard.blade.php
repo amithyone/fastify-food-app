@@ -37,6 +37,23 @@
             </div>
         @endif
 
+        <!-- Email Verification Notice -->
+        @auth
+            @if(!Auth::user()->hasVerifiedEmail())
+                <div class="mb-6 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span>Please verify your email address to access all features.</span>
+                        </div>
+                        <a href="{{ route('verification.notice') }}" class="text-yellow-800 hover:text-yellow-900 font-medium">
+                            Verify Now
+                        </a>
+                    </div>
+                </div>
+            @endif
+        @endauth
+
         <!-- Quick Stats -->
         <div class="grid grid-cols-2 gap-4 mb-8">
             @auth
@@ -174,48 +191,16 @@
             
             <div class="p-6">
                 @php
-                    $allRestaurants = \App\Models\Restaurant::where('is_active', true)->orderBy('name')->get();
+                    $allRestaurants = \App\Models\Restaurant::where('is_active', true)
+                        ->with('ratings')
+                        ->orderBy('name')
+                        ->get();
                 @endphp
 
                 @if($allRestaurants->count() > 0)
-                    <div class="grid grid-cols-1 gap-4" id="restaurantsGrid">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="restaurantsGrid">
                         @foreach($allRestaurants as $restaurant)
-                            <div class="restaurant-card bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600" 
-                                 data-name="{{ strtolower($restaurant->name) }}" 
-                                 data-cuisine="{{ strtolower($restaurant->cuisine_type ?? '') }}">
-                                <div class="flex items-center mb-3">
-                                    @if($restaurant->logo)
-                                        <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" 
-                                             class="w-12 h-12 rounded-lg object-cover mr-3">
-                                    @else
-                                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
-                                            <i class="fas fa-utensils text-white"></i>
-                                        </div>
-                                    @endif
-                                    <div class="flex-1">
-                                        <h3 class="font-semibold text-gray-900 dark:text-white">{{ $restaurant->name }}</h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $restaurant->cuisine_type ?? 'Restaurant' }}</p>
-                                        @if($restaurant->address)
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ Str::limit($restaurant->address, 30) }}</p>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex text-yellow-400">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="fas fa-star text-sm"></i>
-                                            @endfor
-                                        </div>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">(4.5)</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Open</span>
-                                    <a href="{{ route('menu.restaurant', $restaurant->slug) }}" 
-                                       class="text-orange-600 dark:text-orange-400 text-sm font-medium hover:text-orange-700 dark:hover:text-orange-300">
-                                        View Menu
-                                    </a>
-                                </div>
-                            </div>
+                            @include('components.restaurant-card', ['restaurant' => $restaurant])
                         @endforeach
                     </div>
                 @else
@@ -255,32 +240,13 @@
 
                     @if($recentRestaurants->count() > 0)
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($recentRestaurants as $restaurant)
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600">
-                                    <div class="flex items-center mb-3">
-                                        @if($restaurant->logo)
-                                            <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" 
-                                                 class="w-12 h-12 rounded-lg object-cover mr-3">
-                                        @else
-                                            <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
-                                                <i class="fas fa-utensils text-white"></i>
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <h3 class="font-semibold text-gray-900 dark:text-white">{{ $restaurant->name }}</h3>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $restaurant->cuisine_type ?? 'Restaurant' }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">
-                                            Last visited: {{ \Carbon\Carbon::parse($restaurant->last_visited)->diffForHumans() }}
-                                        </span>
-                                        <a href="{{ route('menu.restaurant', $restaurant->restaurant->slug) }}" 
-                                           class="text-orange-600 dark:text-orange-400 text-sm font-medium hover:text-orange-700 dark:hover:text-orange-300">
-                                            View Menu
-                                        </a>
-                                    </div>
-                                </div>
+                            @foreach($recentRestaurants as $order)
+                                @php
+                                    $restaurant = $order->restaurant;
+                                @endphp
+                                @if($restaurant)
+                                    @include('components.restaurant-card', ['restaurant' => $restaurant])
+                                @endif
                             @endforeach
                         </div>
                     @else
