@@ -372,8 +372,10 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     // Restaurant Stories Management
     Route::get('/{slug}/stories', [StoryController::class, 'restaurantIndex'])->name('restaurant.stories');
     Route::post('/{slug}/stories', [StoryController::class, 'restaurantStore'])->name('restaurant.stories.store');
+    Route::get('/{slug}/stories/{story}/edit', [StoryController::class, 'restaurantEdit'])->name('restaurant.stories.edit');
     Route::put('/{slug}/stories/{story}', [StoryController::class, 'restaurantUpdate'])->name('restaurant.stories.update');
     Route::delete('/{slug}/stories/{story}', [StoryController::class, 'restaurantDestroy'])->name('restaurant.stories.destroy');
+    Route::post('/{slug}/stories/{story}/toggle', [StoryController::class, 'restaurantToggleStatus'])->name('restaurant.stories.toggle');
 });
 
 // Restaurant browsing routes

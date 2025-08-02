@@ -209,4 +209,47 @@ class StoryController extends Controller
             'message' => 'Story deleted successfully!'
         ]);
     }
+
+    public function restaurantEdit($slug, $story)
+    {
+        $restaurant = \App\Models\Restaurant::where('slug', $slug)->firstOrFail();
+        $story = Story::where('id', $story)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        // Check authorization
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant stories.');
+            }
+        } else {
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant stories.');
+        }
+        
+        return response()->json([
+            'success' => true,
+            'story' => $story
+        ]);
+    }
+
+    public function restaurantToggleStatus($slug, $story)
+    {
+        $restaurant = \App\Models\Restaurant::where('slug', $slug)->firstOrFail();
+        $story = Story::where('id', $story)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        // Check authorization
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant stories.');
+            }
+        } else {
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant stories.');
+        }
+        
+        $story->update(['is_active' => !$story->is_active]);
+
+        return response()->json([
+            'success' => true,
+            'is_active' => $story->is_active,
+            'message' => $story->is_active ? 'Story activated!' : 'Story deactivated!'
+        ]);
+    }
 }
