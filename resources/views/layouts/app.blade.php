@@ -19,6 +19,7 @@
     @php
         $icons = \App\Helpers\PWAHelper::getIconLinks();
     @endphp
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ $icons['icon-32x32'] }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ $icons['icon-16x16'] }}">
     <link rel="apple-touch-icon" href="{{ $icons['apple-touch-icon'] }}">

@@ -12,13 +12,15 @@ class Wallet extends Model
 
     protected $fillable = [
         'user_id',
+        'restaurant_id',
         'balance',
-        'points'
+        'currency',
+        'is_active'
     ];
 
     protected $casts = [
-        'balance' => 'decimal:2',
-        'points' => 'integer'
+        'balance' => 'integer',
+        'is_active' => 'boolean'
     ];
 
     public function user()
@@ -26,24 +28,27 @@ class Wallet extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class);
+    }
+
     public function transactions()
     {
         return $this->hasMany(WalletTransaction::class);
     }
 
-    public function credit($amount, $points = 0, $description = '', $orderId = null, $metadata = [])
+    public function credit($amount, $description = '', $orderId = null, $metadata = [])
     {
-        return DB::transaction(function () use ($amount, $points, $description, $orderId, $metadata) {
-            // Update wallet balance and points
+        return DB::transaction(function () use ($amount, $description, $orderId, $metadata) {
+            // Update wallet balance
             $this->increment('balance', $amount);
-            $this->increment('points', $points);
 
             // Create transaction record
             return $this->transactions()->create([
                 'order_id' => $orderId,
                 'type' => 'credit',
                 'amount' => $amount,
-                'points_earned' => $points,
                 'description' => $description,
                 'metadata' => $metadata
             ]);
@@ -65,7 +70,6 @@ class Wallet extends Model
                 'order_id' => $orderId,
                 'type' => 'debit',
                 'amount' => $amount,
-                'points_earned' => 0,
                 'description' => $description,
                 'metadata' => $metadata
             ]);
@@ -74,11 +78,6 @@ class Wallet extends Model
 
     public function getFormattedBalanceAttribute()
     {
-        return '₦' . number_format($this->balance, 0);
-    }
-
-    public function getPointsDisplayAttribute()
-    {
-        return number_format($this->points) . ' points';
+        return $this->currency . number_format($this->balance / 100, 2);
     }
 }

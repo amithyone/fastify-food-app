@@ -21,8 +21,8 @@
         </div>
 
         <!-- Edit Form -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-            <form action="{{ route('restaurant.update', $restaurant->slug) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow py-12" style="padding-left: 20px; padding-right: 20px;">
+            <form action="{{ route('restaurant.update', $restaurant->slug) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
                 @method('PUT')
                 
@@ -186,6 +186,133 @@
                     </div>
                 </div>
 
+                <!-- Custom Domain -->
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Custom Domain</h3>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-globe text-blue-500 text-lg"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">Custom Domain Benefits</h4>
+                                <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                    Use your own domain (e.g., taste-of-abuja.com) for a professional branded experience.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="custom_domain" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Custom Domain
+                            </label>
+                            <div class="flex">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm">
+                                    https://
+                                </span>
+                                <input type="text" id="custom_domain" name="custom_domain" 
+                                    value="{{ $restaurant->custom_domain }}"
+                                    class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-r-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                    placeholder="your-restaurant.com">
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                Enter your domain without https:// (e.g., your-restaurant.com)
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Domain Status
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                @if($restaurant->custom_domain)
+                                    <span class="inline-flex px-3 py-2 text-sm font-semibold rounded-lg 
+                                        @if($restaurant->custom_domain_status === 'verified') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                        @elseif($restaurant->custom_domain_status === 'pending') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                        @else bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 @endif">
+                                        {{ ucfirst($restaurant->custom_domain_status ?? 'Not Set') }}
+                                    </span>
+                                    @if($restaurant->custom_domain_verified_at)
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                            Verified {{ $restaurant->custom_domain_verified_at->diffForHumans() }}
+                                        </span>
+                                    @endif
+                                @else
+                                    <span class="text-gray-500 dark:text-gray-400">No custom domain set</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if($restaurant->custom_domain && !$restaurant->custom_domain_verified)
+                        <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">DNS Configuration Required</h4>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                        Configure your DNS settings to point your domain to our servers. 
+                                        <a href="{{ route('restaurant.custom-domain', $restaurant->slug) }}" 
+                                            class="text-blue-600 dark:text-blue-400 hover:underline">
+                                            View DNS instructions
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Domain Setup Instructions -->
+                    <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">How to Set Up Your Custom Domain</h4>
+                        <div class="space-y-3 text-sm text-blue-700 dark:text-blue-300">
+                            <div class="flex items-start space-x-2">
+                                <span class="flex-shrink-0 w-5 h-5 bg-blue-200 dark:bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold text-blue-800 dark:text-blue-200">1</span>
+                                <div>
+                                    <p class="font-medium">Enter your domain above (e.g., taste-of-abuja.com)</p>
+                                    <p class="text-xs opacity-75">Don't include https:// or www.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="flex-shrink-0 w-5 h-5 bg-blue-200 dark:bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold text-blue-800 dark:text-blue-200">2</span>
+                                <div>
+                                    <p class="font-medium">Configure DNS records with your domain provider</p>
+                                    <div class="mt-1 p-2 bg-white dark:bg-gray-800 rounded border text-xs font-mono">
+                                        <div><strong>Type:</strong> CNAME</div>
+                                        <div><strong>Name:</strong> @ (or your domain)</div>
+                                        <div><strong>Value:</strong> {{ config('app.domain', 'fastify.com') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="flex-shrink-0 w-5 h-5 bg-blue-200 dark:bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold text-blue-800 dark:text-blue-200">3</span>
+                                <div>
+                                    <p class="font-medium">Wait for DNS propagation (up to 24 hours)</p>
+                                    <p class="text-xs opacity-75">You can check propagation using online DNS lookup tools</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="flex-shrink-0 w-5 h-5 bg-blue-200 dark:bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold text-blue-800 dark:text-blue-200">4</span>
+                                <div>
+                                    <p class="font-medium">Click "Verify Domain" in the custom domain management page</p>
+                                    <p class="text-xs opacity-75">This will activate your custom domain for customers</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-blue-200 dark:border-blue-700">
+                            <a href="{{ route('restaurant.custom-domain', $restaurant->slug) }}" 
+                                class="inline-flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                                <i class="fas fa-cog mr-2"></i>
+                                Advanced Domain Management
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Images -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -232,7 +359,7 @@
                 <!-- Submit Button -->
                 <div class="pt-6">
                     <button type="submit" 
-                        class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-6 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105">
+                        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105">
                         <i class="fas fa-save mr-2"></i>
                         Update Restaurant
                     </button>

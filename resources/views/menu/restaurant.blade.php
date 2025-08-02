@@ -120,13 +120,7 @@
                 <div class="menu-item bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-100 dark:border-gray-700"
                      data-category="{{ $item->category_id }}">
                     <div class="flex space-x-4">
-                        @if($item->image)
-                            <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" class="w-20 h-20 rounded-lg object-cover">
-                        @else
-                            <div class="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-utensils text-gray-400"></i>
-                            </div>
-                        @endif
+                        <img src="{{ $item->image ? Storage::url($item->image) : \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $item->name }}" class="w-20 h-20 rounded-lg object-cover">
                         <div class="flex-1">
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="font-semibold text-gray-900 dark:text-white">{{ $item->name }}</h3>

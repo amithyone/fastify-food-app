@@ -2,7 +2,7 @@
 
 ## Overview
 
-Abuja Eat is a comprehensive QR code menu service that allows restaurant owners to create digital menus and generate QR codes for their tables. Customers can scan QR codes to view menus, place orders, and pay seamlessly.
+Fastify is a comprehensive QR code menu service that allows restaurant owners to create digital menus and generate QR codes for their tables. Customers can scan QR codes to view menus, place orders, and pay seamlessly.
 
 ## Features
 
@@ -206,7 +206,7 @@ Each restaurant can customize:
 ### Environment Variables
 
 ```env
-APP_NAME="Abuja Eat"
+APP_NAME="Fastify"
 APP_URL=https://your-domain.com
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -295,6 +295,6 @@ Ensure HTTPS is enabled for secure QR code scanning and payments.
 
 ## Conclusion
 
-The Abuja Eat restaurant onboarding system provides a comprehensive solution for restaurants to digitize their menus and streamline their operations. With its multi-tenant architecture, customizable branding, and user-friendly interface, it offers everything needed to modernize restaurant ordering and improve customer experience.
+The Fastify restaurant onboarding system provides a comprehensive solution for restaurants to digitize their menus and streamline their operations. With its multi-tenant architecture, customizable branding, and user-friendly interface, it offers everything needed to modernize restaurant ordering and improve customer experience.
 
 For technical support or feature requests, please contact the development team. 

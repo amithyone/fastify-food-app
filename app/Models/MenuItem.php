@@ -18,13 +18,18 @@ class MenuItem extends Model
         'category_id',
         'image',
         'is_available',
-        'is_featured'
+        'is_featured',
+        'is_vegetarian',
+        'is_spicy',
+        'restaurant_id'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_available' => 'boolean',
         'is_featured' => 'boolean',
+        'is_vegetarian' => 'boolean',
+        'is_spicy' => 'boolean',
     ];
 
     public function category()
@@ -35,6 +40,11 @@ class MenuItem extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class);
     }
 
     public function getFormattedPriceAttribute()

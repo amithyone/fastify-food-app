@@ -28,6 +28,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Check if user is a restaurant owner
+        if (Auth::user()->isRestaurantOwner() && Auth::user()->restaurant) {
+            return redirect()->intended(route('restaurant.dashboard', Auth::user()->restaurant->slug));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

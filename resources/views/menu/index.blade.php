@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Menu - Abuja Eat')
+@section('title', 'Menu - Fastify')
 @section('content')
 <!-- Fixed/Sticky Top Bar: always at the very top -->
 <div class="fixed top-0 left-0 right-0 z-50 bg-[#f1ecdc] dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 py-2 shadow-lg max-w-md mx-auto w-full mt-15">
@@ -152,7 +152,11 @@
                  onclick="handleCardClick(event, {{ $item->id }}, '{{ $item->name }}', {{ $item->price }})">
                 
                 <div class="h-24 bg-gradient-to-br from-orange-200 to-orange-400 dark:from-gray-700 dark:to-gray-900 flex items-center justify-center">
-                    <i class="fas fa-utensils text-2xl text-white opacity-80"></i>
+                    @if($item->image)
+                        <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
+                    @else
+                        <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
+                    @endif
                 </div>
                 <div class="p-3 flex-1 flex flex-col justify-between">
                     <div>
@@ -551,7 +555,7 @@ function renderMenuItems(items) {
                  data-item-id="${item.id}"
                  onclick="handleCardClick(event, ${item.id}, '${item.name}', ${item.price})">
                 <div class="h-24 bg-gradient-to-br from-orange-200 to-orange-400 dark:from-gray-700 dark:to-gray-900 flex items-center justify-center">
-                    <i class="fas fa-utensils text-2xl text-white opacity-80"></i>
+                    ${item.image ? `<img src="/storage/${item.image}" alt="${item.name}" class="w-full h-full object-cover">` : `<img src="/images/placeholder-square.svg" alt="${item.name}" class="w-full h-full object-cover">`}
                 </div>
                 <div class="p-3 flex-1 flex flex-col justify-between">
                     <div>

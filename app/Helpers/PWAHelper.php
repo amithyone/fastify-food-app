@@ -221,4 +221,30 @@ class PWAHelper
         $config = self::getRestaurantConfig();
         return $config['seo'];
     }
+
+    /**
+     * Get placeholder image for menu items
+     */
+    public static function getPlaceholderImage($type = 'square')
+    {
+        switch ($type) {
+            case 'square':
+                return '/images/placeholder-square.svg';
+            case 'rectangle':
+                return '/images/placeholder.svg';
+            default:
+                return '/images/placeholder-square.svg';
+        }
+    }
+
+    /**
+     * Get menu item image with fallback to placeholder
+     */
+    public static function getMenuItemImage($imagePath = null, $type = 'square')
+    {
+        if ($imagePath && file_exists(public_path($imagePath))) {
+            return $imagePath;
+        }
+        return self::getPlaceholderImage($type);
+    }
 } 

@@ -1,4 +1,4 @@
-# 🍽️ Abuja Eat - Food Ordering Application
+# 🍽️ Fastify - Food Ordering Application
 
 A modern, mobile-first food ordering application built with Laravel, featuring a comprehensive wallet system, reward points, and restaurant management capabilities.
 
@@ -256,7 +256,7 @@ TWILIO_PHONE_NUMBER=your_twilio_phone
 
 #### App Settings
 ```env
-APP_NAME="Abuja Eat"
+APP_NAME="Fastify"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000

@@ -13,6 +13,36 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+// Custom Domain Routes (for restaurant-specific domains)
+Route::middleware(['custom.domain'])->group(function () {
+    Route::get('/', function (Request $request) {
+        $restaurant = $request->attributes->get('restaurant');
+        return app(MenuController::class)->index($restaurant->slug);
+    })->name('custom.domain.menu');
+    
+    Route::get('/menu', function (Request $request) {
+        $restaurant = $request->attributes->get('restaurant');
+        return app(MenuController::class)->index($restaurant->slug);
+    })->name('custom.domain.menu.index');
+    
+    Route::get('/cart', function (Request $request) {
+        $restaurant = $request->attributes->get('restaurant');
+        return app(CartController::class)->index();
+    })->name('custom.domain.cart');
+    
+    Route::post('/cart/add', function (Request $request) {
+        return app(CartController::class)->add($request);
+    })->name('custom.domain.cart.add');
+    
+    Route::get('/checkout', function (Request $request) {
+        $restaurant = $request->attributes->get('restaurant');
+        return app(OrderController::class)->checkout();
+    })->name('custom.domain.checkout');
+});
+
+// Include Auth Routes
+require __DIR__.'/auth.php';
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -26,6 +56,30 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return redirect('/menu');
+});
+
+// Dashboard Route
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+    
+    // Cart Routes
+    Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/update', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
+    
+    // Orders Routes
+    Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders', [App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
+    
+    // User Profile Routes
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // PWA Routes
@@ -42,12 +96,8 @@ Route::get('/menu/search', [MenuController::class, 'search'])->name('menu.search
 Route::get('/menu/category/{category}', [MenuController::class, 'category'])->name('menu.category');
 Route::get('/menu/items', [MenuController::class, 'items'])->name('menu.items');
 
-// Cart Routes
-Route::get('/cart', [OrderController::class, 'cart'])->name('cart.index');
+// Checkout Route
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout.index');
-Route::post('/cart/add', [OrderController::class, 'addToCart'])->name('cart.add');
-Route::post('/cart/update', [OrderController::class, 'updateCart'])->name('cart.update');
-Route::post('/cart/remove', [OrderController::class, 'removeFromCart'])->name('cart.remove');
 
 // Order Routes
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
@@ -84,15 +134,6 @@ Route::get('/test-whatsapp', function () {
     return view('test-whatsapp');
 })->name('test.whatsapp');
 
-// Authentication Routes
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
-
 // Email Verification Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/email/verify', function () {
@@ -109,14 +150,6 @@ Route::middleware(['auth'])->group(function () {
         return back()->with('message', 'Verification link sent!');
     })->middleware(['throttle:6,1'])->name('verification.send');
 });
-
-// Logout Route
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/');
-})->name('logout');
 
 // Profile Routes
 Route::middleware(['auth'])->group(function () {
@@ -153,6 +186,19 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::put('/{slug}/update', [RestaurantController::class, 'update'])->name('restaurant.update');
     Route::get('/{slug}/qr-codes', [RestaurantController::class, 'qrCodes'])->name('restaurant.qr-codes');
     Route::post('/{slug}/generate-qr', [RestaurantController::class, 'generateQrCode'])->name('restaurant.generate-qr');
+    Route::get('/{slug}/wallet', [RestaurantController::class, 'wallet'])->name('restaurant.wallet');
+    Route::post('/{slug}/wallet/withdraw', [RestaurantController::class, 'withdraw'])->name('restaurant.wallet.withdraw');
+    Route::get('/{slug}/custom-domain', [RestaurantController::class, 'customDomain'])->name('restaurant.custom-domain');
+    Route::put('/{slug}/custom-domain', [RestaurantController::class, 'updateCustomDomain'])->name('restaurant.custom-domain.update');
+    Route::post('/{slug}/custom-domain/verify', [RestaurantController::class, 'verifyCustomDomain'])->name('restaurant.custom-domain.verify');
+    
+    // Restaurant Menu Management
+    Route::get('/{slug}/menu', [MenuController::class, 'restaurantIndex'])->name('restaurant.menu');
+    Route::get('/{slug}/menu/create', [MenuController::class, 'restaurantCreate'])->name('restaurant.menu.create');
+    Route::post('/{slug}/menu', [MenuController::class, 'restaurantStore'])->name('restaurant.menu.store');
+    Route::get('/{slug}/menu/{item}/edit', [MenuController::class, 'restaurantEdit'])->name('restaurant.menu.edit');
+    Route::put('/{slug}/menu/{item}', [MenuController::class, 'restaurantUpdate'])->name('restaurant.menu.update');
+    Route::delete('/{slug}/menu/{item}', [MenuController::class, 'restaurantDestroy'])->name('restaurant.menu.destroy');
 });
 
 // Admin Routes (for restaurant management)

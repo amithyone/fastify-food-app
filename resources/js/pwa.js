@@ -1,4 +1,4 @@
-// PWA Utilities for Abuja Eat
+// PWA Utilities for Fastify
 
 class PWAUtils {
     constructor() {

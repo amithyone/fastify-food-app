@@ -82,6 +82,11 @@ class User extends Authenticatable
         return $this->hasMany(UserReward::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(\App\Models\Order::class);
+    }
+
     public function getWalletOrCreate()
     {
         return $this->wallet ?? $this->wallet()->create([

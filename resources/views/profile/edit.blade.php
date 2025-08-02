@@ -7,12 +7,12 @@
     <!-- Header -->
     <div class="text-center mb-8">
         <div class="flex justify-between items-center mb-6">
-            <a href="{{ route('menu.index') }}" class="text-gray-600 dark:text-gray-300">
+            <a href="{{ route('menu.index') }}" class="text-gray-600 dark:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
-            <button id="darkModeToggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+            <button id="darkModeToggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-white">
                 <i class="fas fa-sun"></i>
             </button>
         </div>
@@ -20,7 +20,7 @@
             <i class="fas fa-user text-3xl text-gray-900 dark:text-white"></i>
         </div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile</h1>
-        <p class="text-gray-600 dark:text-gray-400">Manage your account settings</p>
+        <p class="text-gray-600 dark:text-white">Manage your account settings</p>
     </div>
 
     <!-- Profile Information -->
@@ -54,19 +54,19 @@
                                         <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">Default</span>
                                     @endif
                                 </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ $address->address_line_1 }}</p>
+                                <p class="text-sm text-gray-600 dark:text-white mb-1">{{ $address->address_line_1 }}</p>
                                 @if($address->address_line_2)
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ $address->address_line_2 }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-white mb-1">{{ $address->address_line_2 }}</p>
                                 @endif
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ $address->city }}, {{ $address->state }}</p>
+                                <p class="text-sm text-gray-600 dark:text-white mb-1">{{ $address->city }}, {{ $address->state }}</p>
                                 @if($address->postal_code)
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ $address->postal_code }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-white mb-1">{{ $address->postal_code }}</p>
                                 @endif
                                 @if($address->phone_number)
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">{{ $address->phone_number }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-white mb-1">{{ $address->phone_number }}</p>
                                 @endif
                                 @if($address->additional_instructions)
-                                    <p class="text-sm text-gray-500 dark:text-gray-500 italic">Note: {{ $address->additional_instructions }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 italic">Note: {{ $address->additional_instructions }}</p>
                                 @endif
                             </div>
                             <div class="flex gap-2">
@@ -97,7 +97,7 @@
         @else
             <div class="text-center py-8">
                 <i class="fas fa-map-marker-alt text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
-                <p class="text-gray-500 dark:text-gray-400 mb-4">No addresses saved yet</p>
+                <p class="text-gray-500 dark:text-white mb-4">No addresses saved yet</p>
                 <a href="{{ route('addresses.create') }}" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition duration-200">
                     Add Your First Address
                 </a>

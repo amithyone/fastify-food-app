@@ -121,11 +121,17 @@ class RestaurantController extends Controller
             abort(403, 'Unauthorized access to restaurant dashboard.');
         }
 
+        // Calculate today's earnings (confirmed orders from today)
+        $todayEarnings = $restaurant->orders()
+            ->where('status', 'confirmed')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+
         $stats = [
             'total_orders' => $restaurant->orders()->count(),
             'pending_orders' => $restaurant->orders()->where('status', 'pending')->count(),
             'total_menu_items' => $restaurant->menuItems()->count(),
-            'total_categories' => $restaurant->categories()->count(),
+            'today_earnings' => $todayEarnings,
         ];
 
         $recent_orders = $restaurant->orders()->with('items')->latest()->take(5)->get();
@@ -170,6 +176,7 @@ class RestaurantController extends Controller
             'secondary_color' => 'required|string|max:7',
             'business_hours' => 'nullable|array',
             'settings' => 'nullable|array',
+            'custom_domain' => 'nullable|string|max:255|unique:restaurants,custom_domain,' . $restaurant->id,
         ]);
 
         try {
@@ -194,7 +201,7 @@ class RestaurantController extends Controller
             }
 
             // Update restaurant
-            $restaurant->update([
+            $updateData = [
                 'name' => $request->name,
                 'description' => $request->description,
                 'whatsapp_number' => $request->whatsapp_number,
@@ -210,7 +217,22 @@ class RestaurantController extends Controller
                 'secondary_color' => $request->secondary_color,
                 'business_hours' => $request->business_hours ?? $restaurant->business_hours,
                 'settings' => $request->settings ?? $restaurant->settings,
-            ]);
+            ];
+
+            // Handle custom domain changes
+            if ($request->has('custom_domain')) {
+                $newDomain = $request->custom_domain ? trim($request->custom_domain) : null;
+                
+                // If domain changed, reset verification status
+                if ($newDomain !== $restaurant->custom_domain) {
+                    $updateData['custom_domain'] = $newDomain;
+                    $updateData['custom_domain_verified'] = false;
+                    $updateData['custom_domain_verified_at'] = null;
+                    $updateData['custom_domain_status'] = $newDomain ? 'pending' : null;
+                }
+            }
+
+            $restaurant->update($updateData);
 
             return redirect()->route('restaurant.dashboard', $restaurant->slug)
                 ->with('success', 'Restaurant updated successfully!');
@@ -255,5 +277,150 @@ class RestaurantController extends Controller
 
         return redirect()->route('restaurant.qr-codes', $restaurant->slug)
             ->with('success', 'QR Code generated successfully!');
+    }
+
+    public function wallet($slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant dashboard.');
+        }
+
+        // Get or create restaurant wallet
+        $wallet = $restaurant->wallet;
+        if (!$wallet) {
+            $wallet = $restaurant->wallet()->create([
+                'balance' => 0,
+                'currency' => $restaurant->currency,
+                'is_active' => true,
+            ]);
+        }
+
+        // Get recent transactions
+        $transactions = $wallet->transactions()->latest()->take(10)->get();
+
+        // Calculate stats
+        $totalEarnings = $wallet->transactions()->where('type', 'credit')->sum('amount');
+        $totalWithdrawals = $wallet->transactions()->where('type', 'debit')->sum('amount');
+        $pendingAmount = $wallet->transactions()->where('status', 'pending')->sum('amount');
+
+        $stats = [
+            'current_balance' => $wallet->balance,
+            'total_earnings' => $totalEarnings,
+            'total_withdrawals' => $totalWithdrawals,
+            'pending_amount' => $pendingAmount,
+            'total_transactions' => $wallet->transactions()->count(),
+        ];
+
+        return view('restaurant.wallet', compact('restaurant', 'wallet', 'transactions', 'stats'));
+    }
+
+    public function withdraw(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant dashboard.');
+        }
+
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'bank_name' => 'required|string|max:100',
+            'account_number' => 'required|string|max:50',
+            'account_name' => 'required|string|max:100',
+        ]);
+
+        $wallet = $restaurant->wallet;
+        $amount = $request->amount * 100; // Convert to cents
+
+        if ($amount > $wallet->balance) {
+            return back()->withErrors(['amount' => 'Insufficient balance for withdrawal.']);
+        }
+
+        try {
+            // Create withdrawal transaction
+            $wallet->transactions()->create([
+                'type' => 'debit',
+                'amount' => $amount,
+                'status' => 'pending',
+                'description' => 'Withdrawal request to ' . $request->bank_name,
+                'metadata' => [
+                    'bank_name' => $request->bank_name,
+                    'account_number' => $request->account_number,
+                    'account_name' => $request->account_name,
+                ],
+            ]);
+
+            // Update wallet balance
+            $wallet->update([
+                'balance' => $wallet->balance - $amount
+            ]);
+
+            return redirect()->route('restaurant.wallet', $restaurant->slug)
+                ->with('success', 'Withdrawal request submitted successfully!');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to process withdrawal request. Please try again.']);
+        }
+    }
+
+    public function customDomain($slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant dashboard.');
+        }
+
+        return view('restaurant.custom-domain', compact('restaurant'));
+    }
+
+    public function updateCustomDomain(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant dashboard.');
+        }
+
+        $request->validate([
+            'custom_domain' => 'nullable|string|max:255|unique:restaurants,custom_domain,' . $restaurant->id,
+        ]);
+
+        try {
+            $restaurant->update([
+                'custom_domain' => $request->custom_domain,
+                'custom_domain_verified' => false,
+                'custom_domain_verified_at' => null,
+                'custom_domain_status' => 'pending'
+            ]);
+
+            return redirect()->route('restaurant.custom-domain', $restaurant->slug)
+                ->with('success', 'Custom domain updated successfully! Please configure your DNS settings.');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to update custom domain. Please try again.']);
+        }
+    }
+
+    public function verifyCustomDomain($slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant dashboard.');
+        }
+
+        if (!$restaurant->custom_domain) {
+            return back()->withErrors(['error' => 'No custom domain set.']);
+        }
+
+        // Here you would implement actual DNS verification
+        // For now, we'll simulate verification
+        $restaurant->verifyCustomDomain();
+
+        return redirect()->route('restaurant.custom-domain', $restaurant->slug)
+            ->with('success', 'Custom domain verified successfully!');
     }
 } 

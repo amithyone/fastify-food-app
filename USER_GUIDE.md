@@ -1,9 +1,9 @@
-# 📱 User Guide - Abuja Eat
+# 📱 User Guide - Fastify
 
 ## 🎯 Getting Started
 
 ### First Time Setup
-1. **Open the App**: Navigate to the Abuja Eat website on your mobile device
+1. **Open the App**: Navigate to the Fastify website on your mobile device
 2. **Choose Your Restaurant**: Scan the QR code on your table or select a restaurant
 3. **Browse Menu**: Explore the available dishes and categories
 4. **Create Account**: Register with your phone number for a personalized experience
@@ -224,4 +224,4 @@
 
 ---
 
-**This user guide covers all the essential features of the Abuja Eat application. For additional help, contact our support team or refer to the in-app help section.** 
+**This user guide covers all the essential features of the Fastify application. For additional help, contact our support team or refer to the in-app help section.** 

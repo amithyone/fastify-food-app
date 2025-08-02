@@ -1,18 +1,39 @@
-@extends('layouts.guest')
+@extends('layouts.app')
 
-@section('title', 'Restaurant Onboarding - Abuja Eat')
+@section('title', 'Restaurant Onboarding - Fastify')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800">
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
+<!-- Fixed/Sticky Top Bar: always at the very top -->
+<div class="fixed top-0 left-0 right-0 z-50 bg-[#f1ecdc] dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 py-2 shadow-lg max-w-md mx-auto w-full mt-15">
+    <div class="flex items-center gap-2 px-4">
+        <!-- Back Button -->
+        <button onclick="history.back()" class="w-10 h-10 flex items-center justify-center rounded-full bg-orange-100 dark:bg-gray-700 text-orange-500 dark:text-orange-300 transition hover:bg-orange-200 dark:hover:bg-gray-600">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <!-- Title -->
+        <div class="flex-1 text-center">
+            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Restaurant Onboarding</h1>
+        </div>
+        <!-- Theme Toggle Button -->
+        <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-orange-100 dark:bg-gray-700 text-orange-500 dark:text-yellow-300 transition hover:bg-orange-200 dark:hover:bg-gray-600">
+            <i id="themeIcon" class="fas fa-moon"></i>
+        </button>
+    </div>
+</div>
+
+<div class="w-full min-h-screen bg-[#f1ecdc] dark:bg-gray-900">
+    <div class="max-w-md mx-auto px-4 py-4">
+        <!-- Content starts after fixed header -->
+        <div style="margin-top: 60px;">
             <!-- Header -->
             <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-utensils text-3xl text-white"></i>
+                <div class="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg relative">
+                    <div class="text-white font-bold text-2xl tracking-wider">y</div>
+                    <div class="absolute -top-2 -left-2 w-4 h-4 bg-red-500 rounded-full"></div>
+                    <div class="absolute -bottom-2 -right-2 w-3 h-3 bg-green-600 rounded-full"></div>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Abuja Eat</h1>
-                <p class="text-gray-600 dark:text-gray-400 text-lg">Set up your digital menu in minutes</p>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Fastify</h1>
+                <p class="text-gray-600 dark:text-white text-lg">Set up your digital menu in minutes</p>
             </div>
 
             <!-- Progress Steps -->
@@ -20,218 +41,197 @@
                 <div class="flex items-center justify-center space-x-4">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                        <span class="ml-2 text-sm font-medium text-orange-600">Restaurant Info</span>
+                        <span class="ml-2 text-sm font-medium text-orange-500 dark:text-orange-400">Restaurant Info</span>
                     </div>
-                    <div class="w-16 h-1 bg-gray-200 rounded"></div>
+                    <div class="w-16 h-1 bg-gray-200 dark:bg-gray-600 rounded"></div>
                     <div class="flex items-center">
-                        <div class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                        <span class="ml-2 text-sm font-medium text-gray-500">Menu Setup</span>
+                        <div class="w-8 h-8 bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                        <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Menu Setup</span>
                     </div>
-                    <div class="w-16 h-1 bg-gray-200 rounded"></div>
+                    <div class="w-16 h-1 bg-gray-200 dark:bg-gray-600 rounded"></div>
                     <div class="flex items-center">
-                        <div class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                        <span class="ml-2 text-sm font-medium text-gray-500">QR Codes</span>
+                        <div class="w-8 h-8 bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                        <span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">QR Codes</span>
                     </div>
                 </div>
             </div>
 
             <!-- Onboarding Form -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-6">
                 <form action="{{ route('restaurant.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     
                     <!-- Restaurant Basic Info -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Restaurant Name *
-                            </label>
-                            <input type="text" id="name" name="name" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="Enter your restaurant name">
-                            @error('name')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Restaurant Information</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Restaurant Name *
+                                </label>
+                                <input type="text" id="name" name="name" required
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="Enter your restaurant name">
+                                @error('name')
+                                    <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div>
-                            <label for="currency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Currency *
-                            </label>
-                            <select id="currency" name="currency" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                                <option value="₦">Nigerian Naira (₦)</option>
-                                <option value="$">US Dollar ($)</option>
-                                <option value="€">Euro (€)</option>
-                                <option value="£">British Pound (£)</option>
-                            </select>
+                            <div>
+                                <label for="currency" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Currency *
+                                </label>
+                                <select id="currency" name="currency" required
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200">
+                                    <option value="₦">Nigerian Naira (₦)</option>
+                                    <option value="$">US Dollar ($)</option>
+                                    <option value="€">Euro (€)</option>
+                                    <option value="£">British Pound (£)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="description" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
                             Description
                         </label>
-                        <textarea id="description" name="description" rows="3"
-                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        <textarea id="description" name="description" rows="4"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
                             placeholder="Tell customers about your restaurant..."></textarea>
                     </div>
 
                     <!-- Contact Information -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="whatsapp_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                WhatsApp Number *
-                            </label>
-                            <input type="text" id="whatsapp_number" name="whatsapp_number" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="+234 801 234 5678">
-                            @error('whatsapp_number')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="phone_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Phone Number
-                            </label>
-                            <input type="text" id="phone_number" name="phone_number"
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="+234 801 234 5678">
-                        </div>
-                    </div>
-
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Email Address
-                        </label>
-                        <input type="email" id="email" name="email"
-                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                            placeholder="restaurant@example.com">
-                    </div>
-
-                    <!-- Address Information -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Street Address *
-                            </label>
-                            <input type="text" id="address" name="address" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="123 Main Street">
-                            @error('address')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                City *
-                            </label>
-                            <input type="text" id="city" name="city" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="Abuja">
-                            @error('city')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label for="state" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                State *
-                            </label>
-                            <input type="text" id="state" name="state" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="FCT">
-                            @error('state')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Postal Code
-                            </label>
-                            <input type="text" id="postal_code" name="postal_code"
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="900001">
-                        </div>
-
-                        <div>
-                            <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Country *
-                            </label>
-                            <input type="text" id="country" name="country" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                value="Nigeria" placeholder="Nigeria">
-                            @error('country')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Branding -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="theme_color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Primary Color *
-                            </label>
-                            <div class="flex items-center space-x-3">
-                                <input type="color" id="theme_color" name="theme_color" value="#ff6b35" required
-                                    class="w-16 h-12 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer">
-                                <input type="text" value="#ff6b35" 
-                                    class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                    placeholder="#ff6b35" readonly>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="whatsapp_number" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    WhatsApp Number *
+                                </label>
+                                <input type="text" id="whatsapp_number" name="whatsapp_number" required
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="+234 801 234 5678">
+                                @error('whatsapp_number')
+                                    <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+                                @enderror
                             </div>
-                        </div>
 
-                        <div>
-                            <label for="secondary_color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Secondary Color *
-                            </label>
-                            <div class="flex items-center space-x-3">
-                                <input type="color" id="secondary_color" name="secondary_color" value="#f7931e" required
-                                    class="w-16 h-12 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer">
-                                <input type="text" value="#f7931e"
-                                    class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                    placeholder="#f7931e" readonly>
+                            <div>
+                                <label for="phone_number" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Phone Number
+                                </label>
+                                <input type="text" id="phone_number" name="phone_number"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="+234 801 234 5678">
+                            </div>
+
+                            <div>
+                                <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Email Address
+                                </label>
+                                <input type="email" id="email" name="email"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="restaurant@example.com">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Images -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Restaurant Logo
-                            </label>
-                            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                    <!-- Location Information -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Location Information</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="address" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Address *
+                                </label>
+                                <textarea id="address" name="address" rows="3" required
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="Enter your restaurant address"></textarea>
+                                @error('address')
+                                    <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="city" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                        City *
+                                    </label>
+                                    <input type="text" id="city" name="city" required
+                                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                        placeholder="City">
+                                </div>
+
+                                <div>
+                                    <label for="state" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                        State *
+                                    </label>
+                                    <input type="text" id="state" name="state" required
+                                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                        placeholder="State">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restaurant Type -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Restaurant Details</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="cuisine_type" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Cuisine Type
+                                </label>
+                                <select id="cuisine_type" name="cuisine_type"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200">
+                                    <option value="">Select cuisine type</option>
+                                    <option value="Nigerian">Nigerian</option>
+                                    <option value="African">African</option>
+                                    <option value="International">International</option>
+                                    <option value="Fast Food">Fast Food</option>
+                                    <option value="Fine Dining">Fine Dining</option>
+                                    <option value="Cafe">Cafe</option>
+                                    <option value="Pizza">Pizza</option>
+                                    <option value="Chinese">Chinese</option>
+                                    <option value="Indian">Indian</option>
+                                    <option value="Italian">Italian</option>
+                                    <option value="Mexican">Mexican</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="opening_hours" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Opening Hours
+                                </label>
+                                <input type="text" id="opening_hours" name="opening_hours"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                                    placeholder="e.g., Mon-Sun: 8AM-10PM">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Media Upload -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Restaurant Media</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="logo" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Restaurant Logo
+                                </label>
                                 <input type="file" id="logo" name="logo" accept="image/*"
-                                    class="hidden" onchange="previewImage(this, 'logo-preview')">
-                                <label for="logo" class="cursor-pointer">
-                                    <div id="logo-preview" class="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                        <i class="fas fa-camera text-2xl text-gray-400"></i>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload logo</p>
-                                </label>
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Recommended: Square image, max 2MB</p>
                             </div>
-                        </div>
 
-                        <div>
-                            <label for="banner_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Banner Image
-                            </label>
-                            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                                <input type="file" id="banner_image" name="banner_image" accept="image/*"
-                                    class="hidden" onchange="previewImage(this, 'banner-preview')">
-                                <label for="banner_image" class="cursor-pointer">
-                                    <div id="banner-preview" class="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                        <i class="fas fa-image text-2xl text-gray-400"></i>
-                                    </div>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload banner</p>
+                            <div>
+                                <label for="banner" class="block text-sm font-semibold text-gray-700 dark:text-white mb-2">
+                                    Restaurant Banner
                                 </label>
+                                <input type="file" id="banner" name="banner" accept="image/*"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Recommended: 16:9 ratio, max 5MB</p>
                             </div>
                         </div>
                     </div>
@@ -239,63 +239,38 @@
                     <!-- Submit Button -->
                     <div class="pt-6">
                         <button type="submit" 
-                            class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 px-6 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105">
+                                class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
                             <i class="fas fa-rocket mr-2"></i>
                             Create My Restaurant
                         </button>
                     </div>
                 </form>
             </div>
-
-            <!-- Features Preview -->
-            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center shadow-lg">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-qrcode text-blue-600 text-xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-2">QR Code Menus</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Generate unique QR codes for each table</p>
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center shadow-lg">
-                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-mobile-alt text-green-600 text-xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Digital Menus</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Beautiful, mobile-friendly menu display</p>
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center shadow-lg">
-                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-shopping-cart text-purple-600 text-xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Order Management</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Track orders and manage inventory</p>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
 <script>
-function previewImage(input, previewId) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById(previewId);
-            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-lg">`;
-        };
-        reader.readAsDataURL(input.files[0]);
+// Theme toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    // Check for saved theme preference or default to light mode
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+    updateThemeIcon(currentTheme);
+    
+    themeToggle.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        const theme = isDark ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+        updateThemeIcon(theme);
+    });
+    
+    function updateThemeIcon(theme) {
+        themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
     }
-}
-
-// Update color input text when color picker changes
-document.getElementById('theme_color').addEventListener('input', function(e) {
-    e.target.nextElementSibling.value = e.target.value;
-});
-
-document.getElementById('secondary_color').addEventListener('input', function(e) {
-    e.target.nextElementSibling.value = e.target.value;
 });
 </script>
 @endsection 

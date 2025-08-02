@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'Abuja Eat - Digital Menu Solutions for Restaurants')
+@section('title', 'Fastify - Digital Menu Solutions for Restaurants')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800">
@@ -8,13 +8,15 @@
     <div class="relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div class="text-center">
-                <div class="w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <i class="fas fa-qrcode text-4xl text-white"></i>
+                <div class="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg relative">
+                    <div class="text-white font-bold text-xl tracking-wider">y</div>
+                    <div class="absolute -top-2 -left-2 w-4 h-4 bg-red-500 rounded-full"></div>
+                    <div class="absolute -bottom-2 -right-2 w-3 h-3 bg-green-600 rounded-full"></div>
                 </div>
                 <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
                     Transform Your Restaurant with
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">
-                        Digital Menus
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                        Fastify
                     </span>
                 </h1>
                 <p class="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
@@ -280,9 +282,9 @@
             <h2 class="text-4xl font-bold text-white mb-6">
                 Ready to Transform Your Restaurant?
             </h2>
-            <p class="text-xl text-orange-100 mb-8">
-                Join thousands of restaurants already using Abuja Eat to digitize their menus and boost sales.
-            </p>
+                            <p class="text-xl text-orange-100 mb-8">
+                    Join thousands of restaurants already using Fastify to digitize their menus and boost sales.
+                </p>
             <a href="{{ route('restaurant.onboarding') }}" 
                 class="inline-flex items-center px-8 py-4 bg-white text-orange-600 font-bold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg">
                 <i class="fas fa-rocket mr-3"></i>
@@ -296,7 +298,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Abuja Eat</h3>
+                    <h3 class="text-lg font-semibold mb-4">Fastify</h3>
                     <p class="text-gray-400">
                         Transforming restaurants with digital menu solutions.
                     </p>
@@ -327,7 +329,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 Abuja Eat. All rights reserved.</p>
+                <p>&copy; 2024 Fastify. All rights reserved.</p>
             </div>
         </div>
     </footer>

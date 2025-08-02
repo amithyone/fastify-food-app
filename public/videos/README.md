@@ -1,4 +1,4 @@
-# Video Functionality for Abuja Eat
+# Video Functionality for Fastify
 
 This directory contains video assets and documentation for the kitchen live stream functionality.
 

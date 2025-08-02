@@ -199,7 +199,7 @@ async function handleNavigation(request) {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Abuja Eat - Offline</title>
+                <title>Fastify - Offline</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
                     body { 

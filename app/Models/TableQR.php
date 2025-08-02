@@ -10,6 +10,8 @@ class TableQR extends Model
 {
     use HasFactory;
 
+    protected $table = 'table_qrs';
+
     protected $fillable = [
         'restaurant_id',
         'table_number',

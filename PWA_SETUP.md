@@ -1,8 +1,10 @@
-# 📱 PWA Setup Guide - Abuja Eat
+# 📱 PWA Setup Guide - Fastify
+
+This guide will help you set up your Fastify application as a Progressive Web App (PWA) with full offline functionality, push notifications, and app installation capabilities.
 
 ## 🎯 Overview
 
-This guide will help you set up your Abuja Eat application as a Progressive Web App (PWA) with full offline functionality, push notifications, and app installation capabilities.
+This guide will help you set up your Fastify application as a Progressive Web App (PWA) with full offline functionality, push notifications, and app installation capabilities.
 
 ## 🚀 Quick Setup
 
@@ -33,7 +35,7 @@ public/icons/
 #### Icon Specifications:
 - **Format**: PNG with transparency
 - **Style**: Square with rounded corners (optional)
-- **Colors**: Use your brand colors (#f97316 for Abuja Eat)
+- **Colors**: Use your brand colors (#f97316 for Fastify)
 - **Design**: Simple, recognizable logo
 
 ### 2. Create App Screenshots
@@ -358,4 +360,4 @@ Track these metrics to measure PWA success:
 
 ---
 
-**Your Abuja Eat PWA is now ready for production! 🚀** 
+**Your Fastify PWA is now ready for production! 🚀** 

@@ -5,8 +5,13 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                    <a href="{{ route('dashboard') }}" class="flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-3 relative">
+                            <div class="text-white font-bold text-xs tracking-wider">y</div>
+                            <div class="absolute -top-1 -left-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                            <div class="absolute -bottom-1 -right-1 w-1.5 h-1.5 bg-green-600 rounded-full"></div>
+                        </div>
+                        <span class="font-bold text-lg text-gray-800">Fastify</span>
                     </a>
                 </div>
 

@@ -7,14 +7,12 @@
     <!-- Header -->
     <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-6">
+            <div class="flex justify-between items-center py-8">
                 <div class="flex items-center space-x-4">
                     @if($restaurant->logo)
-                        <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-12 h-12 rounded-lg object-cover">
+                        <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
                     @else
-                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-utensils text-white text-xl"></i>
-                        </div>
+                        <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
                     @endif
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $restaurant->name }}</h1>
@@ -22,16 +20,79 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ $restaurant->getMenuUrl() }}" target="_blank" 
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
-                        <i class="fas fa-external-link-alt mr-2"></i>
-                        View Menu
-                    </a>
-                    <a href="{{ route('restaurant.edit', $restaurant->slug) }}" 
-                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <i class="fas fa-cog mr-2"></i>
-                        Settings
-                    </a>
+                    <!-- Desktop: Show all buttons -->
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="{{ $restaurant->getMenuUrl() }}" target="_blank" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            View Menu
+                        </a>
+                        
+                        <a href="{{ route('restaurant.edit', $restaurant->slug) }}" 
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <i class="fas fa-cog mr-2"></i>
+                            Settings
+                        </a>
+                    </div>
+                    
+                    <!-- Mobile & Desktop: Add Dropdown Button -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add
+                            <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-200 dark:border-gray-700">
+                            
+                            <div class="py-1">
+                                <a href="{{ route('restaurant.menu', $restaurant->slug) }}" 
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-utensils mr-3 text-green-600"></i>
+                                    Add Dish
+                                </a>
+                                
+                                <a href="{{ route('restaurant.menu', $restaurant->slug) }}" 
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-folder mr-3 text-blue-600"></i>
+                                    Add Category
+                                </a>
+                                
+                                <a href="#" 
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-toggle-on mr-3 text-purple-600"></i>
+                                    Add Status
+                                </a>
+                                
+                                <!-- Divider -->
+                                <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                
+                                <!-- Mobile-only: View Menu and Settings -->
+                                <div class="md:hidden">
+                                    <a href="{{ $restaurant->getMenuUrl() }}" target="_blank" 
+                                       class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <i class="fas fa-external-link-alt mr-3 text-blue-600"></i>
+                                        View Menu
+                                    </a>
+                                    
+                                    <a href="{{ route('restaurant.edit', $restaurant->slug) }}" 
+                                       class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <i class="fas fa-cog mr-3 text-gray-600"></i>
+                                        Settings
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -39,7 +100,7 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -85,20 +146,20 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-md flex items-center justify-center">
-                            <i class="fas fa-tags text-purple-600 text-sm"></i>
+                        <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-md flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-orange-600 text-sm"></i>
                         </div>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Categories</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $stats['total_categories'] }}</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Earnings</p>
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $restaurant->currency }}{{ number_format($stats['today_earnings'] / 100, 2) }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <a href="{{ route('restaurant.qr-codes', $restaurant->slug) }}" 
                 class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">
@@ -114,7 +175,7 @@
                 </div>
             </a>
 
-            <a href="{{ route('admin.menu') }}" 
+            <a href="{{ route('restaurant.menu', $restaurant->slug) }}" 
                 class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -140,6 +201,21 @@
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Orders</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400">View and manage orders</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('restaurant.wallet', $restaurant->slug) }}" 
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-wallet text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Wallet</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Manage payments & withdrawals</p>
                     </div>
                 </div>
             </a>
@@ -249,6 +325,20 @@
                         <span class="text-sm text-gray-500 dark:text-gray-400">Address:</span>
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $restaurant->full_address }}</span>
                     </div>
+                    @if($restaurant->custom_domain)
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Custom Domain:</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $restaurant->custom_domain }}</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                    @if($restaurant->custom_domain_status === 'verified') bg-green-100 text-green-800
+                                    @elseif($restaurant->custom_domain_status === 'pending') bg-yellow-100 text-yellow-800
+                                    @else bg-red-100 text-red-800 @endif">
+                                    {{ ucfirst($restaurant->custom_domain_status) }}
+                                </span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -269,6 +359,21 @@
                         class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">Edit Restaurant</span>
                         <i class="fas fa-arrow-right text-gray-400"></i>
+                    </a>
+                    <a href="{{ route('restaurant.custom-domain', $restaurant->slug) }}" 
+                        class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">Custom Domain</span>
+                        <div class="flex items-center space-x-2">
+                            @if($restaurant->custom_domain)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                    @if($restaurant->custom_domain_status === 'verified') bg-green-100 text-green-800
+                                    @elseif($restaurant->custom_domain_status === 'pending') bg-yellow-100 text-yellow-800
+                                    @else bg-red-100 text-red-800 @endif">
+                                    {{ ucfirst($restaurant->custom_domain_status ?? 'Not Set') }}
+                                </span>
+                            @endif
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                        </div>
                     </a>
                 </div>
             </div>

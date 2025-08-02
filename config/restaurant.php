@@ -24,7 +24,7 @@ return [
     
     // Branding
     'logo' => env('RESTAURANT_LOGO', '/images/logo.png'),
-    'favicon' => env('RESTAURANT_FAVICON', '/icons/icon-32x32.png'),
+    'favicon' => env('RESTAURANT_FAVICON', '/favicon.svg'),
     'theme_color' => env('RESTAURANT_THEME_COLOR', '#f97316'),
     'accent_color' => env('RESTAURANT_ACCENT_COLOR', '#ea580c'),
     

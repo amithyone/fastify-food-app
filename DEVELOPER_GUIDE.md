@@ -1,4 +1,4 @@
-# 👨‍💻 Developer Guide - Abuja Eat
+# 👨‍💻 Developer Guide - Fastify
 
 ## 🏗️ Architecture Overview
 
@@ -626,4 +626,4 @@ try {
 
 ---
 
-**This developer guide provides comprehensive technical documentation for the Abuja Eat application. For additional support, refer to the main README.md file or contact the development team.** 
+**This developer guide provides comprehensive technical documentation for the Fastify application. For additional support, refer to the main README.md file or contact the development team.** 

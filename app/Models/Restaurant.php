@@ -31,6 +31,10 @@ class Restaurant extends Model
         'theme_color',
         'secondary_color',
         'settings',
+        'custom_domain',
+        'custom_domain_verified',
+        'custom_domain_verified_at',
+        'custom_domain_status',
     ];
 
     protected $casts = [
@@ -74,6 +78,11 @@ class Restaurant extends Model
     public function userRewards()
     {
         return $this->hasMany(UserReward::class);
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
     }
 
     // Scopes
@@ -126,13 +135,40 @@ class Restaurant extends Model
         return url("/qr/{$this->slug}/table/{$tableNumber}");
     }
 
-    public function getMenuUrl()
-    {
-        return url("/menu/{$this->slug}");
-    }
-
     public function getDashboardUrl()
     {
-        return url("/restaurant/{$this->slug}/dashboard");
+        return route('restaurant.dashboard', $this->slug);
+    }
+
+    public function getCustomDomainUrl()
+    {
+        if ($this->custom_domain && $this->custom_domain_verified) {
+            return 'https://' . $this->custom_domain;
+        }
+        return null;
+    }
+
+    public function getMenuUrl()
+    {
+        if ($this->custom_domain && $this->custom_domain_verified) {
+            return 'https://' . $this->custom_domain;
+        }
+        return route('menu.restaurant', $this->slug);
+    }
+
+    public function hasCustomDomain()
+    {
+        return !empty($this->custom_domain) && $this->custom_domain_verified;
+    }
+
+    public function verifyCustomDomain()
+    {
+        // This would typically involve checking DNS records
+        // For now, we'll simulate verification
+        $this->update([
+            'custom_domain_verified' => true,
+            'custom_domain_verified_at' => now(),
+            'custom_domain_status' => 'verified'
+        ]);
     }
 }

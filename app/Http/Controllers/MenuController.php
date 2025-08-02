@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\MenuItem;
+use App\Models\Restaurant;
 use App\Models\Story;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
@@ -94,5 +96,127 @@ class MenuController extends Controller
         }
         
         return response()->json($menuItems);
+    }
+
+    // Restaurant Menu Management Methods
+    public function restaurantIndex($slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        // Check if user owns this restaurant
+        if (Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant menu.');
+        }
+        
+        $menuItems = $restaurant->menuItems()->with('category')->get();
+        $categories = $restaurant->categories()->get();
+        
+        return view('restaurant.menu.index', compact('restaurant', 'menuItems', 'categories'));
+    }
+
+    public function restaurantCreate($slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant menu.');
+        }
+        
+        $categories = $restaurant->categories()->get();
+        
+        return view('restaurant.menu.create', compact('restaurant', 'categories'));
+    }
+
+    public function restaurantStore(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant menu.');
+        }
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'is_available' => 'boolean',
+            'is_featured' => 'boolean',
+            'is_vegetarian' => 'boolean',
+            'is_spicy' => 'boolean',
+            'ingredients' => 'nullable|string',
+            'allergens' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+        
+        $validated['restaurant_id'] = $restaurant->id;
+        
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        }
+        
+        MenuItem::create($validated);
+        
+        return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item created successfully!');
+    }
+
+    public function restaurantEdit($slug, $item)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        if (Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant menu.');
+        }
+        
+        $categories = $restaurant->categories()->get();
+        
+        return view('restaurant.menu.edit', compact('restaurant', 'menuItem', 'categories'));
+    }
+
+    public function restaurantUpdate(Request $request, $slug, $item)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        if (Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant menu.');
+        }
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'is_available' => 'boolean',
+            'is_featured' => 'boolean',
+            'is_vegetarian' => 'boolean',
+            'is_spicy' => 'boolean',
+            'ingredients' => 'nullable|string',
+            'allergens' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+        
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        }
+        
+        $menuItem->update($validated);
+        
+        return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item updated successfully!');
+    }
+
+    public function restaurantDestroy($slug, $item)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        if (Auth::user()->restaurant_id !== $restaurant->id) {
+            abort(403, 'Unauthorized access to restaurant menu.');
+        }
+        
+        $menuItem->delete();
+        
+        return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item deleted successfully!');
     }
 }
