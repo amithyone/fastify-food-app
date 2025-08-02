@@ -440,7 +440,7 @@
 
         <!-- Restaurant Section -->
         @auth
-            @if(Auth::user()->restaurant)
+            @if(Auth::user()->primaryRestaurant)
                 <!-- User has a restaurant - show dashboard link -->
                 <div class="bg-gradient-to-br from-green-400 via-green-500 to-green-600 dark:from-green-500 dark:via-green-600 dark:to-green-700 rounded-xl shadow-2xl border-2 border-green-300 dark:border-green-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #4ade80, #22c55e, #16a34a) !important;">
                     <div class="text-center relative z-10">
@@ -452,12 +452,12 @@
                             <p class="text-white mb-8 text-lg leading-relaxed" style="color: white !important;">Access your restaurant dashboard and manage orders, menu, and settings</p>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                            <a href="{{ route('restaurant.dashboard', Auth::user()->restaurant->slug) }}" 
+                            <a href="{{ route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug) }}" 
                                class="inline-flex items-center justify-center px-12 py-4 bg-white text-green-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-lg border-2 border-white" style="background-color: white !important; color: #16a34a !important;">
                                 <i class="fas fa-tachometer-alt mr-3"></i>
                                 Go to Dashboard
                             </a>
-                            <a href="{{ route('restaurant.edit', Auth::user()->restaurant->slug) }}" 
+                            <a href="{{ route('restaurant.edit', Auth::user()->primaryRestaurant->slug) }}" 
                                class="inline-flex items-center justify-center px-12 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 text-lg border-2 border-blue-600" style="background-color: #2563eb !important; color: white !important;">
                                 <i class="fas fa-edit mr-3"></i>
                                 Edit Restaurant
@@ -561,8 +561,8 @@
                 <span>Recent Restaurants</span>
             </a>
             @auth
-                @if(Auth::user()->restaurant)
-                    <a href="{{ route('restaurant.dashboard', Auth::user()->restaurant->slug) }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                @if(Auth::user()->primaryRestaurant)
+                    <a href="{{ route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug) }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                         <i class="fas fa-tachometer-alt text-lg"></i>
                         <span>My Restaurant</span>
                     </a>

@@ -51,6 +51,16 @@ class Restaurant extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function managers()
+    {
+        return $this->hasMany(Manager::class);
+    }
+
+    public function getManagersAttribute()
+    {
+        return $this->managers()->with('user')->get();
+    }
+
     public function categories()
     {
         return $this->hasMany(Category::class);

@@ -15,8 +15,8 @@ class RestaurantController extends Controller
     public function onboarding()
     {
         // Check if user already has a restaurant
-        if (Auth::check() && Auth::user()->restaurant) {
-            return redirect()->route('restaurant.dashboard', Auth::user()->restaurant->slug)
+        if (Auth::check() && Auth::user()->primaryRestaurant) {
+            return redirect()->route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug)
                 ->with('info', 'You already have a restaurant registered.');
         }
         
@@ -105,6 +105,15 @@ class RestaurantController extends Controller
                 ],
             ]);
 
+            // Create manager record for the restaurant owner
+            \App\Models\Manager::create([
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+                'role' => 'owner',
+                'is_active' => true,
+                'permissions' => ['*'], // Owner has all permissions
+            ]);
+
             return redirect()->route('restaurant.dashboard', $restaurant->slug)
                 ->with('success', 'Restaurant created successfully! You can now start adding your menu items.');
 
@@ -119,9 +128,17 @@ class RestaurantController extends Controller
         
         // Check if user has access to this restaurant
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            // Check if user is a manager of this restaurant
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard. You need manager privileges.');
+            }
+            
+            // Update last access time
+            $manager = \App\Models\Manager::where('user_id', Auth::id())
+                ->where('restaurant_id', $restaurant->id)
+                ->first();
+            if ($manager) {
+                $manager->updateLastAccess();
             }
         } else {
             // Redirect to login if not authenticated
@@ -151,9 +168,9 @@ class RestaurantController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            // Check if user is a manager of this restaurant
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard. You need manager privileges.');
             }
         } else {
             // Redirect to login if not authenticated
@@ -168,9 +185,9 @@ class RestaurantController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            // Check if user is a manager of this restaurant
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard. You need manager privileges.');
             }
         } else {
             // Redirect to login if not authenticated

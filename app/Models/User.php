@@ -126,12 +126,38 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Restaurant::class, 'owner_id');
     }
 
+    public function managedRestaurants()
+    {
+        return $this->hasMany(Manager::class);
+    }
+
+    public function getRestaurantsAttribute()
+    {
+        return $this->managedRestaurants()->with('restaurant')->get()->pluck('restaurant');
+    }
+
     /**
      * Check if user is a restaurant owner.
      */
     public function isRestaurantOwner()
     {
-        return $this->restaurant()->exists();
+        return $this->managedRestaurants()->where('role', 'owner')->exists();
+    }
+
+    /**
+     * Check if user is a restaurant manager.
+     */
+    public function isRestaurantManager()
+    {
+        return $this->managedRestaurants()->whereIn('role', ['owner', 'manager'])->exists();
+    }
+
+    /**
+     * Get user's primary restaurant (first one they manage).
+     */
+    public function getPrimaryRestaurantAttribute()
+    {
+        return $this->managedRestaurants()->with('restaurant')->first()?->restaurant;
     }
 
     /**
