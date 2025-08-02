@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="text-center mb-8">
         <div class="flex justify-between items-center mb-6">
-            <a href="{{ route('menu.index') }}" class="text-gray-600 dark:text-white">
+            <a href="{{ route('dashboard') }}" class="text-gray-600 dark:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -21,6 +21,24 @@
         </div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile</h1>
         <p class="text-gray-600 dark:text-white">Manage your account settings</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 gap-3">
+            <!-- Dashboard Button -->
+            <a href="{{ route('dashboard') }}" class="flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <i class="fas fa-home text-lg"></i>
+                <span>Go to Dashboard</span>
+            </a>
+            
+            <!-- Restaurant Onboarding Button -->
+            <a href="{{ route('restaurant.onboarding') }}" class="flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <i class="fas fa-store text-lg"></i>
+                <span>Add Your Restaurant</span>
+            </a>
+        </div>
     </div>
 
     <!-- Profile Information -->
