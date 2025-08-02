@@ -281,4 +281,80 @@ class MenuController extends Controller
         
         return view('menu.admin-index', compact('menuItems'));
     }
+
+    // Category Management Methods
+    public function storeCategory(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant categories. You need manager privileges.');
+            }
+        } else {
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant categories.');
+        }
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+        
+        $validated['restaurant_id'] = $restaurant->id;
+        $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        
+        Category::create($validated);
+        
+        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category created successfully!');
+    }
+
+    public function updateCategory(Request $request, $slug, $category)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $category = Category::where('id', $category)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant categories. You need manager privileges.');
+            }
+        } else {
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant categories.');
+        }
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+        
+        $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        
+        $category->update($validated);
+        
+        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category updated successfully!');
+    }
+
+    public function destroyCategory(Request $request, $slug, $category)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $category = Category::where('id', $category)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant categories. You need manager privileges.');
+            }
+        } else {
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant categories.');
+        }
+        
+        // Check if category has menu items
+        if ($category->menuItems()->count() > 0) {
+            return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category with menu items. Please move or delete the items first.');
+        }
+        
+        $category->delete();
+        
+        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category deleted successfully!');
+    }
 }

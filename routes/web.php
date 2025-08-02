@@ -216,6 +216,11 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::put('/{slug}/menu/{item}', [MenuController::class, 'restaurantUpdate'])->name('restaurant.menu.update');
     Route::delete('/{slug}/menu/{item}', [MenuController::class, 'restaurantDestroy'])->name('restaurant.menu.destroy');
     
+    // Restaurant Category Management
+    Route::post('/{slug}/categories', [MenuController::class, 'storeCategory'])->name('restaurant.categories.store');
+    Route::put('/{slug}/categories/{category}', [MenuController::class, 'updateCategory'])->name('restaurant.categories.update');
+    Route::delete('/{slug}/categories/{category}', [MenuController::class, 'destroyCategory'])->name('restaurant.categories.destroy');
+    
     // Restaurant Order Management
     Route::get('/{slug}/orders', [OrderController::class, 'restaurantOrders'])->name('restaurant.orders');
     Route::get('/{slug}/orders/{order}', [OrderController::class, 'restaurantOrderShow'])->name('restaurant.orders.show');

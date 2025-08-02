@@ -641,8 +641,18 @@ function editCategory(id, name) {
 
 function deleteCategory(id) {
     if (confirm('Are you sure you want to delete this category?')) {
-        // Implement category deletion
-        console.log('Delete category:', id);
+        fetch(`{{ route('restaurant.categories.destroy', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', id), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error deleting category');
+            }
+        });
     }
 }
 
@@ -714,8 +724,18 @@ function toggleItemStatus(id, newStatus) {
 
 function deleteMenuItem(id) {
     if (confirm('Are you sure you want to delete this menu item?')) {
-        // Implement menu item deletion
-        console.log('Delete menu item:', id);
+        fetch(`{{ route('restaurant.menu.destroy', ['slug' => $restaurant->slug, 'item' => 'ITEM_ID']) }}`.replace('ITEM_ID', id), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error deleting menu item');
+            }
+        });
     }
 }
 
@@ -793,11 +813,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Category form submission
     document.getElementById('categoryForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const name = document.getElementById('categoryName').value;
+        const formData = new FormData(e.target);
+        
         if (editingCategoryId) {
-            console.log('Update category:', editingCategoryId, name);
+            // Update existing category
+            fetch(`{{ route('restaurant.categories.update', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', editingCategoryId), {
+                method: 'PUT',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error updating category');
+                }
+            });
         } else {
-            console.log('Create category:', name);
+            // Create new category
+            fetch(`{{ route('restaurant.categories.store', ['slug' => $restaurant->slug]) }}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error creating category');
+                }
+            });
         }
         closeCategoryModal();
     });
@@ -806,12 +853,37 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('menuItemForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
         
         if (editingMenuItemId) {
-            console.log('Update menu item:', editingMenuItemId, data);
+            // Update existing menu item
+            fetch(`{{ route('restaurant.menu.update', ['slug' => $restaurant->slug, 'item' => 'ITEM_ID']) }}`.replace('ITEM_ID', editingMenuItemId), {
+                method: 'PUT',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error updating menu item');
+                }
+            });
         } else {
-            console.log('Create menu item:', data);
+            // Create new menu item
+            fetch(`{{ route('restaurant.menu.store', ['slug' => $restaurant->slug]) }}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error creating menu item');
+                }
+            });
         }
         closeMenuItemModal();
     });
