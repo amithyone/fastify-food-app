@@ -948,14 +948,18 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Updating menu item:', editingMenuItemId);
             fetch(`{{ route('restaurant.menu.update', ['slug' => $restaurant->slug, 'item' => 'ITEM_ID']) }}`.replace('ITEM_ID', editingMenuItemId), {
                 method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
                 body: formData
             }).then(response => {
                 console.log('Update response status:', response.status);
                 if (response.ok) {
                     return response.json();
                 } else {
-                    return response.json().then(data => {
-                        throw new Error(data.message || 'Update failed');
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error('Update failed - Server returned: ' + text.substring(0, 100));
                     });
                 }
             }).then(data => {
@@ -970,14 +974,18 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Creating new menu item');
             fetch(`{{ route('restaurant.menu.store', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
                 body: formData
             }).then(response => {
                 console.log('Create response status:', response.status);
                 if (response.ok) {
                     return response.json();
                 } else {
-                    return response.json().then(data => {
-                        throw new Error(data.message || 'Creation failed');
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error('Creation failed - Server returned: ' + text.substring(0, 100));
                     });
                 }
             }).then(data => {
