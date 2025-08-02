@@ -182,8 +182,30 @@ class MenuController extends Controller
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
             if ($request->hasFile('image')) {
-                $validated['image'] = $request->file('image')->store('menu-items', 'public');
-                \Log::info('Image uploaded', ['image_path' => $validated['image']]);
+                \Log::info('Image upload detected', [
+                    'file_name' => $request->file('image')->getClientOriginalName(),
+                    'file_size' => $request->file('image')->getSize(),
+                    'file_mime' => $request->file('image')->getMimeType(),
+                    'file_extension' => $request->file('image')->getClientOriginalExtension(),
+                ]);
+                
+                try {
+                    $validated['image'] = $request->file('image')->store('menu-items', 'public');
+                    \Log::info('Image uploaded successfully', [
+                        'image_path' => $validated['image'],
+                        'full_url' => Storage::disk('public')->url($validated['image']),
+                        'file_exists' => Storage::disk('public')->exists($validated['image'])
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Image upload failed', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
             }
             
             $menuItem = MenuItem::create($validated);
@@ -282,8 +304,30 @@ class MenuController extends Controller
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
             if ($request->hasFile('image')) {
-                $validated['image'] = $request->file('image')->store('menu-items', 'public');
-                \Log::info('Image uploaded for update', ['image_path' => $validated['image']]);
+                \Log::info('Image upload detected for update', [
+                    'file_name' => $request->file('image')->getClientOriginalName(),
+                    'file_size' => $request->file('image')->getSize(),
+                    'file_mime' => $request->file('image')->getMimeType(),
+                    'file_extension' => $request->file('image')->getClientOriginalExtension(),
+                ]);
+                
+                try {
+                    $validated['image'] = $request->file('image')->store('menu-items', 'public');
+                    \Log::info('Image uploaded successfully for update', [
+                        'image_path' => $validated['image'],
+                        'full_url' => Storage::disk('public')->url($validated['image']),
+                        'file_exists' => Storage::disk('public')->exists($validated['image'])
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Image upload failed for update', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to upload image: ' . $e->getMessage()
+                    ], 500);
+                }
             }
             
             $menuItem->update($validated);

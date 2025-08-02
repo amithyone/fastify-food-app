@@ -184,6 +184,33 @@ Route::middleware(['auth'])->group(function () {
 // QR Code Routes
 Route::get('/qr/{code}', [OrderController::class, 'qrAccess'])->name('qr.access');
 Route::get('/qr-image/{code}', [OrderController::class, 'qrImage'])->name('qr.image');
+
+// Test route for storage
+Route::get('/test-storage', function() {
+    $testFile = 'test.txt';
+    $content = 'Test file created at ' . now();
+    
+    try {
+        Storage::disk('public')->put($testFile, $content);
+        $url = Storage::disk('public')->url($testFile);
+        $exists = Storage::disk('public')->exists($testFile);
+        
+        return response()->json([
+            'success' => true,
+            'file_created' => $exists,
+            'url' => $url,
+            'storage_path' => storage_path('app/public'),
+            'public_path' => public_path('storage'),
+            'link_exists' => file_exists(public_path('storage')),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+});
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes

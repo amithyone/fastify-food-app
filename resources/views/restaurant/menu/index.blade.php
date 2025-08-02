@@ -134,13 +134,10 @@
                                         <td class="px-3 py-3 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-8 w-8">
-                                                    @if($item->image)
-                                                        <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" 
-                                                             class="h-8 w-8 rounded-lg object-cover">
-                                                    @else
-                                                        <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" 
-                                                             alt="{{ $item->name }}" class="h-8 w-8 rounded-lg object-cover">
-                                                    @endif
+                                                    <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
+                                                         alt="{{ $item->name }}" 
+                                                         class="h-8 w-8 rounded-lg object-cover"
+                                                         onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
                                                 </div>
                                                 <div class="ml-2 min-w-0 flex-1">
                                                     <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -242,11 +239,10 @@
                                         <div class="flex items-center">
                                             <span class="text-sm font-medium text-gray-500 dark:text-gray-400 mr-2">#{{ $index + 1 }}</span>
                                             <div class="w-8 h-8 rounded-lg overflow-hidden mr-3">
-                                                @if($item->image)
-                                                    <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
-                                                @else
-                                                    <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
-                                                @endif
+                                                <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
+                                                     alt="{{ $item->name }}" 
+                                                     class="w-full h-full object-cover"
+                                                     onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
                                             </div>
                                             <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $item->name }}</span>
                                         </div>
