@@ -162,10 +162,10 @@ class MenuController extends Controller
                 'description' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
                 'category_id' => 'required|exists:categories,id',
-                'is_available' => 'boolean',
-                'is_featured' => 'boolean',
-                'is_vegetarian' => 'boolean',
-                'is_spicy' => 'boolean',
+                'is_available' => 'nullable',
+                'is_featured' => 'nullable',
+                'is_vegetarian' => 'nullable',
+                'is_spicy' => 'nullable',
                 'ingredients' => 'nullable|string',
                 'allergens' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
@@ -176,10 +176,10 @@ class MenuController extends Controller
             $validated['restaurant_id'] = $restaurant->id;
             
             // Set default values for boolean fields
-            $validated['is_available'] = $request->has('is_available');
-            $validated['is_featured'] = $request->has('is_featured');
-            $validated['is_vegetarian'] = $request->has('is_vegetarian');
-            $validated['is_spicy'] = $request->has('is_spicy');
+            $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';
+            $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
+            $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
+            $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
             if ($request->hasFile('image')) {
                 $validated['image'] = $request->file('image')->store('menu-items', 'public');
@@ -264,10 +264,10 @@ class MenuController extends Controller
                 'description' => 'nullable|string',
                 'price' => 'required|numeric|min:0',
                 'category_id' => 'required|exists:categories,id',
-                'is_available' => 'boolean',
-                'is_featured' => 'boolean',
-                'is_vegetarian' => 'boolean',
-                'is_spicy' => 'boolean',
+                'is_available' => 'nullable',
+                'is_featured' => 'nullable',
+                'is_vegetarian' => 'nullable',
+                'is_spicy' => 'nullable',
                 'ingredients' => 'nullable|string',
                 'allergens' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
@@ -276,10 +276,10 @@ class MenuController extends Controller
             \Log::info('Validation passed for update', ['validated_data' => $validated]);
             
             // Set default values for boolean fields
-            $validated['is_available'] = $request->has('is_available');
-            $validated['is_featured'] = $request->has('is_featured');
-            $validated['is_vegetarian'] = $request->has('is_vegetarian');
-            $validated['is_spicy'] = $request->has('is_spicy');
+            $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';
+            $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
+            $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
+            $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
             if ($request->hasFile('image')) {
                 $validated['image'] = $request->file('image')->store('menu-items', 'public');
