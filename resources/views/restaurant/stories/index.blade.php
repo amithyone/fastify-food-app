@@ -135,7 +135,7 @@
                 </div>
                 
                 <div class="flex items-center">
-                    <input type="checkbox" id="is_active" name="is_active" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <input type="checkbox" id="is_active" name="is_active" value="1" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                     <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-white">Active</label>
                 </div>
                 
@@ -257,6 +257,12 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
     // Get CSRF token from the form
     const csrfToken = document.querySelector('input[name="_token"]').value;
     
+    // Log form data for debugging
+    console.log('Form data being sent:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ': ' + value);
+    }
+    
     fetch(url, {
         method: currentStoryId ? 'PUT' : 'POST',
         headers: {
@@ -265,14 +271,17 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
         if (!response.ok) {
             return response.text().then(text => {
+                console.error('Server response:', text);
                 throw new Error('Server returned: ' + text);
             });
         }
         return response.json();
     })
     .then(data => {
+        console.log('Success response:', data);
         if (data.success) {
             closeModal();
             location.reload();

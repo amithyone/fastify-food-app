@@ -134,6 +134,14 @@ class StoryController extends Controller
         }
         
         try {
+            // Log all request data for debugging
+            \Log::info('Story creation request data', [
+                'all_data' => $request->all(),
+                'has_is_active' => $request->has('is_active'),
+                'is_active_value' => $request->input('is_active'),
+                'is_active_boolean' => $request->boolean('is_active')
+            ]);
+
             $request->validate([
                 'type' => 'required|string|max:50',
                 'title' => 'required|string|max:255',
@@ -143,11 +151,11 @@ class StoryController extends Controller
                 'description' => 'nullable|string',
                 'price' => 'nullable|numeric|min:0',
                 'original_price' => 'nullable|numeric|min:0',
-                'show_button' => 'boolean',
+                'show_button' => 'nullable|boolean',
                 'button_text' => 'nullable|string|max:100',
                 'button_action' => 'nullable|string|max:100',
-                'is_active' => 'boolean',
-                'sort_order' => 'integer|min:0'
+                'is_active' => 'nullable|boolean',
+                'sort_order' => 'nullable|integer|min:0'
             ]);
 
             \Log::info('Validation passed for story creation', [
@@ -157,11 +165,20 @@ class StoryController extends Controller
             $data = $request->all();
             $data['restaurant_id'] = $restaurant->id;
             
+            // Handle boolean fields properly
+            $data['is_active'] = $request->boolean('is_active');
+            $data['show_button'] = $request->boolean('show_button');
+            
+            \Log::info('Data before story creation', [
+                'processed_data' => $data
+            ]);
+            
             $story = Story::create($data);
 
             \Log::info('Story created successfully', [
                 'story_id' => $story->id,
-                'story_title' => $story->title
+                'story_title' => $story->title,
+                'story_is_active' => $story->is_active
             ]);
 
             return response()->json([
@@ -171,7 +188,8 @@ class StoryController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error creating story', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
             ]);
 
             return response()->json([
