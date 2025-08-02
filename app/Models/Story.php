@@ -20,7 +20,8 @@ class Story extends Model
         'button_text',
         'button_action',
         'is_active',
-        'sort_order'
+        'sort_order',
+        'color_gradient'
     ];
 
     protected $casts = [

@@ -29,13 +29,30 @@
             <!-- Stories Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($stories as $story)
+                @php
+                    $gradient = $story->color_gradient ?? 'orange';
+                    $gradientClasses = [
+                        'orange' => 'bg-gradient-to-tr from-orange-200 to-orange-400 dark:from-orange-700 dark:to-orange-900',
+                        'pink' => 'bg-gradient-to-tr from-pink-200 to-pink-400 dark:from-pink-700 dark:to-pink-900',
+                        'green' => 'bg-gradient-to-tr from-green-200 to-green-400 dark:from-green-700 dark:to-green-900',
+                        'blue' => 'bg-gradient-to-tr from-blue-200 to-blue-400 dark:from-blue-700 dark:to-blue-900',
+                        'purple' => 'bg-gradient-to-tr from-purple-200 to-purple-400 dark:from-purple-700 dark:to-purple-900',
+                        'emerald' => 'bg-gradient-to-tr from-emerald-200 to-emerald-400 dark:from-emerald-700 dark:to-emerald-900',
+                        'red' => 'bg-gradient-to-tr from-red-200 to-red-400 dark:from-red-700 dark:to-red-900',
+                    ];
+                    $gradientClass = $gradientClasses[$gradient] ?? $gradientClasses['orange'];
+                @endphp
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center">
-                                @if($story->emoji)
-                                    <span class="text-2xl mr-3">{{ $story->emoji }}</span>
-                                @endif
+                                <div class="w-8 h-8 rounded-lg {{ $gradientClass }} flex items-center justify-center mr-3">
+                                    @if($story->emoji)
+                                        <span class="text-white text-sm">{{ $story->emoji }}</span>
+                                    @else
+                                        <span class="text-white text-sm">📖</span>
+                                    @endif
+                                </div>
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $story->title }}</h3>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -130,6 +147,41 @@
                 </div>
                 
                 <div>
+                    <label for="color_gradient" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Color Gradient</label>
+                    <div class="mt-2 grid grid-cols-7 gap-2">
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="orange" onclick="selectGradient('orange')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-orange-200 to-orange-400 mb-1"></div>
+                            Orange
+                        </div>
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="pink" onclick="selectGradient('pink')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-pink-200 to-pink-400 mb-1"></div>
+                            Pink
+                        </div>
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="green" onclick="selectGradient('green')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-green-200 to-green-400 mb-1"></div>
+                            Green
+                        </div>
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="blue" onclick="selectGradient('blue')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-blue-200 to-blue-400 mb-1"></div>
+                            Blue
+                        </div>
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="purple" onclick="selectGradient('purple')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-purple-200 to-purple-400 mb-1"></div>
+                            Purple
+                        </div>
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="emerald" onclick="selectGradient('emerald')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-emerald-200 to-emerald-400 mb-1"></div>
+                            Emerald
+                        </div>
+                        <div class="gradient-option cursor-pointer rounded-lg p-2 text-center text-white text-xs font-medium" data-gradient="red" onclick="selectGradient('red')">
+                            <div class="w-full h-8 rounded bg-gradient-to-tr from-red-200 to-red-400 mb-1"></div>
+                            Red
+                        </div>
+                    </div>
+                    <input type="hidden" id="color_gradient" name="color_gradient" value="orange">
+                </div>
+                
+                <div>
                     <label for="sort_order" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sort Order</label>
                     <input type="number" id="sort_order" name="sort_order" value="0" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 </div>
@@ -162,6 +214,10 @@ function openCreateModal() {
     document.getElementById('modalTitle').textContent = 'Add New Story';
     document.getElementById('storyForm').reset();
     document.getElementById('storyId').value = '';
+    
+    // Set default gradient
+    selectGradient('orange');
+    
     document.getElementById('storyModal').classList.remove('hidden');
 }
 
@@ -183,6 +239,12 @@ function openEditModal(storyId) {
                 document.getElementById('emoji').value = story.emoji || '';
                 document.getElementById('sort_order').value = story.sort_order;
                 document.getElementById('is_active').checked = story.is_active;
+                
+                // Set color gradient
+                const colorGradient = story.color_gradient || 'orange';
+                document.getElementById('color_gradient').value = colorGradient;
+                selectGradient(colorGradient);
+                
                 document.getElementById('storyModal').classList.remove('hidden');
             } else {
                 alert('Error loading story: ' + data.message);
@@ -196,6 +258,22 @@ function openEditModal(storyId) {
 
 function closeModal() {
     document.getElementById('storyModal').classList.add('hidden');
+}
+
+function selectGradient(gradient) {
+    // Remove active class from all gradient options
+    document.querySelectorAll('.gradient-option').forEach(option => {
+        option.classList.remove('ring-2', 'ring-orange-500', 'ring-offset-2');
+    });
+    
+    // Add active class to selected gradient
+    const selectedOption = document.querySelector(`[data-gradient="${gradient}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('ring-2', 'ring-orange-500', 'ring-offset-2');
+    }
+    
+    // Update hidden input value
+    document.getElementById('color_gradient').value = gradient;
 }
 
 function toggleStoryStatus(storyId) {
@@ -250,8 +328,9 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const url = currentStoryId 
-        ? `/restaurant/{{ $restaurant->slug }}/stories/${currentStoryId}`
+    const storyId = document.getElementById('storyId').value;
+    const url = storyId 
+        ? `/restaurant/{{ $restaurant->slug }}/stories/${storyId}`
         : `/restaurant/{{ $restaurant->slug }}/stories`;
     
     // Get CSRF token from the form
@@ -259,12 +338,20 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
     
     // Log form data for debugging
     console.log('Form data being sent:');
+    console.log('Story ID from form:', storyId);
+    console.log('Current Story ID variable:', currentStoryId);
+    console.log('URL being used:', url);
     for (let [key, value] of formData.entries()) {
         console.log(key + ': ' + value);
     }
     
+    // Add _method field for Laravel method spoofing
+    if (storyId) {
+        formData.append('_method', 'PUT');
+    }
+    
     fetch(url, {
-        method: currentStoryId ? 'PUT' : 'POST',
+        method: 'POST', // Always use POST, Laravel will handle the method spoofing
         headers: {
             'X-CSRF-TOKEN': csrfToken,
         },

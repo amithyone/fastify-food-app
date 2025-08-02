@@ -93,27 +93,40 @@ self.addEventListener('fetch', (event) => {
     
     // Default: try network first, fallback to cache
     event.respondWith(
-        fetch(request)
-            .then((response) => {
+        (async () => {
+            // Check if the request URL is cacheable
+            const url = new URL(request.url);
+            if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'safari-extension:') {
+                // Skip caching for browser extensions
+                return fetch(request);
+            }
+            
+            try {
+                const response = await fetch(request);
                 // Cache successful responses
                 if (response.status === 200) {
                     const responseClone = response.clone();
-                    caches.open(DYNAMIC_CACHE)
-                        .then((cache) => {
-                            cache.put(request, responseClone);
-                        });
+                    const cache = await caches.open(DYNAMIC_CACHE);
+                    cache.put(request, responseClone);
                 }
                 return response;
-            })
-            .catch(() => {
+            } catch (error) {
                 // Fallback to cache
                 return caches.match(request);
-            })
+            }
+        })()
     );
 });
 
 // Handle API requests with cache-first strategy
 async function handleApiRequest(request) {
+    // Check if the request URL is cacheable
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'safari-extension:') {
+        // Skip caching for browser extensions
+        return fetch(request);
+    }
+    
     try {
         // Try cache first
         const cachedResponse = await caches.match(request);
@@ -156,6 +169,13 @@ async function handleApiRequest(request) {
 
 // Handle static assets with cache-first strategy
 async function handleStaticAsset(request) {
+    // Check if the request URL is cacheable
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'safari-extension:') {
+        // Skip caching for browser extensions
+        return fetch(request);
+    }
+    
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
         return cachedResponse;
@@ -254,6 +274,13 @@ async function handleNavigation(request) {
 
 // Background fetch and cache
 async function fetchAndCache(request) {
+    // Check if the request URL is cacheable
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'safari-extension:') {
+        // Skip caching for browser extensions
+        return;
+    }
+    
     try {
         const response = await fetch(request);
         if (response.status === 200) {

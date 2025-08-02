@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\AIMenuController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -393,6 +394,11 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::put('/{slug}/stories/{story}', [StoryController::class, 'restaurantUpdate'])->name('restaurant.stories.update');
     Route::delete('/{slug}/stories/{story}', [StoryController::class, 'restaurantDestroy'])->name('restaurant.stories.destroy');
     Route::post('/{slug}/stories/{story}/toggle', [StoryController::class, 'restaurantToggleStatus'])->name('restaurant.stories.toggle');
+    
+    // AI Menu Management Routes
+    Route::post('/{slug}/ai/recognize', [AIMenuController::class, 'recognizeFood'])->name('restaurant.ai.recognize');
+    Route::post('/{slug}/ai/store', [AIMenuController::class, 'storeMenuItem'])->name('restaurant.ai.store');
+    Route::get('/{slug}/ai/categories', [AIMenuController::class, 'getCategories'])->name('restaurant.ai.categories');
 });
 
 // Restaurant browsing routes

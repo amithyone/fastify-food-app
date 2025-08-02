@@ -24,8 +24,34 @@
 
     <!-- Stories Section -->
     <div class="mb-4" style="margin-top: 60px;">
+        @if($stories && $stories->count() > 0)
         <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar w-full whitespace-nowrap" >
-            <!-- Today's Special -->
+            @foreach($stories as $story)
+            @php
+                $gradient = $story->color_gradient ?? 'orange';
+                $gradientClasses = [
+                    'orange' => 'bg-gradient-to-tr from-orange-200 to-orange-400 dark:from-orange-700 dark:to-orange-900',
+                    'pink' => 'bg-gradient-to-tr from-pink-200 to-pink-400 dark:from-pink-700 dark:to-pink-900',
+                    'green' => 'bg-gradient-to-tr from-green-200 to-green-400 dark:from-green-700 dark:to-green-900',
+                    'blue' => 'bg-gradient-to-tr from-blue-200 to-blue-400 dark:from-blue-700 dark:to-blue-900',
+                    'purple' => 'bg-gradient-to-tr from-purple-200 to-purple-400 dark:from-purple-700 dark:to-purple-900',
+                    'emerald' => 'bg-gradient-to-tr from-emerald-200 to-emerald-400 dark:from-emerald-700 dark:to-emerald-900',
+                    'red' => 'bg-gradient-to-tr from-red-200 to-red-400 dark:from-red-700 dark:to-red-900',
+                ];
+                $gradientClass = $gradientClasses[$gradient] ?? $gradientClasses['orange'];
+            @endphp
+            <div class="flex-shrink-0 w-20 h-28 {{ $gradientClass }} rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('{{ $story->id }}')" >
+                <div class="text-lg mb-1">{{ $story->emoji ?: '📖' }}</div>
+                <div class="text-center">
+                    <div class="font-bold">{{ Str::limit($story->title, 8) }}</div>
+                    <div class="text-xs">{{ Str::limit($story->subtitle ?: $story->type, 8) }}</div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @else
+        <!-- Fallback stories if none exist -->
+        <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar w-full whitespace-nowrap" >
             <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-orange-200 to-orange-400 dark:from-orange-700 dark:to-orange-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('special')" >
                 <div class="text-lg mb-1">🍕</div>
                 <div class="text-center">
@@ -34,7 +60,6 @@
                 </div>
             </div>
             
-            <!-- New Arrivals -->
             <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-pink-200 to-pink-400 dark:from-pink-700 dark:to-pink-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('new')">
                 <div class="text-lg mb-1">🆕</div>
                 <div class="text-center">
@@ -43,7 +68,6 @@
                 </div>
             </div>
             
-            <!-- Chef's Pick -->
             <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-green-200 to-green-400 dark:from-green-700 dark:to-green-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('chef')">
                 <div class="text-lg mb-1">👨‍🍳</div>
                 <div class="text-center">
@@ -51,34 +75,8 @@
                     <div>Pick</div>
                 </div>
             </div>
-            
-            <!-- Discounts -->
-            <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-blue-200 to-blue-400 dark:from-blue-700 dark:to-blue-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('discount')">
-                <div class="text-lg mb-1">💰</div>
-                <div class="text-center">
-                    <div class="font-bold">Special</div>
-                    <div>Offers</div>
-                </div>
-            </div>
-            
-            <!-- Reward System -->
-            <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-emerald-200 to-emerald-400 dark:from-emerald-700 dark:to-emerald-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('rewards')">
-                <div class="text-lg mb-1">🎁</div>
-                <div class="text-center">
-                    <div class="font-bold">Earn</div>
-                    <div>Rewards</div>
-                </div>
-            </div>
-            
-            <!-- Kitchen Live -->
-            <div class="flex-shrink-0 w-20 h-28 bg-gradient-to-tr from-purple-200 to-purple-400 dark:from-purple-700 dark:to-purple-900 rounded-xl flex flex-col items-center justify-center text-xs font-semibold text-white dark:text-white shadow cursor-pointer hover:scale-105 transition-transform" onclick="showStory('kitchen')">
-                <div class="text-lg mb-1">📹</div>
-                <div class="text-center">
-                    <div class="font-bold">Kitchen</div>
-                    <div>Live</div>
-                </div>
-            </div>
         </div>
+        @endif
     </div>
 
     <!-- Kitchen Live Section -->
@@ -355,12 +353,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Story functionality
-function showStory(type) {
-    // Get story from database via stories array
-    const story = window.stories.find(s => s.type === type);
+function showStory(storyId) {
+    // Get story from database via AJAX or from stories data
+    let story = null;
     
+    // Try to find story in window.stories array first
+    if (window.stories && window.stories.length > 0) {
+        story = window.stories.find(s => s.id == storyId);
+    }
+    
+    // If not found in window.stories, try to fetch from server
     if (!story) {
-        console.error('Story not found:', type);
+        // For now, show a generic story modal
+        showGenericStory(storyId);
         return;
     }
 
@@ -431,6 +436,43 @@ function closeStory() {
     if (modal) {
         modal.remove();
     }
+}
+
+function showGenericStory(storyId) {
+    // Show a generic story modal when story data is not available
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+    modal.id = 'storyModal';
+    
+    // Check if dark mode is active
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const modalBgColor = isDarkMode ? '#0b1e35' : '#ffb661';
+    
+    modal.innerHTML = `
+        <div class="bg-[#ffb661] dark:bg-[#0b1e35] rounded-2xl p-6 w-[400px] transform transition-all shadow-2xl" style="box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important; background-color: ${modalBgColor} !important; width: 400px !important; max-width: 400px !important; min-width: 400px !important;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Story #${storyId}</h2>
+                <button onclick="closeStory()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="text-gray-700 dark:text-gray-300 text-base text-center">
+                <div class="text-4xl mb-4">📖</div>
+                <h3 class="text-xl font-bold mb-2">Story Content</h3>
+                <p class="text-sm mb-3">This story content is being loaded...</p>
+                <p class="text-xs text-gray-500">Story ID: ${storyId}</p>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add click outside to close
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeStory();
+        }
+    });
 }
 
 function addSpecialToCart() {

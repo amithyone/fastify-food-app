@@ -238,6 +238,21 @@
                 </div>
             </a>
 
+            <button onclick="openAIMenuModal()" 
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow text-left w-full">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-cyan-100 dark:bg-cyan-900 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-robot text-cyan-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">AI Menu Add</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Upload food image for AI recognition</p>
+                    </div>
+                </div>
+            </button>
+
             <a href="{{ route('restaurant.wallet', $restaurant->slug) }}" 
                 class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">
@@ -668,5 +683,229 @@ document.getElementById('statusUpdateForm').addEventListener('submit', function(
         alert('Error updating order status: ' + error.message);
     });
 });
+
+// AI Menu Modal
+function openAIMenuModal() {
+    window.dispatchEvent(new CustomEvent('open-modal', { detail: 'ai-menu-modal' }));
+}
+
+function closeAIMenuModal() {
+    window.dispatchEvent(new CustomEvent('close-modal', { detail: 'ai-menu-modal' }));
+    document.getElementById('aiMenuForm').reset();
+    document.getElementById('recognitionResult').classList.add('hidden');
+}
+
+function recognizeFood() {
+    const fileInput = document.getElementById('foodImage');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select an image first');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    
+    // Show loading state
+    document.getElementById('recognizeBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Recognizing...';
+    document.getElementById('recognizeBtn').disabled = true;
+    
+    fetch('{{ route("restaurant.ai.recognize", $restaurant->slug) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Populate form with AI results
+            document.getElementById('menuName').value = data.food_name;
+            document.getElementById('menuDescription').value = data.description;
+            document.getElementById('menuPrice').value = data.suggested_price;
+            document.getElementById('menuIngredients').value = data.ingredients;
+            document.getElementById('menuAllergens').value = data.allergens;
+            document.getElementById('menuIsVegetarian').checked = data.is_vegetarian;
+            document.getElementById('menuIsSpicy').checked = data.is_spicy;
+            
+            // Show confidence level
+            document.getElementById('confidenceLevel').textContent = data.confidence + '%';
+            document.getElementById('recognitionResult').classList.remove('hidden');
+            
+            // Auto-select category if available
+            if (data.category) {
+                const categorySelect = document.getElementById('menuCategory');
+                for (let option of categorySelect.options) {
+                    if (option.text.toLowerCase() === data.category.toLowerCase()) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Recognition error:', error);
+        alert('Error recognizing food. Please try again.');
+    })
+    .finally(() => {
+        document.getElementById('recognizeBtn').innerHTML = '<i class="fas fa-robot mr-2"></i>Recognize Food';
+        document.getElementById('recognizeBtn').disabled = false;
+    });
+}
+
+// AI Menu form submission
+document.getElementById('aiMenuForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    fetch('{{ route("restaurant.ai.store", $restaurant->slug) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Menu item added successfully!');
+            closeAIMenuModal();
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Add menu item error:', error);
+        alert('Error adding menu item. Please try again.');
+    });
+});
 </script>
+
+<!-- AI Menu Modal -->
+<x-modal name="ai-menu-modal" maxWidth="md">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">AI Food Recognition</h3>
+            <button onclick="closeAIMenuModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="aiMenuForm" class="space-y-4">
+            @csrf
+            
+            <!-- Image Upload -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <label for="foodImage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Take Food Photo</label>
+                <input type="file" id="foodImage" name="image" accept="image/*" capture="environment" 
+                       class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 dark:file:bg-orange-900 dark:file:text-orange-300">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">📸 Click to open camera and take a photo</p>
+            </div>
+            
+            <div class="bg-orange-100 dark:bg-orange-900/20 p-2 rounded-lg">
+                <button type="button" onclick="recognizeFood()" id="recognizeBtn"
+                        class="w-full px-3 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium text-sm">
+                    <i class="fas fa-robot mr-1"></i>Recognize Food
+                </button>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">Click to analyze image</p>
+            </div>
+            
+            <!-- Recognition Result -->
+            <div id="recognitionResult" class="hidden p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                <div class="flex items-center text-sm text-green-700 dark:text-green-300">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>AI Recognition: <span id="confidenceLevel" class="font-semibold">95%</span> confidence</span>
+                </div>
+            </div>
+            
+            <!-- Menu Item Details -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Menu Item Details</h4>
+                
+                <div class="space-y-1">
+                    <label for="menuName" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
+                    <input type="text" id="menuName" name="name" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                </div>
+                
+                <div class="space-y-1">
+                    <label for="menuCategory" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
+                    <select id="menuCategory" name="category_id" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                        <option value="">Select Category</option>
+                        @foreach($restaurant->categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="space-y-1">
+                    <label for="menuPrice" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Price (₦)</label>
+                    <input type="number" id="menuPrice" name="price" required min="0"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                </div>
+                
+                <div class="space-y-1">
+                    <label for="menuDescription" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
+                    <textarea id="menuDescription" name="description" rows="2"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"></textarea>
+                </div>
+                
+                <div class="space-y-1">
+                    <label for="menuIngredients" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Ingredients</label>
+                    <input type="text" id="menuIngredients" name="ingredients"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                </div>
+                
+                <div class="space-y-1">
+                    <label for="menuAllergens" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Allergens</label>
+                    <input type="text" id="menuAllergens" name="allergens"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
+                    <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Options</h5>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsVegetarian" name="is_vegetarian" value="1"
+                                   class="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="menuIsVegetarian" class="ml-1 block text-xs text-gray-900 dark:text-white">Vegetarian</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsSpicy" name="is_spicy" value="1"
+                                   class="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="menuIsSpicy" class="ml-1 block text-xs text-gray-900 dark:text-white">Spicy</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsAvailable" name="is_available" value="1" checked
+                                   class="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="menuIsAvailable" class="ml-1 block text-xs text-gray-900 dark:text-white">Available</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2 pt-3">
+                <button type="button" onclick="closeAIMenuModal()" 
+                        class="px-2 py-1 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-2 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    Add Menu Item
+                </button>
+            </div>
+        </form>
+    </div>
+</x-modal>
 @endsection 
