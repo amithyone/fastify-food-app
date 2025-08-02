@@ -103,14 +103,14 @@ class MenuController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        // Check if user owns this restaurant
+        // Check if user is a manager of this restaurant
         if (Auth::check()) {
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant menu.');
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant menu. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
         $menuItems = $restaurant->menuItems()->with('category')->get();
@@ -124,12 +124,12 @@ class MenuController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         if (Auth::check()) {
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant menu.');
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant menu. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
         $categories = $restaurant->categories()->get();
@@ -142,12 +142,12 @@ class MenuController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         if (Auth::check()) {
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant menu.');
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant menu. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
         $validated = $request->validate([
@@ -181,12 +181,12 @@ class MenuController extends Controller
         $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
         
         if (Auth::check()) {
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant menu.');
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant menu. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
         $categories = $restaurant->categories()->get();
@@ -200,12 +200,12 @@ class MenuController extends Controller
         $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
         
         if (Auth::check()) {
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant menu.');
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant menu. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
         $validated = $request->validate([
@@ -237,12 +237,12 @@ class MenuController extends Controller
         $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
         
         if (Auth::check()) {
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant menu.');
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant menu. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            // Redirect to login if not authenticated
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
         $menuItem->delete();
@@ -264,16 +264,19 @@ class MenuController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
         } 
-        // If user is restaurant owner, show only their restaurant's menu items
-        elseif ($user->isRestaurantOwner()) {
+        // If user is a restaurant manager, show only their restaurant's menu items
+        elseif ($user->isRestaurantManager()) {
+            $restaurants = \App\Models\Manager::getUserRestaurants($user->id);
+            $restaurantIds = $restaurants->pluck('id');
+            
             $menuItems = MenuItem::with(['category', 'restaurant'])
-                ->where('restaurant_id', $user->restaurant_id)
+                ->whereIn('restaurant_id', $restaurantIds)
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
         } 
         // Otherwise, unauthorized
         else {
-            abort(403, 'Unauthorized access to admin menu.');
+            abort(403, 'Unauthorized access to admin menu. You need manager privileges.');
         }
         
         return view('menu.admin-index', compact('menuItems'));
