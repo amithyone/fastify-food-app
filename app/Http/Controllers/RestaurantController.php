@@ -117,8 +117,14 @@ class RestaurantController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         // Check if user has access to this restaurant
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         // Calculate today's earnings (confirmed orders from today)
@@ -134,7 +140,7 @@ class RestaurantController extends Controller
             'today_earnings' => $todayEarnings,
         ];
 
-        $recent_orders = $restaurant->orders()->with('items')->latest()->take(5)->get();
+        $recent_orders = $restaurant->orders()->with('orderItems')->latest()->take(5)->get();
 
         return view('restaurant.dashboard', compact('restaurant', 'stats', 'recent_orders'));
     }
@@ -143,8 +149,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         return view('restaurant.edit', compact('restaurant'));
@@ -154,8 +166,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         $request->validate([
@@ -246,8 +264,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         $qrCodes = $restaurant->tableQrs()->get();
@@ -259,8 +283,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         $request->validate([
@@ -283,8 +313,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         // Get or create restaurant wallet
@@ -320,8 +356,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         $request->validate([
@@ -369,8 +411,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         return view('restaurant.custom-domain', compact('restaurant'));
@@ -380,8 +428,14 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
+        if (Auth::check()) {
+            // Check if user is the owner of this restaurant
+            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access to restaurant dashboard.');
+            }
+        } else {
+            // Allow access for non-authenticated users (for demo purposes)
+            // In production, you might want to restrict this
         }
 
         $request->validate([

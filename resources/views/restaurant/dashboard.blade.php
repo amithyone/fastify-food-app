@@ -20,6 +20,13 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <!-- Online Status Indicator -->
+                    <div class="flex items-center space-x-2">
+                        <span id="onlineStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            🌐 Online
+                        </span>
+                    </div>
+                    
                     <!-- Desktop: Show all buttons -->
                     <div class="hidden md:flex items-center space-x-4">
                         <a href="{{ $restaurant->getMenuUrl() }}" target="_blank" 
@@ -260,7 +267,7 @@
                                     {{ $order->customer_name }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                    {{ $order->items->count() }} items
+                                    {{ $order->orderItems->count() }} items
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                     {{ $restaurant->currency }}{{ number_format($order->total / 100, 2) }}

@@ -52,6 +52,17 @@
             </header>
         @endif
 
+        <!-- Online Status Bar -->
+        <div class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+                <div class="flex justify-end">
+                    <span id="onlineStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        🌐 Online
+                    </span>
+                </div>
+            </div>
+        </div>
+
         <!-- Page Content -->
         <main>
             @yield('content')
