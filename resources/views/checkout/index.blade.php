@@ -12,8 +12,8 @@
             </svg>
         </a>
         <h1 class="text-xl font-bold text-gray-900 dark:text-white">Checkout</h1>
-        <button id="darkModeToggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-            <i class="fas fa-sun"></i>
+        <button id="themeToggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+            <i id="themeIcon" class="fas fa-moon"></i>
         </button>
     </div>
 
@@ -275,27 +275,27 @@
 </nav>
 
 <script>
-// Dark Mode Toggle
-const darkModeToggle = document.getElementById('darkModeToggle');
-const html = document.documentElement;
-
-const currentTheme = localStorage.getItem('theme') || 'light';
-html.classList.toggle('dark', currentTheme === 'dark');
-updateToggleIcon();
-
-darkModeToggle.addEventListener('click', () => {
-    html.classList.toggle('dark');
-    const theme = html.classList.contains('dark') ? 'dark' : 'light';
-    localStorage.setItem('theme', theme);
-    updateToggleIcon();
+// Theme toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    // Check for saved theme preference or default to light mode
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+    updateThemeIcon(currentTheme);
+    
+    themeToggle.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        const theme = isDark ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+        updateThemeIcon(theme);
+    });
+    
+    function updateThemeIcon(theme) {
+        themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
 });
-
-function updateToggleIcon() {
-    const isDark = html.classList.contains('dark');
-    darkModeToggle.innerHTML = isDark 
-        ? '<i class="fas fa-moon text-yellow-400"></i>' 
-        : '<i class="fas fa-sun text-gray-600"></i>';
-}
 
 // Order Type Selection
 document.addEventListener('DOMContentLoaded', function() {
