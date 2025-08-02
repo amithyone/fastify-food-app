@@ -28,6 +28,11 @@
                         <i class="fas fa-rocket mr-3"></i>
                         Get Started Free
                     </a>
+                    <a href="{{ route('orders.track-form') }}" 
+                        class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-search mr-3"></i>
+                        Track My Order
+                    </a>
                     <a href="#features" 
                         class="inline-flex items-center px-8 py-4 border-2 border-orange-500 text-orange-500 dark:text-orange-400 font-bold rounded-lg hover:bg-orange-500 hover:text-white transition-all duration-200">
                         <i class="fas fa-play mr-3"></i>

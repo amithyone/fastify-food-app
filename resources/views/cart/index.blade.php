@@ -193,7 +193,12 @@
             @endif
         </div>
     </div>
+    <!-- Bottom padding for fixed bottom menu -->
+    <div class="h-20"></div>
 </div>
+
+<!-- Bottom Navigation Menu -->
+<x-bottom-nav />
 
 <script>
 // Theme toggle functionality

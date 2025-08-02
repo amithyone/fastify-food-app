@@ -527,6 +527,27 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCart();
     updateCartCount();
     loadWalletBalance();
+    
+    // Pre-fill table number from QR code if available
+    const qrTableNumber = '{{ session("qr_table_number") }}';
+    if (qrTableNumber) {
+        document.getElementById('tableNumber').value = qrTableNumber;
+        console.log('Pre-filled table number from QR code:', qrTableNumber);
+        
+        // Add visual indicator that table number was pre-filled
+        const tableNumberField = document.getElementById('tableNumber');
+        tableNumberField.style.backgroundColor = '#fef3c7';
+        tableNumberField.style.borderColor = '#f59e0b';
+        tableNumberField.style.color = '#000000';
+        tableNumberField.placeholder = 'Table number from QR code';
+        
+        // Add a small note below the field
+        const tableNumberContainer = tableNumberField.parentElement;
+        const note = document.createElement('p');
+        note.className = 'text-xs text-orange-600 dark:text-orange-400 mt-1';
+        note.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Table number from QR code';
+        tableNumberContainer.appendChild(note);
+    }
 });
 
 // Load wallet balance

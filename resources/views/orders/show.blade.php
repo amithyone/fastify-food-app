@@ -30,6 +30,33 @@
             <div class="ml-3">
                 <h2 class="text-2xl font-bold text-green-600 dark:text-white mb-2">Order Placed Successfully!</h2>
                 <p class="text-lg mb-2 dark:text-white">Your order number is: {{ $order->order_number }}</p>
+                @if(!Auth::check() && $order->tracking_code)
+                    <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-900 dark:text-blue-200 mb-1">Your Tracking Code:</p>
+                                <p class="text-2xl font-bold font-mono text-blue-600 dark:text-blue-400">{{ $order->tracking_code }}</p>
+                                <p class="text-xs text-blue-700 dark:text-blue-300 mt-1">Valid for 24 hours</p>
+                            </div>
+                            <button onclick="copyTrackingCode()" 
+                                class="inline-flex items-center px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                <i class="fas fa-copy mr-1"></i>
+                                Copy
+                            </button>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+                            <p class="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Save this code to track your order later
+                            </p>
+                            <a href="{{ route('orders.track-form') }}" 
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-search mr-1"></i>
+                                Track Order
+                            </a>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -673,6 +700,29 @@
             
             // Initialize with YouTube video
             videoPlaceholder.classList.add('hidden');
+        }
+
+        // Copy tracking code function
+        function copyTrackingCode() {
+            const trackingCode = '{{ $order->tracking_code ?? "" }}';
+            if (!trackingCode) return;
+            
+            navigator.clipboard.writeText(trackingCode).then(function() {
+                // Show success message
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                button.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+                button.classList.remove('bg-white', 'hover:bg-blue-50', 'text-blue-700');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+                    button.classList.add('bg-white', 'hover:bg-blue-50', 'text-blue-700');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+            });
         }
     </script>
 </div>

@@ -114,6 +114,10 @@ Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
+Route::get('/track-order', function () {
+    return view('orders.track-form');
+})->name('orders.track-form');
+Route::post('/track-order', [OrderController::class, 'searchByTrackingCode'])->name('orders.track');
 
 // User Orders
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -209,6 +213,15 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/menu/{item}/edit', [MenuController::class, 'restaurantEdit'])->name('restaurant.menu.edit');
     Route::put('/{slug}/menu/{item}', [MenuController::class, 'restaurantUpdate'])->name('restaurant.menu.update');
     Route::delete('/{slug}/menu/{item}', [MenuController::class, 'restaurantDestroy'])->name('restaurant.menu.destroy');
+    
+    // Restaurant Order Management
+    Route::get('/{slug}/orders', [OrderController::class, 'restaurantOrders'])->name('restaurant.orders');
+    Route::get('/{slug}/orders/{order}', [OrderController::class, 'restaurantOrderShow'])->name('restaurant.orders.show');
+    Route::put('/{slug}/orders/{order}/status', [OrderController::class, 'restaurantOrderStatus'])->name('restaurant.orders.status');
+    
+    // Restaurant Order Tracking
+    Route::get('/{slug}/track', [OrderController::class, 'restaurantTrackForm'])->name('restaurant.track-form');
+    Route::post('/{slug}/track', [OrderController::class, 'restaurantTrackOrder'])->name('restaurant.track');
 });
 
 // Restaurant routes
@@ -240,7 +253,7 @@ Route::middleware(['auth'])->prefix('ratings')->name('ratings.')->group(function
 });
 
 // Admin Routes (for restaurant management)
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');

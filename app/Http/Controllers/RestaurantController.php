@@ -302,6 +302,7 @@ class RestaurantController extends Controller
             'table_number' => $request->table_number,
             'description' => $request->description,
             'qr_code' => $restaurant->slug . '_table_' . $request->table_number,
+            'short_url' => Str::random(8),
             'is_active' => true,
         ]);
 

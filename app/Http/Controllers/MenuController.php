@@ -249,4 +249,33 @@ class MenuController extends Controller
         
         return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item deleted successfully!');
     }
+
+    public function adminIndex()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $user = Auth::user();
+        
+        // If user is admin, show all menu items
+        if ($user->isAdmin()) {
+            $menuItems = MenuItem::with(['category', 'restaurant'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+        } 
+        // If user is restaurant owner, show only their restaurant's menu items
+        elseif ($user->isRestaurantOwner()) {
+            $menuItems = MenuItem::with(['category', 'restaurant'])
+                ->where('restaurant_id', $user->restaurant_id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+        } 
+        // Otherwise, unauthorized
+        else {
+            abort(403, 'Unauthorized access to admin menu.');
+        }
+        
+        return view('menu.admin-index', compact('menuItems'));
+    }
 }

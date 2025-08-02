@@ -11,6 +11,7 @@ class Order extends Model
 
     protected $fillable = [
         'restaurant_id',
+        'user_id',
         'order_number',
         'customer_name',
         'phone_number',
@@ -19,11 +20,14 @@ class Order extends Model
         'delivery_time',
         'total_amount',
         'status',
-        'notes'
+        'notes',
+        'tracking_code',
+        'tracking_code_expires_at'
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'tracking_code_expires_at' => 'datetime',
     ];
 
     public function orderItems()
@@ -95,6 +99,37 @@ class Order extends Model
     public function getSubtotalAttribute()
     {
         return $this->total_amount - $this->delivery_fee;
+    }
+
+    public function generateTrackingCode()
+    {
+        do {
+            $code = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 4));
+        } while (static::where('tracking_code', $code)->exists());
+
+        return $code;
+    }
+
+    public function isTrackingCodeActive()
+    {
+        return $this->tracking_code && 
+               $this->tracking_code_expires_at && 
+               $this->tracking_code_expires_at->isFuture();
+    }
+
+    public function scopeByTrackingCode($query, $code)
+    {
+        return $query->where('tracking_code', $code)
+                    ->where('tracking_code_expires_at', '>', now());
+    }
+
+    public function generateOrderNumber()
+    {
+        do {
+            $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 6));
+        } while (static::where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
     }
 
     protected static function boot()

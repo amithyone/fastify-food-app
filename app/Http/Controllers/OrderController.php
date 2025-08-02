@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\MenuItem;
 use App\Models\UserReward;
+use App\Models\TableQR;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -108,6 +109,13 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        // Debug: Log the incoming request data
+        \Log::info('Order creation request:', [
+            'items' => $request->items,
+            'customer_info' => $request->customer_info,
+            'payment_method' => $request->payment_method
+        ]);
+        
         $request->validate([
             'customer_info' => 'required|array',
             'customer_info.in_restaurant' => 'required|boolean',
@@ -181,6 +189,8 @@ class OrderController extends Controller
             // Create order
             $order = Order::create([
                 'restaurant_id' => $restaurantId,
+                'user_id' => Auth::id(), // Will be null for guest users
+                'order_number' => (new Order())->generateOrderNumber(),
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
                 'delivery_address' => $deliveryAddress,
@@ -191,8 +201,23 @@ class OrderController extends Controller
                 'notes' => $notes,
             ]);
 
+            // Generate tracking code for guest orders (non-authenticated users)
+            if (!Auth::check()) {
+                $order->update([
+                    'tracking_code' => $order->generateTrackingCode(),
+                    'tracking_code_expires_at' => now()->addHours(24),
+                ]);
+            }
+
             // Create order items
             foreach ($request->items as $item) {
+                // Debug: Log each item
+                \Log::info('Processing order item:', $item);
+                
+                if (!isset($item['id'])) {
+                    throw new \Exception('Item missing ID: ' . json_encode($item));
+                }
+                
                 OrderItem::create([
                     'order_id' => $order->id,
                     'menu_item_id' => $item['id'],
@@ -269,9 +294,18 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::with('orderItems.menuItem')->findOrFail($id);
+        $user = Auth::user();
         
-        // Check if user owns this order or is admin
-        if (Auth::check() && $order->user_id !== Auth::id()) {
+        // Check if user can view this order
+        if ($user && $user->isAdmin()) {
+            // Admin can view any order
+        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+            // Restaurant owner can view their own restaurant's orders
+        } elseif (Auth::check() && $order->user_id === Auth::id()) {
+            // User can view their own orders
+        } elseif ($order->user_id === null) {
+            // Guest orders can be viewed by anyone (no private info)
+        } else {
             abort(403, 'Unauthorized access to this order.');
         }
         
@@ -310,6 +344,35 @@ class OrderController extends Controller
         return view('orders.user-orders', compact('orders'));
     }
 
+    public function adminIndex()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $user = Auth::user();
+        
+        // If user is admin, show all orders
+        if ($user && $user->isAdmin()) {
+            $orders = Order::with(['orderItems.menuItem', 'restaurant'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+        } 
+        // If user is restaurant owner, show only their restaurant's orders
+        elseif ($user && $user->isRestaurantOwner()) {
+            $orders = Order::with(['orderItems.menuItem', 'restaurant'])
+                ->where('restaurant_id', $user->restaurant_id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+        } 
+        // Otherwise, unauthorized
+        else {
+            abort(403, 'Unauthorized access to admin orders.');
+        }
+        
+        return view('orders.index', compact('orders'));
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -317,6 +380,17 @@ class OrderController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
+        $user = Auth::user();
+        
+        // Check if user can update this order
+        if ($user && $user->isAdmin()) {
+            // Admin can update any order
+        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+            // Restaurant owner can update their own restaurant's orders
+        } else {
+            abort(403, 'Unauthorized access to update this order.');
+        }
+        
         $order->update(['status' => $request->status]);
 
         return response()->json([
@@ -328,9 +402,18 @@ class OrderController extends Controller
     public function getOrderStatus($id)
     {
         $order = Order::findOrFail($id);
+        $user = Auth::user();
         
-        // Check if user owns this order
-        if (Auth::check() && $order->user_id !== Auth::id()) {
+        // Check if user can view this order
+        if ($user && $user->isAdmin()) {
+            // Admin can view any order
+        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+            // Restaurant owner can view their own restaurant's orders
+        } elseif (Auth::check() && $order->user_id === Auth::id()) {
+            // User can view their own orders
+        } elseif ($order->user_id === null) {
+            // Guest orders can be viewed by anyone (no private info)
+        } else {
             abort(403, 'Unauthorized access to this order.');
         }
         
@@ -339,6 +422,219 @@ class OrderController extends Controller
             'order' => $order,
             'status_info' => $this->getStatusInfo($order->status)
         ]);
+    }
+
+    public function status($id)
+    {
+        $order = Order::findOrFail($id);
+        $user = Auth::user();
+        
+        // Check if user can view this order
+        if ($user && $user->isAdmin()) {
+            // Admin can view any order
+        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+            // Restaurant owner can view their own restaurant's orders
+        } elseif (Auth::check() && $order->user_id === Auth::id()) {
+            // User can view their own orders
+        } elseif ($order->user_id === null) {
+            // Guest orders can be viewed by anyone (no private info)
+        } else {
+            abort(403, 'Unauthorized access to this order.');
+        }
+        
+        return response()->json([
+            'success' => true,
+            'order' => $order,
+            'status_info' => $this->getStatusInfo($order->status)
+        ]);
+    }
+
+    public function userOrderShow($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::with('orderItems.menuItem')->findOrFail($id);
+        
+        // Check if user owns this order
+        if ($order->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+        
+        return view('orders.user-show', compact('order'));
+    }
+
+    public function restaurantOrders($slug)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $user = Auth::user();
+        
+        // Check if user owns this restaurant
+        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
+            abort(403, 'Unauthorized access to restaurant orders.');
+        }
+        
+        $orders = Order::with(['orderItems.menuItem'])
+            ->where('restaurant_id', $restaurant->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        return view('restaurant.orders.index', compact('restaurant', 'orders'));
+    }
+
+    public function restaurantOrderShow($slug, $order)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $order = Order::with(['orderItems.menuItem'])->findOrFail($order);
+        $user = Auth::user();
+        
+        // Check if user owns this restaurant and order belongs to this restaurant
+        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
+            abort(403, 'Unauthorized access to restaurant orders.');
+        }
+        
+        if ($order->restaurant_id !== $restaurant->id) {
+            abort(403, 'Order does not belong to this restaurant.');
+        }
+        
+        return view('restaurant.orders.show', compact('restaurant', 'order'));
+    }
+
+    public function restaurantOrderStatus(Request $request, $slug, $order)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled'
+        ]);
+
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $order = Order::findOrFail($order);
+        $user = Auth::user();
+        
+        // Check if user owns this restaurant and order belongs to this restaurant
+        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
+            abort(403, 'Unauthorized access to restaurant orders.');
+        }
+        
+        if ($order->restaurant_id !== $restaurant->id) {
+            abort(403, 'Order does not belong to this restaurant.');
+        }
+        
+        $order->update(['status' => $request->status]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order status updated successfully!'
+        ]);
+    }
+
+    public function searchByTrackingCode(Request $request)
+    {
+        $request->validate([
+            'tracking_code' => 'required|string|size:4'
+        ]);
+
+        $order = Order::byTrackingCode($request->tracking_code)->first();
+
+        if (!$order) {
+            return back()->withErrors(['tracking_code' => 'Invalid or expired tracking code.']);
+        }
+
+        return view('orders.track', compact('order'));
+    }
+
+    public function restaurantTrackForm($slug)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $user = Auth::user();
+        
+        // Check if user owns this restaurant
+        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
+            abort(403, 'Unauthorized access to restaurant tracking.');
+        }
+        
+        return view('restaurant.track-form', compact('restaurant'));
+    }
+
+    public function restaurantTrackOrder(Request $request, $slug)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'tracking_code' => 'required|string|size:4'
+        ]);
+
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $user = Auth::user();
+        
+        // Check if user owns this restaurant
+        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
+            abort(403, 'Unauthorized access to restaurant tracking.');
+        }
+
+        $order = Order::byTrackingCode($request->tracking_code)
+            ->where('restaurant_id', $restaurant->id)
+            ->first();
+
+        if (!$order) {
+            return back()->withErrors(['tracking_code' => 'Invalid or expired tracking code for this restaurant.']);
+        }
+
+        return view('restaurant.track-result', compact('restaurant', 'order'));
+    }
+
+    public function qrAccess($code)
+    {
+        // Find the QR code in the database
+        $tableQR = \App\Models\TableQR::where('qr_code', $code)
+            ->orWhere('short_url', $code)
+            ->first();
+
+        if (!$tableQR) {
+            abort(404, 'QR Code not found.');
+        }
+
+        // Check if QR code is active
+        if (!$tableQR->is_active) {
+            abort(404, 'QR Code is inactive.');
+        }
+
+        // Get the restaurant
+        $restaurant = $tableQR->restaurant;
+        if (!$restaurant || !$restaurant->is_active) {
+            abort(404, 'Restaurant not found or inactive.');
+        }
+
+        // Increment usage count
+        $tableQR->incrementUsage();
+
+        // Store table information in session for pre-filling on checkout
+        session([
+            'qr_table_number' => $tableQR->table_number,
+            'qr_restaurant_id' => $restaurant->id,
+            'qr_table_qr_id' => $tableQR->id
+        ]);
+
+        // Redirect to the main restaurant menu
+        return redirect()->route('menu.index', $restaurant->slug);
     }
 
     private function getStatusInfo($status)
