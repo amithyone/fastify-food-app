@@ -239,6 +239,96 @@
             </a>
         </div>
 
+        <!-- Quick Status Updates -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Quick Status Updates</h3>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Update order statuses quickly</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @php
+                        $statusCounts = [
+                            'pending' => $recent_orders->where('status', 'pending')->count(),
+                            'confirmed' => $recent_orders->where('status', 'confirmed')->count(),
+                            'preparing' => $recent_orders->where('status', 'preparing')->count(),
+                            'ready' => $recent_orders->where('status', 'ready')->count()
+                        ];
+                    @endphp
+                    
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Pending</p>
+                                <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $statusCounts['pending'] }}</p>
+                            </div>
+                            <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600 text-sm"></i>
+                            </div>
+                        </div>
+                        @if($statusCounts['pending'] > 0)
+                            <button onclick="updateAllStatus('confirmed')" class="mt-3 w-full px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700 transition-colors">
+                                Mark All Confirmed
+                            </button>
+                        @endif
+                    </div>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-800 dark:text-blue-200">Confirmed</p>
+                                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $statusCounts['confirmed'] }}</p>
+                            </div>
+                            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-blue-600 text-sm"></i>
+                            </div>
+                        </div>
+                        @if($statusCounts['confirmed'] > 0)
+                            <button onclick="updateAllStatus('preparing')" class="mt-3 w-full px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+                                Mark All Preparing
+                            </button>
+                        @endif
+                    </div>
+                    
+                    <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">Preparing</p>
+                                <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ $statusCounts['preparing'] }}</p>
+                            </div>
+                            <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                                <i class="fas fa-utensils text-orange-600 text-sm"></i>
+                            </div>
+                        </div>
+                        @if($statusCounts['preparing'] > 0)
+                            <button onclick="updateAllStatus('ready')" class="mt-3 w-full px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors">
+                                Mark All Ready
+                            </button>
+                        @endif
+                    </div>
+                    
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-800 dark:text-green-200">Ready</p>
+                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ $statusCounts['ready'] }}</p>
+                            </div>
+                            <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-sm"></i>
+                            </div>
+                        </div>
+                        @if($statusCounts['ready'] > 0)
+                            <button onclick="updateAllStatus('delivered')" class="mt-3 w-full px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors">
+                                Mark All Delivered
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Orders -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -315,10 +405,16 @@
                                     {{ $order->created_at->format('M d, H:i') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('restaurant.orders.show', [$restaurant->slug, $order->id]) }}" 
-                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
-                                        View
-                                    </a>
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{{ route('restaurant.orders.show', [$restaurant->slug, $order->id]) }}" 
+                                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                            View
+                                        </a>
+                                        <button onclick="openStatusUpdateModal({{ $order->id }}, '{{ $order->status }}', '{{ $order->status_note ?? '' }}')" 
+                                                class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -421,4 +517,141 @@
         </div>
     </div>
 </div>
+
+<!-- Status Update Modal -->
+<div id="statusUpdateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-6 border w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Update Order Status</h3>
+            <form id="statusUpdateForm">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label for="orderStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                        <select id="orderStatus" name="status" required
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="preparing">Preparing</option>
+                            <option value="ready">Ready</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="statusNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status Note (Optional)</label>
+                        <textarea id="statusNote" name="status_note" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                  placeholder="Add a note about the status update..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeStatusUpdateModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium">
+                        <i class="fas fa-save mr-2"></i>Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentOrderId = null;
+
+function openStatusUpdateModal(orderId, currentStatus, currentNote = '') {
+    currentOrderId = orderId;
+    document.getElementById('orderStatus').value = currentStatus;
+    document.getElementById('statusNote').value = currentNote;
+    document.getElementById('statusUpdateModal').classList.remove('hidden');
+}
+
+function closeStatusUpdateModal() {
+    document.getElementById('statusUpdateModal').classList.add('hidden');
+    currentOrderId = null;
+}
+
+function updateAllStatus(newStatus) {
+    if (!confirm(`Are you sure you want to mark all orders as ${newStatus}?`)) {
+        return;
+    }
+    
+    const orderIds = [];
+    @foreach($recent_orders as $order)
+        @if($order->status !== 'delivered' && $order->status !== 'cancelled')
+            orderIds.push({{ $order->id }});
+        @endif
+    @endforeach
+    
+    if (orderIds.length === 0) {
+        alert('No orders to update');
+        return;
+    }
+    
+    // Update each order status
+    const updatePromises = orderIds.map(orderId => {
+        const formData = new FormData();
+        formData.append('status', newStatus);
+        formData.append('status_note', `Bulk updated to ${newStatus}`);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        
+        return fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => 'ORDER_ID']) }}`.replace('ORDER_ID', orderId), {
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: formData
+        });
+    });
+    
+    Promise.all(updatePromises).then(() => {
+        window.location.reload();
+    }).catch(error => {
+        console.error('Bulk update error:', error);
+        alert('Error updating order statuses');
+    });
+}
+
+// Status update form submission
+document.getElementById('statusUpdateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentOrderId) {
+        alert('No order selected');
+        return;
+    }
+    
+    const formData = new FormData(e.target);
+    
+    fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => 'ORDER_ID']) }}`.replace('ORDER_ID', currentOrderId), {
+        method: 'PUT',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            return response.text().then(text => {
+                console.error('Error response:', text);
+                throw new Error('Status update failed - Server returned: ' + text.substring(0, 100));
+            });
+        }
+    }).then(data => {
+        console.log('Status update success:', data);
+        closeStatusUpdateModal();
+        window.location.reload();
+    }).catch(error => {
+        console.error('Status update error:', error);
+        alert('Error updating order status: ' + error.message);
+    });
+});
+</script>
 @endsection 
