@@ -211,6 +211,52 @@ Route::get('/test-storage', function() {
         ]);
     }
 });
+
+// Test route for image upload (no auth required)
+Route::post('/test-image-upload', function(\Illuminate\Http\Request $request) {
+    try {
+        if (!$request->hasFile('image')) {
+            return response()->json(['success' => false, 'message' => 'No image file provided']);
+        }
+        
+        $file = $request->file('image');
+        $path = $file->store('menu-items', 'public');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Image uploaded successfully',
+            'path' => $path,
+            'url' => Storage::disk('public')->url($path),
+            'file_name' => $file->getClientOriginalName(),
+            'file_size' => $file->getSize(),
+            'file_mime' => $file->getMimeType()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Upload failed: ' . $e->getMessage()
+        ]);
+    }
+});
+
+// Quick login test route
+Route::get('/quick-login', function() {
+    $user = \App\Models\User::where('email', 'chef@tasteofabuja.com')->first();
+    if ($user) {
+        auth()->login($user);
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged in as ' . $user->name,
+            'user_id' => $user->id,
+            'user_name' => $user->name
+        ]);
+    } else {
+        return response()->json([
+            'success' => false,
+            'message' => 'Chef user not found'
+        ]);
+    }
+});
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes
