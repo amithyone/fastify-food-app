@@ -301,15 +301,15 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
+                'description' => 'nullable|string|max:1000',
                 'price' => 'required|numeric|min:0',
-                'category_id' => 'required|exists:categories,id',
+                'category_id' => 'nullable|exists:categories,id',
                 'is_available' => 'nullable',
                 'is_featured' => 'nullable',
                 'is_vegetarian' => 'nullable',
                 'is_spicy' => 'nullable',
-                'ingredients' => 'nullable|string',
-                'allergens' => 'nullable|string',
+                'ingredients' => 'nullable|string|max:500',
+                'allergens' => 'nullable|string|max:500',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
             
@@ -320,6 +320,14 @@ class MenuController extends Controller
             $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
             $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
+            
+            // Set default category if none is provided
+            if (empty($validated['category_id'])) {
+                $firstCategory = Category::where('restaurant_id', $restaurant->id)->first();
+                if ($firstCategory) {
+                    $validated['category_id'] = $firstCategory->id;
+                }
+            }
             
             if ($request->hasFile('image')) {
                 \Log::info('Image upload detected for update', [

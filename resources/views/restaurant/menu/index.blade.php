@@ -931,6 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(e.target);
         
         // Log form data for debugging
+        console.log('Form data being sent:');
         for (let [key, value] of formData.entries()) {
             console.log(`${key}: ${value}`);
         }
@@ -946,8 +947,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (editingMenuItemId) {
             // Update existing menu item
             console.log('Updating menu item:', editingMenuItemId);
+            
+            // Add the _method field for PUT request
+            formData.append('_method', 'PUT');
+            
             fetch(`{{ route('restaurant.menu.update', ['slug' => $restaurant->slug, 'item' => 'ITEM_ID']) }}`.replace('ITEM_ID', editingMenuItemId), {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
