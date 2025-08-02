@@ -438,33 +438,94 @@
             </div>
         @endauth
 
-        <!-- Restaurant Signup CTA -->
-        <div class="bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500 dark:via-orange-600 dark:to-orange-700 rounded-xl shadow-2xl border-2 border-orange-300 dark:border-orange-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #fb923c, #f97316, #ea580c) !important;">
-            <div class="text-center relative z-10">
-                <div class="mb-8">
-                    <div class="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-                        <i class="fas fa-store text-4xl text-white"></i>
+        <!-- Restaurant Section -->
+        @auth
+            @if(Auth::user()->restaurant)
+                <!-- User has a restaurant - show dashboard link -->
+                <div class="bg-gradient-to-br from-green-400 via-green-500 to-green-600 dark:from-green-500 dark:via-green-600 dark:to-green-700 rounded-xl shadow-2xl border-2 border-green-300 dark:border-green-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #4ade80, #22c55e, #16a34a) !important;">
+                    <div class="text-center relative z-10">
+                        <div class="mb-8">
+                            <div class="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
+                                <i class="fas fa-store text-4xl text-white"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold text-white mb-4 drop-shadow-lg" style="color: white !important;">Manage Your Restaurant</h2>
+                            <p class="text-white mb-8 text-lg leading-relaxed" style="color: white !important;">Access your restaurant dashboard and manage orders, menu, and settings</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                            <a href="{{ route('restaurant.dashboard', Auth::user()->restaurant->slug) }}" 
+                               class="inline-flex items-center justify-center px-12 py-4 bg-white text-green-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-lg border-2 border-white" style="background-color: white !important; color: #16a34a !important;">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                Go to Dashboard
+                            </a>
+                            <a href="{{ route('restaurant.edit', Auth::user()->restaurant->slug) }}" 
+                               class="inline-flex items-center justify-center px-12 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 text-lg border-2 border-blue-600" style="background-color: #2563eb !important; color: white !important;">
+                                <i class="fas fa-edit mr-3"></i>
+                                Edit Restaurant
+                            </a>
+                        </div>
                     </div>
-                    <h2 class="text-3xl font-bold text-white mb-4 drop-shadow-lg" style="color: white !important;">Are You a Restaurant Owner?</h2>
-                    <p class="text-white mb-8 text-lg leading-relaxed" style="color: white !important;">Join Fastify and start serving customers with your digital menu</p>
+                    <!-- Decorative elements -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                    <a href="{{ route('restaurant.onboarding') }}" 
-                       class="inline-flex items-center justify-center px-12 py-4 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-lg border-2 border-white" style="background-color: white !important; color: #ea580c !important;">
-                        <i class="fas fa-plus mr-3"></i>
-                        Sign Up Your Restaurant
-                    </a>
-                    <a href="#" 
-                       class="inline-flex items-center justify-center px-12 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 text-lg border-2 border-blue-600" style="background-color: #2563eb !important; color: white !important;">
-                        <i class="fas fa-info-circle mr-3"></i>
-                        Learn More
-                    </a>
+            @else
+                <!-- User is authenticated but doesn't have a restaurant -->
+                <div class="bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500 dark:via-orange-600 dark:to-orange-700 rounded-xl shadow-2xl border-2 border-orange-300 dark:border-orange-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #fb923c, #f97316, #ea580c) !important;">
+                    <div class="text-center relative z-10">
+                        <div class="mb-8">
+                            <div class="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
+                                <i class="fas fa-store text-4xl text-white"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold text-white mb-4 drop-shadow-lg" style="color: white !important;">Are You a Restaurant Owner?</h2>
+                            <p class="text-white mb-8 text-lg leading-relaxed" style="color: white !important;">Join Fastify and start serving customers with your digital menu</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                            <a href="{{ route('restaurant.onboarding') }}" 
+                               class="inline-flex items-center justify-center px-12 py-4 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-lg border-2 border-white" style="background-color: white !important; color: #ea580c !important;">
+                                <i class="fas fa-plus mr-3"></i>
+                                Sign Up Your Restaurant
+                            </a>
+                            <a href="#" 
+                               class="inline-flex items-center justify-center px-12 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 text-lg border-2 border-blue-600" style="background-color: #2563eb !important; color: white !important;">
+                                <i class="fas fa-info-circle mr-3"></i>
+                                Learn More
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Decorative elements -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
                 </div>
+            @endif
+        @else
+            <!-- User is not authenticated -->
+            <div class="bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500 dark:via-orange-600 dark:to-orange-700 rounded-xl shadow-2xl border-2 border-orange-300 dark:border-orange-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #fb923c, #f97316, #ea580c) !important;">
+                <div class="text-center relative z-10">
+                    <div class="mb-8">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
+                            <i class="fas fa-store text-4xl text-white"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-white mb-4 drop-shadow-lg" style="color: white !important;">Are You a Restaurant Owner?</h2>
+                        <p class="text-white mb-8 text-lg leading-relaxed" style="color: white !important;">Join Fastify and start serving customers with your digital menu</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                        <a href="{{ route('login') }}" 
+                           class="inline-flex items-center justify-center px-12 py-4 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg text-lg border-2 border-white" style="background-color: white !important; color: #ea580c !important;">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login to Add Restaurant
+                        </a>
+                        <a href="{{ route('register') }}" 
+                           class="inline-flex items-center justify-center px-12 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 text-lg border-2 border-blue-600" style="background-color: #2563eb !important; color: white !important;">
+                            <i class="fas fa-user-plus mr-3"></i>
+                            Create Account
+                        </a>
+                    </div>
+                </div>
+                <!-- Decorative elements -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
             </div>
-            <!-- Decorative elements -->
-            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-        </div>
+        @endauth
     </div>
 </div>
 
@@ -499,10 +560,24 @@
                 <i class="fas fa-clock text-lg"></i>
                 <span>Recent Restaurants</span>
             </a>
-            <a href="{{ route('restaurant.onboarding') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-plus-circle text-lg"></i>
-                <span>Add Restaurant</span>
-            </a>
+            @auth
+                @if(Auth::user()->restaurant)
+                    <a href="{{ route('restaurant.dashboard', Auth::user()->restaurant->slug) }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-tachometer-alt text-lg"></i>
+                        <span>My Restaurant</span>
+                    </a>
+                @else
+                    <a href="{{ route('restaurant.onboarding') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-plus-circle text-lg"></i>
+                        <span>Add Restaurant</span>
+                    </a>
+                @endif
+            @else
+                <a href="{{ route('login') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i class="fas fa-sign-in-alt text-lg"></i>
+                    <span>Login to Add Restaurant</span>
+                </a>
+            @endauth
         </div>
         
         <!-- Quick Actions -->

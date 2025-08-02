@@ -27,7 +27,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'city',
         'state',
         'postal_code',
-        'restaurant_id',
         'is_admin',
     ];
 
@@ -119,7 +118,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function restaurant()
     {
-        return $this->belongsTo(Restaurant::class);
+        return $this->hasOne(Restaurant::class, 'owner_id');
     }
 
     public function restaurants()
@@ -132,7 +131,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isRestaurantOwner()
     {
-        return !is_null($this->restaurant_id);
+        return $this->restaurant()->exists();
     }
 
     /**

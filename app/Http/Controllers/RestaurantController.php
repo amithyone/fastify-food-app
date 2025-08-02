@@ -14,6 +14,12 @@ class RestaurantController extends Controller
 {
     public function onboarding()
     {
+        // Check if user already has a restaurant
+        if (Auth::check() && Auth::user()->restaurant) {
+            return redirect()->route('restaurant.dashboard', Auth::user()->restaurant->slug)
+                ->with('info', 'You already have a restaurant registered.');
+        }
+        
         return view('restaurant.onboarding');
     }
 
@@ -100,8 +106,7 @@ class RestaurantController extends Controller
 
             // Assign restaurant to current user if authenticated
             if (Auth::check()) {
-                $user = Auth::user();
-                $user->update(['restaurant_id' => $restaurant->id]);
+                $restaurant->update(['owner_id' => Auth::id()]);
             }
 
             return redirect()->route('restaurant.dashboard', $restaurant->slug)

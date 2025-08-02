@@ -189,9 +189,11 @@ Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->n
 Route::post('/verify-phone', [OrderController::class, 'verifyPhone'])->name('verify.phone');
 Route::post('/verify-code', [OrderController::class, 'verifyCode'])->name('verify.code');
 
-// Restaurant Onboarding Routes
-Route::get('/restaurant/onboarding', [RestaurantController::class, 'onboarding'])->name('restaurant.onboarding');
-Route::post('/restaurant/store', [RestaurantController::class, 'store'])->name('restaurant.store');
+// Restaurant Onboarding Routes (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/restaurant/onboarding', [RestaurantController::class, 'onboarding'])->name('restaurant.onboarding');
+    Route::post('/restaurant/store', [RestaurantController::class, 'store'])->name('restaurant.store');
+});
 
 // Restaurant Management Routes
 Route::middleware(['auth'])->prefix('restaurant')->group(function () {
@@ -224,10 +226,8 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/track', [OrderController::class, 'restaurantTrackOrder'])->name('restaurant.track');
 });
 
-// Restaurant routes
-Route::prefix('restaurant')->name('restaurant.')->group(function () {
-    Route::get('/onboarding', [RestaurantController::class, 'onboarding'])->name('onboarding');
-    Route::post('/store', [RestaurantController::class, 'store'])->name('store');
+// Restaurant routes (protected by auth middleware)
+Route::middleware(['auth'])->prefix('restaurant')->name('restaurant.')->group(function () {
     Route::get('/{slug}/dashboard', [RestaurantController::class, 'dashboard'])->name('dashboard');
     Route::get('/{slug}/edit', [RestaurantController::class, 'edit'])->name('edit');
     Route::put('/{slug}/update', [RestaurantController::class, 'update'])->name('update');
