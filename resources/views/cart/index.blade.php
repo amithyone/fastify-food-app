@@ -280,8 +280,8 @@ function clearCart() {
 }
 
 function proceedToCheckout() {
-    // Implement checkout logic
-    alert('Checkout feature coming soon!');
+    // Redirect to checkout page
+    window.location.href = '{{ route("checkout.index") }}';
 }
 </script>
 @endsection
