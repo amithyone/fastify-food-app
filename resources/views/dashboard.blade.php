@@ -338,6 +338,106 @@
             </div>
         </div>
 
+        <!-- Restaurant Management Section -->
+        @auth
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Restaurant Management</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Manage your restaurants and business</p>
+                </div>
+                
+                <div class="p-6">
+                    @php
+                        $userRestaurants = Auth::user()->restaurants ?? collect();
+                    @endphp
+
+                    @if($userRestaurants->count() > 0)
+                        <!-- User has restaurants - show management options -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Manage Restaurants Card -->
+                            <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-lg p-6 text-white cursor-pointer hover:scale-105 transition-transform" onclick="window.location.href='{{ route('restaurant.onboarding') }}'">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-2">Manage Your Restaurants</h3>
+                                        <p class="text-sm opacity-90">{{ $userRestaurants->count() }} restaurant(s)</p>
+                                        <p class="text-xs opacity-75 mt-2">View and manage your restaurant businesses</p>
+                                    </div>
+                                    <i class="fas fa-store text-3xl opacity-80"></i>
+                                </div>
+                            </div>
+
+                            <!-- Add New Restaurant Card -->
+                            <div class="bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg p-6 text-white cursor-pointer hover:scale-105 transition-transform" onclick="window.location.href='{{ route('restaurant.onboarding') }}'">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-semibold mb-2">Add New Restaurant</h3>
+                                        <p class="text-sm opacity-90">Expand your business</p>
+                                        <p class="text-xs opacity-75 mt-2">Register another restaurant location</p>
+                                    </div>
+                                    <i class="fas fa-plus-circle text-3xl opacity-80"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Restaurant List -->
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Restaurants</h3>
+                            <div class="space-y-3">
+                                @foreach($userRestaurants as $restaurant)
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                        <div class="flex items-center">
+                                            @if($restaurant->logo)
+                                                <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-12 h-12 rounded-lg object-cover mr-3">
+                                            @else
+                                                <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
+                                                    <i class="fas fa-utensils text-white"></i>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <h4 class="font-semibold text-gray-900 dark:text-white">{{ $restaurant->name }}</h4>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $restaurant->city }}, {{ $restaurant->state }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <a href="{{ route('restaurant.dashboard', $restaurant->slug) }}" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors">
+                                                <i class="fas fa-chart-line mr-1"></i>Dashboard
+                                            </a>
+                                            <a href="{{ route('restaurant.edit', $restaurant->slug) }}" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors">
+                                                <i class="fas fa-edit mr-1"></i>Edit
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <!-- User has no restaurants - show add restaurant card -->
+                        <div class="text-center py-8">
+                            <div class="bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg p-8 text-white cursor-pointer hover:scale-105 transition-transform mb-6" onclick="window.location.href='{{ route('restaurant.onboarding') }}'">
+                                <i class="fas fa-store text-5xl mb-4 opacity-80"></i>
+                                <h3 class="text-2xl font-semibold mb-2">Add Your Restaurant</h3>
+                                <p class="text-lg opacity-90 mb-4">Start your restaurant business with Fastify</p>
+                                <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                                    <h4 class="font-semibold mb-2">What you'll get:</h4>
+                                    <ul class="text-sm space-y-1 text-left">
+                                        <li><i class="fas fa-check mr-2"></i>Digital menu management</li>
+                                        <li><i class="fas fa-check mr-2"></i>Order management system</li>
+                                        <li><i class="fas fa-check mr-2"></i>QR code ordering</li>
+                                        <li><i class="fas fa-check mr-2"></i>Payment processing</li>
+                                        <li><i class="fas fa-check mr-2"></i>Customer analytics</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <a href="{{ route('restaurant.onboarding') }}" class="inline-flex items-center px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold">
+                                <i class="fas fa-plus mr-2"></i>
+                                Get Started Now
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endauth
+
         <!-- Restaurant Signup CTA -->
         <div class="bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500 dark:via-orange-600 dark:to-orange-700 rounded-xl shadow-2xl border-2 border-orange-300 dark:border-orange-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #fb923c, #f97316, #ea580c) !important;">
             <div class="text-center relative z-10">
@@ -469,22 +569,6 @@
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="fixed bottom-6 left-6 z-50">
-    <div class="flex space-x-3">
-        <!-- Cart Link -->
-        <a href="{{ route('cart.index') }}" class="w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-            <i class="fas fa-shopping-cart text-xl"></i>
-            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-        </a>
-        
-        <!-- Orders Link -->
-        <a href="{{ route('orders.index') }}" class="w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
-            <i class="fas fa-list-alt text-xl"></i>
-        </a>
-    </div>
-</div>
-
 <script>
 // Menu functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -590,4 +674,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Any additional initialization
 });
 </script>
+
+<!-- Quick Actions - Only for authenticated users -->
+@auth
+<div class="fixed bottom-6 left-6 z-50">
+    <div class="flex space-x-3">
+        <!-- Cart Link -->
+        <a href="{{ route('cart.index') }}" class="w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+            <i class="fas fa-shopping-cart text-xl"></i>
+            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+        </a>
+        
+        <!-- Orders Link -->
+        <a href="{{ route('orders.index') }}" class="w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+            <i class="fas fa-list-alt text-xl"></i>
+        </a>
+    </div>
+</div>
+@endauth
 @endsection

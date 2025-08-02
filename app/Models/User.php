@@ -122,6 +122,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Restaurant::class);
     }
 
+    public function restaurants()
+    {
+        return $this->hasMany(Restaurant::class, 'owner_id');
+    }
+
     /**
      * Check if user is a restaurant owner.
      */

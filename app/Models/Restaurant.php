@@ -11,6 +11,7 @@ class Restaurant extends Model
     use HasFactory;
 
     protected $fillable = [
+        'owner_id',
         'name',
         'slug',
         'description',
@@ -45,6 +46,11 @@ class Restaurant extends Model
     ];
 
     // Relationships
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
     public function categories()
     {
         return $this->hasMany(Category::class);
