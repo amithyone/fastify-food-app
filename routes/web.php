@@ -367,6 +367,12 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     // Restaurant Order Tracking
     Route::get('/{slug}/track', [OrderController::class, 'restaurantTrackForm'])->name('restaurant.track-form');
     Route::post('/{slug}/track', [OrderController::class, 'restaurantTrackOrder'])->name('restaurant.track');
+    
+    // Restaurant Stories Management
+    Route::get('/{slug}/stories', [StoryController::class, 'restaurantIndex'])->name('restaurant.stories');
+    Route::post('/{slug}/stories', [StoryController::class, 'restaurantStore'])->name('restaurant.stories.store');
+    Route::put('/{slug}/stories/{story}', [StoryController::class, 'restaurantUpdate'])->name('restaurant.stories.update');
+    Route::delete('/{slug}/stories/{story}', [StoryController::class, 'restaurantDestroy'])->name('restaurant.stories.destroy');
 });
 
 // Restaurant browsing routes

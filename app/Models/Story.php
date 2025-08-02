@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Story extends Model
 {
     protected $fillable = [
+        'restaurant_id',
         'type',
         'title',
         'content',
@@ -43,5 +44,10 @@ class Story extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order', 'asc')->orderBy('created_at', 'desc');
+    }
+
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class);
     }
 }

@@ -223,6 +223,21 @@
                 </div>
             </a>
 
+            <a href="{{ route('restaurant.stories', $restaurant->slug) }}" 
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-images text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Manage Stories</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Create and edit stories</p>
+                    </div>
+                </div>
+            </a>
+
             <a href="{{ route('restaurant.wallet', $restaurant->slug) }}" 
                 class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">

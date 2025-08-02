@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Story;
+use App\Models\Restaurant;
 
 class StorySeeder extends Seeder
 {
@@ -13,6 +14,14 @@ class StorySeeder extends Seeder
      */
     public function run(): void
     {
+        // Get the first restaurant (Taste of Abuja)
+        $restaurant = Restaurant::first();
+        
+        if (!$restaurant) {
+            $this->command->info('No restaurant found. Please run RestaurantSeeder first.');
+            return;
+        }
+
         $stories = [
             [
                 'type' => 'special',
@@ -98,7 +107,10 @@ class StorySeeder extends Seeder
         ];
 
         foreach ($stories as $story) {
+            $story['restaurant_id'] = $restaurant->id;
             Story::create($story);
         }
+        
+        $this->command->info("Created " . count($stories) . " stories for restaurant: " . $restaurant->name);
     }
 }
