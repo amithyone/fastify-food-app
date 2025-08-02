@@ -112,42 +112,73 @@ class StoryController extends Controller
 
     public function restaurantStore(Request $request, $slug)
     {
+        \Log::info('Story creation attempt', [
+            'user_id' => Auth::id(),
+            'restaurant_slug' => $slug,
+            'request_data' => $request->all()
+        ]);
+
         $restaurant = \App\Models\Restaurant::where('slug', $slug)->firstOrFail();
         
         // Check authorization
         if (Auth::check()) {
             if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                \Log::error('Unauthorized story creation attempt', [
+                    'user_id' => Auth::id(),
+                    'restaurant_id' => $restaurant->id
+                ]);
                 abort(403, 'Unauthorized access to restaurant stories.');
             }
         } else {
             return redirect()->route('login')->with('error', 'Please login to access the restaurant stories.');
         }
         
-        $request->validate([
-            'type' => 'required|string|max:50',
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'emoji' => 'nullable|string|max:10',
-            'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'nullable|numeric|min:0',
-            'original_price' => 'nullable|numeric|min:0',
-            'show_button' => 'boolean',
-            'button_text' => 'nullable|string|max:100',
-            'button_action' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer|min:0'
-        ]);
+        try {
+            $request->validate([
+                'type' => 'required|string|max:50',
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'emoji' => 'nullable|string|max:10',
+                'subtitle' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
+                'price' => 'nullable|numeric|min:0',
+                'original_price' => 'nullable|numeric|min:0',
+                'show_button' => 'boolean',
+                'button_text' => 'nullable|string|max:100',
+                'button_action' => 'nullable|string|max:100',
+                'is_active' => 'boolean',
+                'sort_order' => 'integer|min:0'
+            ]);
 
-        $data = $request->all();
-        $data['restaurant_id'] = $restaurant->id;
-        
-        Story::create($data);
+            \Log::info('Validation passed for story creation', [
+                'validated_data' => $request->validated()
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Story created successfully!'
-        ]);
+            $data = $request->all();
+            $data['restaurant_id'] = $restaurant->id;
+            
+            $story = Story::create($data);
+
+            \Log::info('Story created successfully', [
+                'story_id' => $story->id,
+                'story_title' => $story->title
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Story created successfully!'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating story', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating story: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function restaurantUpdate(Request $request, $slug, $story)
