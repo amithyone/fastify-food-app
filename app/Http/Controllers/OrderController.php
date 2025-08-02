@@ -726,6 +726,19 @@ class OrderController extends Controller
         return redirect()->route('menu.index', $restaurant->slug);
     }
 
+    public function qrImage($code)
+    {
+        $tableQR = \App\Models\TableQR::where('qr_code', $code)
+            ->orWhere('short_url', $code)
+            ->first();
+        
+        if (!$tableQR || !$tableQR->qr_image || !Storage::disk('public')->exists($tableQR->qr_image)) {
+            abort(404, 'QR Code image not found.');
+        }
+        
+        return response()->file(Storage::disk('public')->path($tableQR->qr_image));
+    }
+
     private function getStatusInfo($status)
     {
         $statuses = [

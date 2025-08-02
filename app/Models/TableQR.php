@@ -17,6 +17,7 @@ class TableQR extends Model
         'table_number',
         'qr_code',
         'short_url',
+        'qr_image',
         'is_active',
         'last_used_at',
         'usage_count',

@@ -384,11 +384,25 @@ class RestaurantController extends Controller
             'description' => 'nullable|string|max:255',
         ]);
 
+        // Generate QR code data
+        $qrCodeData = url('/qr/' . $restaurant->slug . '_table_' . $request->table_number);
+        
+        // Generate QR code image
+        $qrCodeImage = \QrCode::format('png')
+            ->size(300)
+            ->margin(10)
+            ->generate($qrCodeData);
+
+        // Save QR code image to storage
+        $imagePath = 'qr-codes/' . $restaurant->slug . '_table_' . $request->table_number . '.png';
+        Storage::disk('public')->put($imagePath, $qrCodeImage);
+
         $qrCode = $restaurant->tableQrs()->create([
             'table_number' => $request->table_number,
             'description' => $request->description,
             'qr_code' => $restaurant->slug . '_table_' . $request->table_number,
             'short_url' => Str::random(8),
+            'qr_image' => $imagePath,
             'is_active' => true,
         ]);
 

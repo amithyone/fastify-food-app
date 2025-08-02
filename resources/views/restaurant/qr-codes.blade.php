@@ -65,11 +65,16 @@
                                 <!-- QR Code Display -->
                                 <div class="bg-white p-4 rounded-lg mb-4 inline-block">
                                     <div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        <!-- This would be replaced with actual QR code generation -->
-                                        <div class="text-center">
-                                            <i class="fas fa-qrcode text-4xl text-gray-400 mb-2"></i>
-                                            <p class="text-xs text-gray-500">{{ $qrCode->qr_code }}</p>
-                                        </div>
+                                        @if($qrCode->qr_image && Storage::disk('public')->exists($qrCode->qr_image))
+                                            <img src="{{ Storage::url($qrCode->qr_image) }}" 
+                                                 alt="QR Code for {{ $qrCode->table_number }}" 
+                                                 class="w-full h-full object-contain">
+                                        @else
+                                            <div class="text-center">
+                                                <i class="fas fa-qrcode text-4xl text-gray-400 mb-2"></i>
+                                                <p class="text-xs text-gray-500">{{ $qrCode->qr_code }}</p>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                                 

@@ -183,6 +183,7 @@ Route::middleware(['auth'])->group(function () {
 
 // QR Code Routes
 Route::get('/qr/{code}', [OrderController::class, 'qrAccess'])->name('qr.access');
+Route::get('/qr-image/{code}', [OrderController::class, 'qrImage'])->name('qr.image');
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes
