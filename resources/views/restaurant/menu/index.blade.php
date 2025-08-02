@@ -121,6 +121,9 @@
                                         Status
                                     </th>
                                     <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
+                                        Options
+                                    </th>
+                                    <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
                                         Actions
                                     </th>
                                 </tr>
@@ -163,9 +166,28 @@
                                                 </span>
                                             </div>
                                         </td>
+                                        <td class="px-2 py-3 whitespace-nowrap">
+                                            <div class="flex items-center space-x-1">
+                                                @if($item->is_featured)
+                                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full">
+                                                        <i class="fas fa-star mr-1"></i>Featured
+                                                    </span>
+                                                @endif
+                                                @if($item->is_vegetarian)
+                                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                                                        <i class="fas fa-leaf mr-1"></i>Veg
+                                                    </span>
+                                                @endif
+                                                @if($item->is_spicy)
+                                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
+                                                        <i class="fas fa-fire mr-1"></i>Spicy
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td class="px-2 py-3 whitespace-nowrap text-sm font-medium">
                                             <div class="flex items-center space-x-1">
-                                                <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image ? Storage::url($item->image) : null }}' )" 
+                                                <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image ? Storage::url($item->image) : null }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }})" 
                                                         class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1">
                                                     <i class="fas fa-edit text-xs"></i>
                                                 </button>
@@ -504,9 +526,43 @@
                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"></textarea>
                     </div>
                     
-                    <div class="flex items-center">
-                        <input type="checkbox" id="itemAvailable" name="is_available" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <label for="itemAvailable" class="ml-2 block text-sm text-gray-900 dark:text-white">Available</label>
+                    <div>
+                        <label for="itemIngredients" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ingredients</label>
+                        <textarea id="itemIngredients" name="ingredients" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                  placeholder="List the main ingredients (e.g., rice, chicken, vegetables, spices)"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="itemAllergens" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Allergens</label>
+                        <textarea id="itemAllergens" name="allergens" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                  placeholder="List any allergens (e.g., nuts, dairy, gluten, shellfish)"></textarea>
+                    </div>
+                    
+                    <!-- Item Options -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Item Options</h4>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="itemAvailable" name="is_available" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="itemAvailable" class="ml-2 block text-sm text-gray-900 dark:text-white">Available for Order</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="itemFeatured" name="is_featured" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="itemFeatured" class="ml-2 block text-sm text-gray-900 dark:text-white">Featured Item</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="itemVegetarian" name="is_vegetarian" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                            <label for="itemVegetarian" class="ml-2 block text-sm text-gray-900 dark:text-white">Vegetarian</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="itemSpicy" name="is_spicy" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                            <label for="itemSpicy" class="ml-2 block text-sm text-gray-900 dark:text-white">Spicy</label>
+                        </div>
                     </div>
                 </div>
                 
@@ -665,7 +721,12 @@ function openMenuItemModal() {
     document.getElementById('itemCategory').value = '';
     document.getElementById('itemPrice').value = '';
     document.getElementById('itemDescription').value = '';
+    document.getElementById('itemIngredients').value = '';
+    document.getElementById('itemAllergens').value = '';
     document.getElementById('itemAvailable').checked = true;
+    document.getElementById('itemFeatured').checked = false;
+    document.getElementById('itemVegetarian').checked = false;
+    document.getElementById('itemSpicy').checked = false;
     resetImagePreview();
     document.getElementById('menuItemModal').classList.remove('hidden');
 }
@@ -674,14 +735,19 @@ function closeMenuItemModal() {
     document.getElementById('menuItemModal').classList.add('hidden');
 }
 
-function editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl = null) {
+function editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl = null, ingredients = '', allergens = '', isFeatured = false, isVegetarian = false, isSpicy = false) {
     editingMenuItemId = id;
     document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
     document.getElementById('itemName').value = name;
     document.getElementById('itemCategory').value = categoryId || '';
     document.getElementById('itemPrice').value = (price / 100).toFixed(2);
     document.getElementById('itemDescription').value = description || '';
+    document.getElementById('itemIngredients').value = ingredients || '';
+    document.getElementById('itemAllergens').value = allergens || '';
     document.getElementById('itemAvailable').checked = isAvailable;
+    document.getElementById('itemFeatured').checked = isFeatured;
+    document.getElementById('itemVegetarian').checked = isVegetarian;
+    document.getElementById('itemSpicy').checked = isSpicy;
     
     // Handle image preview for editing
     if (imageUrl) {
