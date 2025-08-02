@@ -137,6 +137,20 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
+            // Get restaurant_id from the first cart item (all items in cart should be from same restaurant)
+            $restaurantId = null;
+            if (!empty($request->items)) {
+                // Find the menu item to get its restaurant_id
+                $firstMenuItem = MenuItem::find($request->items[0]['id']);
+                if ($firstMenuItem) {
+                    $restaurantId = $firstMenuItem->restaurant_id;
+                }
+            }
+
+            if (!$restaurantId) {
+                throw new \Exception('No restaurant found for order items');
+            }
+
             // Calculate total from items
             $total = 0;
             foreach ($request->items as $item) {
@@ -166,6 +180,7 @@ class OrderController extends Controller
 
             // Create order
             $order = Order::create([
+                'restaurant_id' => $restaurantId,
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
                 'delivery_address' => $deliveryAddress,
