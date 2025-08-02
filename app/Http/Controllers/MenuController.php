@@ -139,6 +139,12 @@ class MenuController extends Controller
 
     public function restaurantStore(Request $request, $slug)
     {
+        \Log::info('Menu item creation attempt', [
+            'user_id' => Auth::id(),
+            'restaurant_slug' => $slug,
+            'request_data' => $request->all()
+        ]);
+        
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         if (Auth::check()) {
@@ -150,29 +156,66 @@ class MenuController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'is_available' => 'boolean',
-            'is_featured' => 'boolean',
-            'is_vegetarian' => 'boolean',
-            'is_spicy' => 'boolean',
-            'ingredients' => 'nullable|string',
-            'allergens' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
-        $validated['restaurant_id'] = $restaurant->id;
-        
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'price' => 'required|numeric|min:0',
+                'category_id' => 'required|exists:categories,id',
+                'is_available' => 'boolean',
+                'is_featured' => 'boolean',
+                'is_vegetarian' => 'boolean',
+                'is_spicy' => 'boolean',
+                'ingredients' => 'nullable|string',
+                'allergens' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+            
+            \Log::info('Validation passed', ['validated_data' => $validated]);
+            
+            $validated['restaurant_id'] = $restaurant->id;
+            
+            // Set default values for boolean fields
+            $validated['is_available'] = $request->has('is_available');
+            $validated['is_featured'] = $request->has('is_featured');
+            $validated['is_vegetarian'] = $request->has('is_vegetarian');
+            $validated['is_spicy'] = $request->has('is_spicy');
+            
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('menu-items', 'public');
+                \Log::info('Image uploaded', ['image_path' => $validated['image']]);
+            }
+            
+            $menuItem = MenuItem::create($validated);
+            
+            \Log::info('Menu item created successfully', [
+                'menu_item_id' => $menuItem->id,
+                'menu_item_name' => $menuItem->name
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item created successfully!',
+                'menu_item' => $menuItem
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed', ['errors' => $e->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Menu item creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create menu item: ' . $e->getMessage()
+            ], 500);
         }
-        
-        MenuItem::create($validated);
-        
-        return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item created successfully!');
     }
 
     public function restaurantEdit($slug, $item)
@@ -196,6 +239,13 @@ class MenuController extends Controller
 
     public function restaurantUpdate(Request $request, $slug, $item)
     {
+        \Log::info('Menu item update attempt', [
+            'user_id' => Auth::id(),
+            'restaurant_slug' => $slug,
+            'menu_item_id' => $item,
+            'request_data' => $request->all()
+        ]);
+        
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
         
@@ -208,31 +258,74 @@ class MenuController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'is_available' => 'boolean',
-            'is_featured' => 'boolean',
-            'is_vegetarian' => 'boolean',
-            'is_spicy' => 'boolean',
-            'ingredients' => 'nullable|string',
-            'allergens' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'price' => 'required|numeric|min:0',
+                'category_id' => 'required|exists:categories,id',
+                'is_available' => 'boolean',
+                'is_featured' => 'boolean',
+                'is_vegetarian' => 'boolean',
+                'is_spicy' => 'boolean',
+                'ingredients' => 'nullable|string',
+                'allergens' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+            
+            \Log::info('Validation passed for update', ['validated_data' => $validated]);
+            
+            // Set default values for boolean fields
+            $validated['is_available'] = $request->has('is_available');
+            $validated['is_featured'] = $request->has('is_featured');
+            $validated['is_vegetarian'] = $request->has('is_vegetarian');
+            $validated['is_spicy'] = $request->has('is_spicy');
+            
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('menu-items', 'public');
+                \Log::info('Image uploaded for update', ['image_path' => $validated['image']]);
+            }
+            
+            $menuItem->update($validated);
+            
+            \Log::info('Menu item updated successfully', [
+                'menu_item_id' => $menuItem->id,
+                'menu_item_name' => $menuItem->name
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item updated successfully!',
+                'menu_item' => $menuItem
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed for update', ['errors' => $e->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Menu item update failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update menu item: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $menuItem->update($validated);
-        
-        return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item updated successfully!');
     }
 
     public function restaurantDestroy($slug, $item)
     {
+        \Log::info('Menu item deletion attempt', [
+            'user_id' => Auth::id(),
+            'restaurant_slug' => $slug,
+            'menu_item_id' => $item
+        ]);
+        
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         $menuItem = MenuItem::where('id', $item)->where('restaurant_id', $restaurant->id)->firstOrFail();
         
@@ -245,9 +338,29 @@ class MenuController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
-        $menuItem->delete();
-        
-        return redirect()->route('restaurant.menu', $slug)->with('success', 'Menu item deleted successfully!');
+        try {
+            $menuItem->delete();
+            
+            \Log::info('Menu item deleted successfully', [
+                'menu_item_id' => $item,
+                'menu_item_name' => $menuItem->name
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item deleted successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Menu item deletion failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete menu item: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function adminIndex()

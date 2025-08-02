@@ -859,50 +859,66 @@ document.addEventListener('DOMContentLoaded', function() {
     // Menu item form submission
     document.getElementById('menuItemForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Menu item form submitted');
+        
         const formData = new FormData(e.target);
+        
+        // Log form data for debugging
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
         
         // Convert price to cents (multiply by 100)
         const priceField = document.getElementById('itemPrice');
         if (priceField && priceField.value) {
             const priceInCents = Math.round(parseFloat(priceField.value) * 100);
             formData.set('price', priceInCents);
+            console.log('Price converted to cents:', priceInCents);
         }
         
         if (editingMenuItemId) {
             // Update existing menu item
+            console.log('Updating menu item:', editingMenuItemId);
             fetch(`{{ route('restaurant.menu.update', ['slug' => $restaurant->slug, 'item' => 'ITEM_ID']) }}`.replace('ITEM_ID', editingMenuItemId), {
                 method: 'PUT',
                 body: formData
             }).then(response => {
+                console.log('Update response status:', response.status);
                 if (response.ok) {
-                    window.location.reload();
+                    return response.json();
                 } else {
-                    response.text().then(text => {
-                        console.error('Error response:', text);
-                        alert('Error updating menu item: ' + text);
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Update failed');
                     });
                 }
+            }).then(data => {
+                console.log('Update success:', data);
+                window.location.reload();
             }).catch(error => {
-                console.error('Fetch error:', error);
-                alert('Error updating menu item');
+                console.error('Update error:', error);
+                alert('Error updating menu item: ' + error.message);
             });
         } else {
             // Create new menu item
+            console.log('Creating new menu item');
             fetch(`{{ route('restaurant.menu.store', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
                 body: formData
             }).then(response => {
+                console.log('Create response status:', response.status);
                 if (response.ok) {
-                    window.location.reload();
+                    return response.json();
                 } else {
-                    response.text().then(text => {
-                        console.error('Error response:', text);
-                        alert('Error creating menu item: ' + text);
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Creation failed');
                     });
                 }
+            }).then(data => {
+                console.log('Create success:', data);
+                window.location.reload();
             }).catch(error => {
-                console.error('Fetch error:', error);
-                alert('Error creating menu item');
+                console.error('Create error:', error);
+                alert('Error creating menu item: ' + error.message);
             });
         }
         closeMenuItemModal();
