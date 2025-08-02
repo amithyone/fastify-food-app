@@ -165,21 +165,29 @@ class MenuController extends Controller
             
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
+                'description' => 'nullable|string|max:1000',
                 'price' => 'required|numeric|min:0',
-                'category_id' => 'required|exists:categories,id',
+                'category_id' => 'nullable|exists:categories,id',
                 'is_available' => 'nullable',
                 'is_featured' => 'nullable',
                 'is_vegetarian' => 'nullable',
                 'is_spicy' => 'nullable',
-                'ingredients' => 'nullable|string',
-                'allergens' => 'nullable|string',
+                'ingredients' => 'nullable|string|max:500',
+                'allergens' => 'nullable|string|max:500',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
             
             \Log::info('Validation passed', ['validated_data' => $validated]);
             
             $validated['restaurant_id'] = $restaurant->id;
+            
+            // Set default category if none provided
+            if (empty($validated['category_id'])) {
+                $defaultCategory = Category::where('restaurant_id', $restaurant->id)->first();
+                if ($defaultCategory) {
+                    $validated['category_id'] = $defaultCategory->id;
+                }
+            }
             
             // Set default values for boolean fields
             $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';

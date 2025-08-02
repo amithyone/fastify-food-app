@@ -239,6 +239,70 @@ Route::post('/test-image-upload', function(\Illuminate\Http\Request $request) {
     }
 });
 
+// Test route for menu item creation (no auth required)
+Route::post('/test-menu-item', function(\Illuminate\Http\Request $request) {
+    try {
+        // Auto-login as chef for testing
+        $user = \App\Models\User::where('email', 'chef@tasteofabuja.com')->first();
+        if ($user) {
+            auth()->login($user);
+        }
+        
+        $restaurant = \App\Models\Restaurant::where('slug', 'taste-of-abuja')->first();
+        if (!$restaurant) {
+            return response()->json(['success' => false, 'message' => 'Restaurant not found']);
+        }
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'nullable|exists:categories,id',
+            'is_available' => 'nullable',
+            'is_featured' => 'nullable',
+            'is_vegetarian' => 'nullable',
+            'is_spicy' => 'nullable',
+            'ingredients' => 'nullable|string|max:500',
+            'allergens' => 'nullable|string|max:500',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+        
+        $validated['restaurant_id'] = $restaurant->id;
+        
+        // Set default category if none provided
+        if (empty($validated['category_id'])) {
+            $defaultCategory = \App\Models\Category::where('restaurant_id', $restaurant->id)->first();
+            if ($defaultCategory) {
+                $validated['category_id'] = $defaultCategory->id;
+            }
+        }
+        
+        // Set default values for boolean fields
+        $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';
+        $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
+        $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
+        $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
+        
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+        }
+        
+        $menuItem = \App\Models\MenuItem::create($validated);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Menu item created successfully!',
+            'menu_item' => $menuItem
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create menu item: ' . $e->getMessage()
+        ]);
+    }
+});
+
 // Quick login test route
 Route::get('/quick-login', function() {
     $user = \App\Models\User::where('email', 'chef@tasteofabuja.com')->first();
