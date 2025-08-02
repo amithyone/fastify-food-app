@@ -6,33 +6,27 @@
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Manage Menu</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Manage Menu</h1>
                 <p class="text-gray-600 dark:text-gray-400">{{ $restaurant->name }}</p>
             </div>
-            <div class="flex space-x-4">
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
                 <a href="{{ route('restaurant.dashboard', $restaurant->slug) }}" 
-                   class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                   class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-center">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
                 </a>
-                
-                <!-- Edit Menu Button -->
-                <button onclick="openMenuItemModal()" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center">
-                    <i class="fas fa-edit mr-2"></i>Edit Menu
-                </button>
                 
                 <!-- Dropdown Add Button -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" 
-                            class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center">
+                            class="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center">
                         <i class="fas fa-plus mr-2"></i>Add
                         <i class="fas fa-chevron-down ml-2"></i>
                     </button>
                     
                     <div x-show="open" @click.away="open = false" 
-                         class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                         class="absolute right-0 sm:right-auto left-0 sm:left-auto mt-2 w-full sm:w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
                         <div class="py-1">
                             <button onclick="openMenuItemModal()" 
                                     class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
