@@ -195,7 +195,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/restaurant/store', [RestaurantController::class, 'store'])->name('restaurant.store');
 });
 
-// Restaurant Management Routes
+// Restaurant Management Routes (Protected by auth middleware)
 Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/dashboard', [RestaurantController::class, 'dashboard'])->name('restaurant.dashboard');
     Route::get('/{slug}/edit', [RestaurantController::class, 'edit'])->name('restaurant.edit');
@@ -229,19 +229,6 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     // Restaurant Order Tracking
     Route::get('/{slug}/track', [OrderController::class, 'restaurantTrackForm'])->name('restaurant.track-form');
     Route::post('/{slug}/track', [OrderController::class, 'restaurantTrackOrder'])->name('restaurant.track');
-});
-
-// Restaurant routes (protected by auth middleware)
-Route::middleware(['auth'])->prefix('restaurant')->name('restaurant.')->group(function () {
-    Route::get('/{slug}/dashboard', [RestaurantController::class, 'dashboard'])->name('dashboard');
-    Route::get('/{slug}/edit', [RestaurantController::class, 'edit'])->name('edit');
-    Route::put('/{slug}/update', [RestaurantController::class, 'update'])->name('update');
-    Route::get('/{slug}/qr-codes', [RestaurantController::class, 'qrCodes'])->name('qr-codes');
-    Route::get('/{slug}/wallet', [RestaurantController::class, 'wallet'])->name('wallet');
-    Route::post('/{slug}/wallet/withdraw', [RestaurantController::class, 'withdraw'])->name('wallet.withdraw');
-    Route::get('/{slug}/custom-domain', [RestaurantController::class, 'customDomain'])->name('custom-domain');
-    Route::put('/{slug}/custom-domain', [RestaurantController::class, 'updateCustomDomain'])->name('custom-domain.update');
-    Route::post('/{slug}/custom-domain/verify', [RestaurantController::class, 'verifyCustomDomain'])->name('custom-domain.verify');
 });
 
 // Restaurant browsing routes

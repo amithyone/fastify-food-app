@@ -126,10 +126,30 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
+        // Debug information
+        \Log::info('Dashboard access attempt', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'is_authenticated' => Auth::check(),
+            'is_admin' => Auth::user()?->isAdmin(),
+        ]);
+        
         // Check if user has access to this restaurant
         if (Auth::check()) {
             // Check if user is a manager of this restaurant
-            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('Authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
                 abort(403, 'Unauthorized access to restaurant dashboard. You need manager privileges.');
             }
             
@@ -167,14 +187,30 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
+        \Log::info('Restaurant edit access attempt', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'is_authenticated' => Auth::check(),
+        ]);
+        
         if (Auth::check()) {
-            // Check if user is a manager of this restaurant
-            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard. You need manager privileges.');
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('Restaurant edit authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
+                abort(403, 'Unauthorized access to restaurant edit. You need manager privileges.');
             }
         } else {
-            // Redirect to login if not authenticated
-            return redirect()->route('login')->with('error', 'Please login to access the restaurant dashboard.');
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant edit page.');
         }
 
         return view('restaurant.edit', compact('restaurant'));
@@ -282,14 +318,30 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
+        \Log::info('QR codes access attempt', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'is_authenticated' => Auth::check(),
+        ]);
+        
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('QR codes authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
+                abort(403, 'Unauthorized access to QR codes. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            return redirect()->route('login')->with('error', 'Please login to access the QR codes.');
         }
 
         $qrCodes = $restaurant->tableQrs()->get();
@@ -301,14 +353,30 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
+        \Log::info('Generate QR code access attempt', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'is_authenticated' => Auth::check(),
+        ]);
+        
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('Generate QR code authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
+                abort(403, 'Unauthorized access to generate QR codes. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            return redirect()->route('login')->with('error', 'Please login to generate QR codes.');
         }
 
         $request->validate([
@@ -332,14 +400,30 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
+        \Log::info('Wallet access attempt', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'is_authenticated' => Auth::check(),
+        ]);
+        
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('Wallet authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
+                abort(403, 'Unauthorized access to restaurant wallet. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            return redirect()->route('login')->with('error', 'Please login to access the restaurant wallet.');
         }
 
         // Get or create restaurant wallet
@@ -375,14 +459,30 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
+        \Log::info('Withdraw access attempt', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'is_authenticated' => Auth::check(),
+        ]);
+        
         if (Auth::check()) {
-            // Check if user is the owner of this restaurant
-            if ($restaurant->owner_id !== Auth::id() && !Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access to restaurant dashboard.');
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('Withdraw authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id,
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
+                abort(403, 'Unauthorized access to withdraw funds. You need manager privileges.');
             }
         } else {
-            // Allow access for non-authenticated users (for demo purposes)
-            // In production, you might want to restrict this
+            return redirect()->route('login')->with('error', 'Please login to withdraw funds.');
         }
 
         $request->validate([

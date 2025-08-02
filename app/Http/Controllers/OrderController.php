@@ -474,9 +474,26 @@ class OrderController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         $user = Auth::user();
         
-        // Check if user owns this restaurant
-        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant orders.');
+        \Log::info('Restaurant orders access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $restaurant->id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        \Log::info('Restaurant orders authorization check', [
+            'can_access' => $canAccess,
+            'is_admin' => $isAdmin,
+            'user_id' => $user->id,
+            'restaurant_id' => $restaurant->id,
+        ]);
+        
+        if (!$canAccess && !$isAdmin) {
+            abort(403, 'Unauthorized access to restaurant orders. You need manager privileges.');
         }
         
         $orders = Order::with(['orderItems.menuItem'])
@@ -497,9 +514,27 @@ class OrderController extends Controller
         $order = Order::with(['orderItems.menuItem'])->findOrFail($order);
         $user = Auth::user();
         
-        // Check if user owns this restaurant and order belongs to this restaurant
-        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant orders.');
+        \Log::info('Restaurant order show access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'order_id' => $order->id,
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $restaurant->id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        \Log::info('Restaurant order show authorization check', [
+            'can_access' => $canAccess,
+            'is_admin' => $isAdmin,
+            'user_id' => $user->id,
+            'restaurant_id' => $restaurant->id,
+        ]);
+        
+        if (!$canAccess && !$isAdmin) {
+            abort(403, 'Unauthorized access to restaurant orders. You need manager privileges.');
         }
         
         if ($order->restaurant_id !== $restaurant->id) {
@@ -523,9 +558,28 @@ class OrderController extends Controller
         $order = Order::findOrFail($order);
         $user = Auth::user();
         
-        // Check if user owns this restaurant and order belongs to this restaurant
-        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant orders.');
+        \Log::info('Restaurant order status access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'order_id' => $order->id,
+            'new_status' => $request->status,
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $restaurant->id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        \Log::info('Restaurant order status authorization check', [
+            'can_access' => $canAccess,
+            'is_admin' => $isAdmin,
+            'user_id' => $user->id,
+            'restaurant_id' => $restaurant->id,
+        ]);
+        
+        if (!$canAccess && !$isAdmin) {
+            abort(403, 'Unauthorized access to restaurant orders. You need manager privileges.');
         }
         
         if ($order->restaurant_id !== $restaurant->id) {
@@ -564,9 +618,26 @@ class OrderController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         $user = Auth::user();
         
-        // Check if user owns this restaurant
-        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant tracking.');
+        \Log::info('Restaurant track form access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $restaurant->id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        \Log::info('Restaurant track form authorization check', [
+            'can_access' => $canAccess,
+            'is_admin' => $isAdmin,
+            'user_id' => $user->id,
+            'restaurant_id' => $restaurant->id,
+        ]);
+        
+        if (!$canAccess && !$isAdmin) {
+            abort(403, 'Unauthorized access to restaurant tracking. You need manager privileges.');
         }
         
         return view('restaurant.track-form', compact('restaurant'));
@@ -585,9 +656,27 @@ class OrderController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         $user = Auth::user();
         
-        // Check if user owns this restaurant
-        if ($restaurant->owner_id !== $user->id && !$user->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant tracking.');
+        \Log::info('Restaurant track order access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'tracking_code' => $request->tracking_code,
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $restaurant->id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        \Log::info('Restaurant track order authorization check', [
+            'can_access' => $canAccess,
+            'is_admin' => $isAdmin,
+            'user_id' => $user->id,
+            'restaurant_id' => $restaurant->id,
+        ]);
+        
+        if (!$canAccess && !$isAdmin) {
+            abort(403, 'Unauthorized access to restaurant tracking. You need manager privileges.');
         }
 
         $order = Order::byTrackingCode($request->tracking_code)
