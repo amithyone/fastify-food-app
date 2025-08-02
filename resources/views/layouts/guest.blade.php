@@ -8,6 +8,7 @@
         <title>{{ config('app.name', 'Fastify') }}</title>
 
         <!-- Favicon -->
+        <link rel="icon" type="image/png" href="/favicon.png">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
         <!-- Fonts -->

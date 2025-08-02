@@ -23,11 +23,11 @@ class MenuController extends Controller
             return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurant'));
         } else {
             // Default menu (for backward compatibility)
-            $categories = Category::with('menuItems')->where('is_active', true)->get();
-            $menuItems = MenuItem::with('category')->where('is_available', true)->get();
-            $stories = Story::active()->ordered()->get();
-            
-            return view('menu.index', compact('categories', 'menuItems', 'stories'));
+        $categories = Category::with('menuItems')->where('is_active', true)->get();
+        $menuItems = MenuItem::with('category')->where('is_available', true)->get();
+        $stories = Story::active()->ordered()->get();
+        
+        return view('menu.index', compact('categories', 'menuItems', 'stories'));
         }
     }
 

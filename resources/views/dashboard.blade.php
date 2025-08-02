@@ -39,6 +39,7 @@
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-2 gap-4 mb-8">
+            @auth
             <!-- Restaurants Visited -->
             <div class="rounded-lg shadow p-4 border border-red-300 dark:border-red-700" style="background: linear-gradient(to bottom right, #f87171, #dc2626) !important;">
                 <div class="flex items-center">
@@ -65,6 +66,73 @@
                 </div>
             </div>
 
+            <!-- Recently Visited -->
+            <div class="rounded-lg shadow p-4 border border-purple-300 dark:border-purple-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #a78bfa, #7c3aed) !important;" onclick="window.location.href='{{ route('restaurants.recent') }}'">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">Recently Visited</h3>
+                        <p class="text-xl font-bold text-white">{{ Auth::user()->orders()->select('restaurant_id')->distinct()->count() }}</p>
+                    </div>
+                </div>
+            </div>
+            @else
+            <!-- Login to See Stats -->
+            <div class="rounded-lg shadow p-4 border border-red-300 dark:border-red-700" style="background: linear-gradient(to bottom right, #f87171, #dc2626) !important;">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-utensils text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">Restaurants Visited</h3>
+                        <p class="text-xs text-white opacity-80">Login to see your stats</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login to See Orders -->
+            <div class="rounded-lg shadow p-4 border border-emerald-300 dark:border-emerald-700" style="background: linear-gradient(to bottom right, #34d399, #059669) !important;">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-shopping-bag text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">Total Orders</h3>
+                        <p class="text-xs text-white opacity-80">Login to see your orders</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login to See Recent -->
+            <div class="rounded-lg shadow p-4 border border-purple-300 dark:border-purple-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #a78bfa, #7c3aed) !important;" onclick="window.location.href='{{ route('login') }}'">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">Recently Visited</h3>
+                        <p class="text-xs text-white opacity-80">Login to see your history</p>
+                    </div>
+                </div>
+            </div>
+            @endauth
+
+            <!-- All Restaurants -->
+            <div class="rounded-lg shadow p-4 border border-blue-300 dark:border-blue-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #60a5fa, #2563eb) !important;" onclick="window.location.href='{{ route('restaurants.all') }}'">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-store text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">All Restaurants</h3>
+                        <p class="text-xl font-bold text-white">{{ \App\Models\Restaurant::where('is_active', true)->count() }}</p>
+                    </div>
+                </div>
+            </div>
+
+            @auth
             <!-- Favorite Restaurants -->
             <div class="rounded-lg shadow p-4 border border-amber-300 dark:border-amber-700" style="background: linear-gradient(to bottom right, #fbbf24, #d97706) !important;">
                 <div class="flex items-center">
@@ -73,100 +141,24 @@
                     </div>
                     <div class="ml-3">
                         <h3 class="text-sm font-semibold text-white">Favorite Restaurants</h3>
-                        <p class="text-xl font-bold text-white">{{ Auth::user()->orders()->select('restaurant_id')->distinct()->count() }}</p>
+                        <p class="text-xl font-bold text-white">0</p>
                     </div>
                 </div>
             </div>
-
-            <!-- Reward Points -->
-            <div class="rounded-lg shadow p-4 border border-indigo-300 dark:border-indigo-700" style="background: linear-gradient(to bottom right, #818cf8, #4338ca) !important;">
+            @else
+            <!-- Login to See Favorites -->
+            <div class="rounded-lg shadow p-4 border border-amber-300 dark:border-amber-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #fbbf24, #d97706) !important;" onclick="window.location.href='{{ route('login') }}'">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <i class="fas fa-gift text-xl text-white"></i>
+                        <i class="fas fa-star text-xl text-white"></i>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-sm font-semibold text-white">Reward Points</h3>
-                        <p class="text-xl font-bold text-white">{{ Auth::user()->rewards()->sum('points') ?? 0 }}</p>
+                        <h3 class="text-sm font-semibold text-white">Favorite Restaurants</h3>
+                        <p class="text-xs text-white opacity-80">Login to see your favorites</p>
                     </div>
                 </div>
             </div>
-        </div>
-
-
-
-        <!-- Recent Restaurants Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Recent Restaurants</h2>
-                <p class="text-gray-600 dark:text-gray-400">Restaurants you've visited recently</p>
-            </div>
-            
-            <div class="p-6">
-                @php
-                    $recentRestaurants = Auth::user()->orders()
-                        ->with('restaurant')
-                        ->select('restaurant_id', \DB::raw('MAX(created_at) as last_visited'))
-                        ->groupBy('restaurant_id')
-                        ->orderByDesc('last_visited')
-                        ->limit(6)
-                        ->get();
-                @endphp
-
-                @if($recentRestaurants->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach($recentRestaurants as $restaurant)
-                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600">
-                                <div class="flex items-center mb-3">
-                                    @if($restaurant->logo)
-                                        <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" 
-                                             class="w-12 h-12 rounded-lg object-cover mr-3">
-                                    @else
-                                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
-                                            <i class="fas fa-utensils text-white"></i>
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <h3 class="font-semibold text-gray-900 dark:text-white">{{ $restaurant->name }}</h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $restaurant->cuisine_type ?? 'Restaurant' }}</p>
-                                        @if($restaurant->address)
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ Str::limit($restaurant->address, 30) }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center">
-                                        <div class="flex text-yellow-400">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="fas fa-star text-sm"></i>
-                                            @endfor
-                                        </div>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">(4.5)</span>
-                                    </div>
-                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Open</span>
-                                </div>
-                                
-                                <div class="flex space-x-2">
-                                    <a href="{{ route('menu.index', $restaurant->slug) }}" 
-                                       class="flex-1 bg-orange-500 text-white text-center py-2 px-3 rounded-lg hover:bg-orange-600 transition-colors text-sm">
-                                        <i class="fas fa-eye mr-1"></i>View Menu
-                                    </a>
-                                    <button onclick="addToFavorites({{ $restaurant->id }})" 
-                                            class="px-3 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
-                                        <i class="fas fa-heart"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-8">
-                        <i class="fas fa-utensils text-4xl text-gray-400 mb-3"></i>
-                        <p class="text-gray-500 dark:text-gray-400">No restaurants available</p>
-                        <p class="text-sm text-gray-400 dark:text-gray-500">Check back later for new restaurants</p>
-                    </div>
-                @endif
-            </div>
+            @endauth
         </div>
 
         <!-- All Restaurants Section -->
@@ -208,44 +200,175 @@
                                         @endif
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full">Active</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center">
                                         <div class="flex text-yellow-400">
                                             @for($i = 1; $i <= 5; $i++)
                                                 <i class="fas fa-star text-sm"></i>
                                             @endfor
                                         </div>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">(4.5)</span>
-                                    </div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ $restaurant->menuItems()->count() }} items
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">(4.5)</span>
                                     </div>
                                 </div>
-                                
-                                <div class="flex space-x-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Open</span>
                                     <a href="{{ route('menu.restaurant', $restaurant->slug) }}" 
-                                       class="flex-1 bg-orange-500 text-white text-center py-2 px-3 rounded-lg hover:bg-orange-600 transition-colors text-sm">
-                                        <i class="fas fa-eye mr-1"></i>View Menu
+                                       class="text-orange-600 dark:text-orange-400 text-sm font-medium hover:text-orange-700 dark:hover:text-orange-300">
+                                        View Menu
                                     </a>
-                                    <button onclick="addToFavorites({{ $restaurant->id }})" 
-                                            class="px-3 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
-                                        <i class="fas fa-heart"></i>
-                                    </button>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 @else
                     <div class="text-center py-8">
-                        <i class="fas fa-utensils text-4xl text-gray-400 mb-3"></i>
-                        <p class="text-gray-500 dark:text-gray-400">No restaurants available</p>
-                        <p class="text-sm text-gray-400 dark:text-gray-500">Check back later for new restaurants</p>
+                        <i class="fas fa-utensils text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400">No restaurants available</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500">Check back later for new restaurants</p>
                     </div>
                 @endif
+            </div>
+        </div>
+
+        <!-- Recent Restaurants Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Recent Restaurants</h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                    @auth
+                        Restaurants you've visited recently
+                    @else
+                        <span class="text-orange-600 dark:text-orange-400">Login to see your recent restaurants</span>
+                    @endauth
+                </p>
+            </div>
+            
+            <div class="p-6">
+                @auth
+                    @php
+                        $recentRestaurants = Auth::user()->orders()
+                            ->with('restaurant')
+                            ->select('restaurant_id', \DB::raw('MAX(created_at) as last_visited'))
+                            ->groupBy('restaurant_id')
+                            ->orderByDesc('last_visited')
+                            ->limit(6)
+                            ->get();
+                    @endphp
+
+                    @if($recentRestaurants->count() > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($recentRestaurants as $restaurant)
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600">
+                                    <div class="flex items-center mb-3">
+                                        @if($restaurant->logo)
+                                            <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" 
+                                                 class="w-12 h-12 rounded-lg object-cover mr-3">
+                                        @else
+                                            <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
+                                                <i class="fas fa-utensils text-white"></i>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900 dark:text-white">{{ $restaurant->name }}</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $restaurant->cuisine_type ?? 'Restaurant' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                                            Last visited: {{ \Carbon\Carbon::parse($restaurant->last_visited)->diffForHumans() }}
+                                        </span>
+                                        <a href="{{ route('menu.restaurant', $restaurant->restaurant->slug) }}" 
+                                           class="text-orange-600 dark:text-orange-400 text-sm font-medium hover:text-orange-700 dark:hover:text-orange-300">
+                                            View Menu
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-8">
+                            <i class="fas fa-utensils text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                            <p class="text-gray-600 dark:text-gray-400">No recent restaurants yet</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500">Start ordering to see your history here</p>
+                        </div>
+                    @endif
+                @else
+                    <div class="text-center py-8">
+                        <i class="fas fa-lock text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Login to see your recent restaurants</p>
+                        <a href="{{ route('login') }}" class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Login Now
+                        </a>
+                    </div>
+                @endauth
+            </div>
+        </div>
+
+        <!-- Rewards Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Rewards & Points</h2>
+                <p class="text-gray-600 dark:text-gray-400">
+                    @auth
+                        Earn points with every order
+                    @else
+                        <span class="text-orange-600 dark:text-orange-400">Login to see your reward points</span>
+                    @endauth
+                </p>
+            </div>
+            
+            <div class="p-6">
+                @auth
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Current Points -->
+                        <div class="bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-semibold">Current Points</h3>
+                                    <p class="text-2xl font-bold">{{ Auth::user()->rewards()->sum('points') ?? 0 }}</p>
+                                </div>
+                                <i class="fas fa-gift text-2xl opacity-80"></i>
+                            </div>
+                        </div>
+
+                        <!-- Points to Next Reward -->
+                        <div class="bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-semibold">Next Reward</h3>
+                                    <p class="text-2xl font-bold">100 pts</p>
+                                </div>
+                                <i class="fas fa-star text-2xl opacity-80"></i>
+                            </div>
+                        </div>
+
+                        <!-- Total Earned -->
+                        <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-semibold">Total Earned</h3>
+                                    <p class="text-2xl font-bold">{{ Auth::user()->rewards()->sum('points') ?? 0 }}</p>
+                                </div>
+                                <i class="fas fa-trophy text-2xl opacity-80"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <a href="{{ route('wallet.rewards') }}" class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-gift mr-2"></i>
+                            View All Rewards
+                        </a>
+                    </div>
+                @else
+                    <div class="text-center py-8">
+                        <i class="fas fa-gift text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Login to see your reward points and earn points with every order</p>
+                        <a href="{{ route('login') }}" class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Login to See Rewards
+                        </a>
+                    </div>
+                @endauth
             </div>
         </div>
 
@@ -290,23 +413,32 @@
     </div>
     <!-- Menu Items -->
     <div class="p-4 space-y-4">
-        <!-- Home -->
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition">
-            <i class="fas fa-home text-lg"></i>
-            <span class="font-medium">Home</span>
-        </a>
+        <!-- Dashboard/Home - Always visible and prominent -->
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Navigation</h3>
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition">
+                <i class="fas fa-home text-lg"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+        </div>
+        
         <!-- Restaurants -->
         <div class="space-y-2">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Restaurants</h3>
-            <a href="{{ route('menu.index') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-utensils text-lg"></i>
-                <span>Browse Restaurants</span>
+            <a href="{{ route('restaurants.all') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <i class="fas fa-store text-lg"></i>
+                <span>All Restaurants</span>
+            </a>
+            <a href="{{ route('restaurants.recent') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <i class="fas fa-clock text-lg"></i>
+                <span>Recent Restaurants</span>
             </a>
             <a href="{{ route('restaurant.onboarding') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-store text-lg"></i>
+                <i class="fas fa-plus-circle text-lg"></i>
                 <span>Add Restaurant</span>
             </a>
         </div>
+        
         <!-- Quick Actions -->
         <div class="space-y-2">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Quick Actions</h3>
@@ -323,18 +455,39 @@
                 <i class="fas fa-wallet text-lg"></i>
                 <span>My Wallet</span>
             </a>
+            <a href="{{ route('wallet.rewards') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                <i class="fas fa-gift text-lg"></i>
+                <span>Rewards</span>
+            </a>
+        </div>
+        
+        <!-- Account -->
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Account</h3>
             @auth
                 <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                     <i class="fas fa-user text-lg"></i>
                     <span>Profile</span>
                 </a>
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center gap-3 p-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             @else
                 <a href="{{ route('login') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                     <i class="fas fa-sign-in-alt text-lg"></i>
                     <span>Login</span>
                 </a>
+                <a href="{{ route('register') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i class="fas fa-user-plus text-lg"></i>
+                    <span>Register</span>
+                </a>
             @endauth
         </div>
+        
         <!-- Contact -->
         <div class="space-y-2">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Contact</h3>

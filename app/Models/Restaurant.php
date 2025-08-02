@@ -85,6 +85,11 @@ class Restaurant extends Model
         return $this->hasOne(Wallet::class);
     }
 
+    public function ratings()
+    {
+        return $this->hasMany(RestaurantRating::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -113,6 +118,11 @@ class Restaurant extends Model
     public function getDisplayNameAttribute()
     {
         return $this->name;
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->ratings()->avg('rating');
     }
 
     // Methods

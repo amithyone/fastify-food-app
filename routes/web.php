@@ -55,15 +55,24 @@ require __DIR__.'/auth.php';
 */
 
 Route::get('/', function () {
-    return redirect('/menu');
+    if (Auth::check()) {
+        // User is authenticated
+        if (Auth::user()->isRestaurantOwner() && Auth::user()->restaurant) {
+            return redirect()->route('restaurant.dashboard', Auth::user()->restaurant->slug);
+        }
+        return redirect('/dashboard');
+    }
+    // User is not authenticated, redirect to dashboard (which is now public)
+    return redirect('/dashboard');
 });
 
-// Dashboard Route
+// Dashboard Route (accessible without login)
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard');
+
+// Authenticated Routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-    
     // Cart Routes
     Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
@@ -199,6 +208,34 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/menu/{item}/edit', [MenuController::class, 'restaurantEdit'])->name('restaurant.menu.edit');
     Route::put('/{slug}/menu/{item}', [MenuController::class, 'restaurantUpdate'])->name('restaurant.menu.update');
     Route::delete('/{slug}/menu/{item}', [MenuController::class, 'restaurantDestroy'])->name('restaurant.menu.destroy');
+});
+
+// Restaurant routes
+Route::prefix('restaurant')->name('restaurant.')->group(function () {
+    Route::get('/onboarding', [RestaurantController::class, 'onboarding'])->name('onboarding');
+    Route::post('/store', [RestaurantController::class, 'store'])->name('store');
+    Route::get('/{slug}/dashboard', [RestaurantController::class, 'dashboard'])->name('dashboard');
+    Route::get('/{slug}/edit', [RestaurantController::class, 'edit'])->name('edit');
+    Route::put('/{slug}/update', [RestaurantController::class, 'update'])->name('update');
+    Route::get('/{slug}/qr-codes', [RestaurantController::class, 'qrCodes'])->name('qr-codes');
+    Route::get('/{slug}/wallet', [RestaurantController::class, 'wallet'])->name('wallet');
+    Route::post('/{slug}/wallet/withdraw', [RestaurantController::class, 'withdraw'])->name('wallet.withdraw');
+    Route::get('/{slug}/custom-domain', [RestaurantController::class, 'customDomain'])->name('custom-domain');
+    Route::put('/{slug}/custom-domain', [RestaurantController::class, 'updateCustomDomain'])->name('custom-domain.update');
+    Route::post('/{slug}/custom-domain/verify', [RestaurantController::class, 'verifyCustomDomain'])->name('custom-domain.verify');
+});
+
+// Restaurant browsing routes
+Route::prefix('restaurants')->name('restaurants.')->group(function () {
+    Route::get('/all', [RestaurantController::class, 'allRestaurants'])->name('all');
+    Route::get('/recent', [RestaurantController::class, 'recentRestaurants'])->name('recent');
+});
+
+// Rating Routes
+Route::middleware(['auth'])->prefix('ratings')->name('ratings.')->group(function () {
+    Route::post('/restaurant/{restaurantId}', [App\Http\Controllers\RatingController::class, 'store'])->name('store');
+    Route::get('/restaurant/{restaurantId}/user', [App\Http\Controllers\RatingController::class, 'getUserRating'])->name('user');
+    Route::get('/restaurant/{restaurantId}/all', [App\Http\Controllers\RatingController::class, 'getRestaurantRatings'])->name('all');
 });
 
 // Admin Routes (for restaurant management)

@@ -27,10 +27,10 @@
         <div style="margin-top: 60px;">
             <!-- Header -->
             <div class="text-center mb-8">
-                <div class="w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg relative">
-                    <div class="text-white font-bold text-2xl tracking-wider">y</div>
-                    <div class="absolute -top-2 -left-2 w-4 h-4 bg-red-500 rounded-full"></div>
-                    <div class="absolute -bottom-2 -right-2 w-3 h-3 bg-green-600 rounded-full"></div>
+                <div class="mx-auto flex items-center justify-center" style="width: 100px; height: 100px; margin-bottom: 20px;">
+                    <img src="{{ asset('images/fastify-logo.png') }}" 
+                         alt="Fastify Logo" 
+                         class="w-full h-full object-contain">
                 </div>
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Fastify</h1>
                 <p class="text-gray-600 dark:text-white text-lg">Set up your digital menu in minutes</p>

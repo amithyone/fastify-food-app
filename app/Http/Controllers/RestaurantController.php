@@ -408,19 +408,38 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (Auth::check() && Auth::user()->restaurant_id !== $restaurant->id) {
-            abort(403, 'Unauthorized access to restaurant dashboard.');
-        }
-
-        if (!$restaurant->custom_domain) {
-            return back()->withErrors(['error' => 'No custom domain set.']);
-        }
-
-        // Here you would implement actual DNS verification
-        // For now, we'll simulate verification
+        // Simulate domain verification
         $restaurant->verifyCustomDomain();
+        
+        return redirect()->back()->with('success', 'Domain verification completed successfully!');
+    }
 
-        return redirect()->route('restaurant.custom-domain', $restaurant->slug)
-            ->with('success', 'Custom domain verified successfully!');
+    public function allRestaurants()
+    {
+        $restaurants = Restaurant::where('is_active', true)
+            ->with(['menuItems', 'categories'])
+            ->orderBy('name')
+            ->get();
+            
+        return view('restaurants.all', compact('restaurants'));
+    }
+
+    public function recentRestaurants()
+    {
+        $user = Auth::user();
+        
+        // Get recently visited restaurants based on user orders
+        $recentRestaurants = $user->orders()
+            ->with('restaurant')
+            ->select('restaurant_id')
+            ->groupBy('restaurant_id')
+            ->orderByRaw('MAX(created_at) DESC')
+            ->limit(10)
+            ->get()
+            ->pluck('restaurant')
+            ->filter()
+            ->unique('id');
+            
+        return view('restaurants.recent', compact('recentRestaurants'));
     }
 } 
