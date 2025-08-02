@@ -166,7 +166,6 @@ class OrderController extends Controller
 
             // Create order
             $order = Order::create([
-                'user_id' => Auth::id(), // Add user_id if authenticated
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
                 'delivery_address' => $deliveryAddress,
@@ -174,8 +173,6 @@ class OrderController extends Controller
                 'delivery_time' => $customerInfo['in_restaurant'] ? 'In Restaurant' : 'ASAP',
                 'total_amount' => $total,
                 'status' => 'pending',
-                'payment_method' => $request->payment_method,
-                'payment_status' => $request->payment_method === 'cash' ? 'pending' : 'paid',
                 'notes' => $notes,
             ]);
 

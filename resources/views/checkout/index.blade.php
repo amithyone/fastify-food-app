@@ -447,88 +447,79 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     const formData = new FormData(this);
     const restaurantRadio = document.getElementById('restaurantRadio');
     
-    // Get cart items from server
-    fetch('/cart')
-        .then(response => response.text())
-        .then(html => {
-            // Create a temporary div to parse the cart HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            
-            // Extract cart items from the cart page
-            const cartItems = [];
-            const itemElements = tempDiv.querySelectorAll('.cart-item');
-            
-            itemElements.forEach(item => {
-                const name = item.querySelector('.item-name').textContent;
-                const price = parseFloat(item.querySelector('.item-price').textContent.replace('₦', '').replace(',', ''));
-                const quantity = parseInt(item.querySelector('.item-quantity').textContent);
-                
-                cartItems.push({
-                    name: name,
-                    price: price,
-                    quantity: quantity
-                });
+    // Use server-side cart data instead of parsing HTML
+    const cartItems = @json($cartItems);
+    const orderItems = [];
+    
+    // Flatten the cart items structure
+    cartItems.forEach(restaurantGroup => {
+        restaurantGroup.items.forEach(item => {
+            orderItems.push({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
             });
-            
-            const orderData = {
-                items: cartItems,
-                customer_info: restaurantRadio.checked ? {
-                    in_restaurant: true,
-                    table_number: formData.get('tableNumber'),
-                    restaurant_notes: formData.get('restaurantNotes')
-                } : {
-                    name: formData.get('name'),
-                    phone: formData.get('phone'),
-                    email: formData.get('email'),
-                    address: formData.get('address'),
-                    city: formData.get('city'),
-                    state: formData.get('state'),
-                    postal_code: formData.get('postal_code'),
-                    instructions: formData.get('instructions'),
-                    in_restaurant: false
-                },
-                payment_method: formData.get('payment_method'),
-                subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')),
-                delivery_fee: parseFloat(document.getElementById('deliveryFee').textContent.replace('₦', '').replace(',', '')),
-                total: parseFloat(document.getElementById('total').textContent.replace('₦', '').replace(',', ''))
-            };
-            
-            // Debug: Log the order data
-            console.log('Sending order data:', orderData);
-            
-            // Send order to server
-            fetch('/orders', {
+        });
+    });
+    
+    const orderData = {
+        items: orderItems,
+        customer_info: restaurantRadio.checked ? {
+            in_restaurant: true,
+            table_number: formData.get('tableNumber'),
+            restaurant_notes: formData.get('restaurantNotes')
+        } : {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            email: formData.get('email'),
+            address: formData.get('address'),
+            city: formData.get('city'),
+            state: formData.get('state'),
+            postal_code: formData.get('postal_code'),
+            instructions: formData.get('instructions'),
+            in_restaurant: false
+        },
+        payment_method: formData.get('payment_method'),
+        subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')),
+        delivery_fee: parseFloat(document.getElementById('deliveryFee').textContent.replace('₦', '').replace(',', '')),
+        total: parseFloat(document.getElementById('total').textContent.replace('₦', '').replace(',', ''))
+    };
+    
+    // Debug: Log the order data
+    console.log('Sending order data:', orderData);
+    
+    // Send order to server
+    fetch('/orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear cart after successful order
+            fetch('/cart/clear', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(orderData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Clear cart after successful order
-                    fetch('/cart/clear', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    });
-                    
-                    // Redirect to order confirmation
-                    window.location.href = `/orders/${data.order_id}`;
-                } else {
-                    alert('Error placing order: ' + data.message);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error placing order. Please try again.');
             });
-        });
+            
+            // Redirect to order confirmation
+            window.location.href = `/orders/${data.order_id}`;
+        } else {
+            alert('Error placing order: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error placing order. Please try again.');
+    });
 });
 
 // Initialize
