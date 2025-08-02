@@ -450,6 +450,7 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4" id="menuItemModalTitle">Add Menu Item</h3>
             <form id="menuItemForm" enctype="multipart/form-data">
+                @csrf
                 <div class="space-y-4">
                     <div>
                         <label for="itemName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Name</label>
@@ -819,31 +820,37 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update existing category
             fetch(`{{ route('restaurant.categories.update', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', editingCategoryId), {
                 method: 'PUT',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+                body: formData
             }).then(response => {
                 if (response.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error updating category');
+                    response.text().then(text => {
+                        console.error('Error response:', text);
+                        alert('Error updating category: ' + text);
+                    });
                 }
+            }).catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error updating category');
             });
         } else {
             // Create new category
             fetch(`{{ route('restaurant.categories.store', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+                body: formData
             }).then(response => {
                 if (response.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error creating category');
+                    response.text().then(text => {
+                        console.error('Error response:', text);
+                        alert('Error creating category: ' + text);
+                    });
                 }
+            }).catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error creating category');
             });
         }
         closeCategoryModal();
@@ -854,35 +861,48 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const formData = new FormData(e.target);
         
+        // Convert price to cents (multiply by 100)
+        const priceField = document.getElementById('itemPrice');
+        if (priceField && priceField.value) {
+            const priceInCents = Math.round(parseFloat(priceField.value) * 100);
+            formData.set('price', priceInCents);
+        }
+        
         if (editingMenuItemId) {
             // Update existing menu item
             fetch(`{{ route('restaurant.menu.update', ['slug' => $restaurant->slug, 'item' => 'ITEM_ID']) }}`.replace('ITEM_ID', editingMenuItemId), {
                 method: 'PUT',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+                body: formData
             }).then(response => {
                 if (response.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error updating menu item');
+                    response.text().then(text => {
+                        console.error('Error response:', text);
+                        alert('Error updating menu item: ' + text);
+                    });
                 }
+            }).catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error updating menu item');
             });
         } else {
             // Create new menu item
             fetch(`{{ route('restaurant.menu.store', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+                body: formData
             }).then(response => {
                 if (response.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error creating menu item');
+                    response.text().then(text => {
+                        console.error('Error response:', text);
+                        alert('Error creating menu item: ' + text);
+                    });
                 }
+            }).catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error creating menu item');
             });
         }
         closeMenuItemModal();
