@@ -4,9 +4,9 @@
 # This script helps deploy your local Laravel application to a remote server
 
 # Configuration
-REMOTE_HOST="your-server-ip-or-domain"
-REMOTE_USER="your-username"
-REMOTE_PATH="/var/www/html/fastify"
+REMOTE_HOST="${REMOTE_HOST:-your-server-ip-or-domain}"
+REMOTE_USER="${REMOTE_USER:-your-username}"
+REMOTE_PATH="${REMOTE_PATH:-/var/www/html/fastify}"
 LOCAL_PATH="."
 
 # Colors for output
