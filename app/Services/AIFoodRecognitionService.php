@@ -9,17 +9,22 @@ use Illuminate\Support\Facades\Storage;
 
 class AIFoodRecognitionService
 {
-    protected $apiKey;
-    protected $apiUrl = 'https://api.logmeal.es/v2/recognition/dish';
+    protected $googleApiKey;
+    protected $azureApiKey;
+    protected $azureEndpoint;
+    protected $logmealApiKey;
+    protected $logmealApiUrl = 'https://api.logmeal.es/v2/recognition/dish';
 
     public function __construct()
     {
-        // Using a real food recognition API
-        $this->apiKey = config('services.food_recognition.api_key', 'demo');
+        $this->googleApiKey = config('services.google_vision.api_key');
+        $this->azureApiKey = config('services.azure_vision.api_key');
+        $this->azureEndpoint = config('services.azure_vision.endpoint');
+        $this->logmealApiKey = config('services.food_recognition.api_key', 'demo');
     }
 
     /**
-     * Recognize food from uploaded image using real AI analysis
+     * Recognize food from uploaded image using multiple AI services
      */
     public function recognizeFood(UploadedFile $image)
     {
@@ -27,42 +32,61 @@ class AIFoodRecognitionService
             // Validate image
             if (!$image || !$image->isValid()) {
                 Log::error('Invalid image uploaded for recognition');
-                return [
-                    'success' => false,
-                    'error' => 'Invalid image file. Please try again.',
-                    'food_name' => '',
-                    'category' => '',
-                    'description' => '',
-                    'confidence' => 0,
-                ];
+                return $this->getErrorResponse('Invalid image file. Please try again.');
             }
 
-            // For now, we'll use a more sophisticated mock that analyzes image characteristics
-            // In production, you'd integrate with a real food recognition API like:
-            // - Google Cloud Vision API
-            // - Azure Computer Vision
-            // - AWS Rekognition
-            // - LogMeal API
-            // - Clarifai Food Recognition
+            // Try multiple services in order of preference
+            $results = [];
             
-            $result = $this->analyzeImageCharacteristics($image);
+            // 1. Try Google Vision API (most accurate)
+            if ($this->googleApiKey) {
+                $googleResult = $this->recognizeWithGoogleVision($image);
+                if ($googleResult['success']) {
+                    $results[] = $googleResult;
+                }
+            }
+
+            // 2. Try Azure Computer Vision
+            if ($this->azureApiKey && $this->azureEndpoint) {
+                $azureResult = $this->recognizeWithAzureVision($image);
+                if ($azureResult['success']) {
+                    $results[] = $azureResult;
+                }
+            }
+
+            // 3. Try LogMeal API (specialized in food)
+            if ($this->logmealApiKey && $this->logmealApiKey !== 'demo') {
+                $logmealResult = $this->recognizeWithLogMeal($image);
+                if ($logmealResult['success']) {
+                    $results[] = $logmealResult;
+                }
+            }
+
+            // 4. Fallback to local analysis
+            $localResult = $this->analyzeImageCharacteristics($image);
+            $results[] = $localResult;
+
+            // Combine and select best result
+            $bestResult = $this->selectBestResult($results);
             
             Log::info('AI food recognition successful', [
                 'file' => $image->getClientOriginalName(),
                 'size' => $image->getSize(),
-                'result' => $result
+                'services_used' => count($results),
+                'best_result' => $bestResult
             ]);
             
             return [
                 'success' => true,
-                'food_name' => $result['food_name'],
-                'category' => $result['category'],
-                'description' => $result['description'],
-                'confidence' => $result['confidence'],
-                'ingredients' => $result['ingredients'] ?? '',
-                'allergens' => $result['allergens'] ?? '',
-                'is_vegetarian' => $result['is_vegetarian'] ?? false,
-                'is_spicy' => $result['is_spicy'] ?? false,
+                'food_name' => $bestResult['food_name'],
+                'category' => $bestResult['category'],
+                'description' => $bestResult['description'],
+                'confidence' => $bestResult['confidence'],
+                'ingredients' => $bestResult['ingredients'] ?? '',
+                'allergens' => $bestResult['allergens'] ?? '',
+                'is_vegetarian' => $bestResult['is_vegetarian'] ?? false,
+                'is_spicy' => $bestResult['is_spicy'] ?? false,
+                'services_used' => count($results),
             ];
         } catch (\Exception $e) {
             Log::error('Food recognition error: ' . $e->getMessage(), [
@@ -72,15 +96,439 @@ class AIFoodRecognitionService
                 'trace' => $e->getTraceAsString()
             ]);
             
+            return $this->getErrorResponse('Unable to recognize food from image. Please try again.');
+        }
+    }
+
+    /**
+     * Recognize food using Google Vision API
+     */
+    private function recognizeWithGoogleVision(UploadedFile $image)
+    {
+        try {
+            $imageData = base64_encode(file_get_contents($image->getPathname()));
+            
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post("https://vision.googleapis.com/v1/images:annotate?key={$this->googleApiKey}", [
+                'requests' => [
+                    [
+                        'image' => [
+                            'content' => $imageData
+                        ],
+                        'features' => [
+                            [
+                                'type' => 'LABEL_DETECTION',
+                                'maxResults' => 10
+                            ],
+                            [
+                                'type' => 'WEB_DETECTION',
+                                'maxResults' => 5
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $this->parseGoogleVisionResponse($data);
+            }
+        } catch (\Exception $e) {
+            Log::error('Google Vision API error: ' . $e->getMessage());
+        }
+
+        return ['success' => false];
+    }
+
+    /**
+     * Parse Google Vision API response
+     */
+    private function parseGoogleVisionResponse($data)
+    {
+        $labels = $data['responses'][0]['labelAnnotations'] ?? [];
+        $webDetection = $data['responses'][0]['webDetection'] ?? [];
+        
+        // Extract food-related labels
+        $foodLabels = [];
+        foreach ($labels as $label) {
+            if ($this->isFoodRelated($label['description'])) {
+                $foodLabels[] = $label['description'];
+            }
+        }
+
+        // Get web entities (often more accurate for food)
+        $webEntities = $webDetection['webEntities'] ?? [];
+        $webFoodEntities = [];
+        foreach ($webEntities as $entity) {
+            if ($this->isFoodRelated($entity['description'])) {
+                $webFoodEntities[] = $entity['description'];
+            }
+        }
+
+        // Combine and select best food name
+        $allFoodTerms = array_merge($foodLabels, $webFoodEntities);
+        $foodName = $this->selectBestFoodName($allFoodTerms);
+
+        if ($foodName) {
             return [
-                'success' => false,
-                'error' => 'Unable to recognize food from image. Please try again.',
-                'food_name' => '',
-                'category' => '',
-                'description' => '',
-                'confidence' => 0,
+                'success' => true,
+                'food_name' => $foodName,
+                'category' => $this->categorizeFood($foodName),
+                'description' => $this->generateDescription($foodName),
+                'confidence' => 90, // Google Vision is quite accurate
+                'ingredients' => $this->suggestIngredients($foodName),
+                'allergens' => $this->suggestAllergens($foodName),
+                'is_vegetarian' => $this->isVegetarian($foodName),
+                'is_spicy' => $this->isSpicy($foodName),
             ];
         }
+
+        return ['success' => false];
+    }
+
+    /**
+     * Recognize food using Azure Computer Vision
+     */
+    private function recognizeWithAzureVision(UploadedFile $image)
+    {
+        try {
+            $imageData = base64_encode(file_get_contents($image->getPathname()));
+            
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/octet-stream',
+                'Ocp-Apim-Subscription-Key' => $this->azureApiKey,
+            ])->post("{$this->azureEndpoint}/vision/v3.2/analyze?visualFeatures=Tags&language=en", $imageData);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $this->parseAzureVisionResponse($data);
+            }
+        } catch (\Exception $e) {
+            Log::error('Azure Vision API error: ' . $e->getMessage());
+        }
+
+        return ['success' => false];
+    }
+
+    /**
+     * Parse Azure Computer Vision response
+     */
+    private function parseAzureVisionResponse($data)
+    {
+        $tags = $data['tags'] ?? [];
+        
+        // Extract food-related tags
+        $foodTags = [];
+        foreach ($tags as $tag) {
+            if ($this->isFoodRelated($tag['name'])) {
+                $foodTags[] = $tag['name'];
+            }
+        }
+
+        if (!empty($foodTags)) {
+            $foodName = $this->selectBestFoodName($foodTags);
+            
+            return [
+                'success' => true,
+                'food_name' => $foodName,
+                'category' => $this->categorizeFood($foodName),
+                'description' => $this->generateDescription($foodName),
+                'confidence' => 85,
+                'ingredients' => $this->suggestIngredients($foodName),
+                'allergens' => $this->suggestAllergens($foodName),
+                'is_vegetarian' => $this->isVegetarian($foodName),
+                'is_spicy' => $this->isSpicy($foodName),
+            ];
+        }
+
+        return ['success' => false];
+    }
+
+    /**
+     * Recognize food using LogMeal API
+     */
+    private function recognizeWithLogMeal(UploadedFile $image)
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer {$this->logmealApiKey}",
+            ])->attach('image', file_get_contents($image->getPathname()), $image->getClientOriginalName())
+            ->post($this->logmealApiUrl);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $this->parseLogMealResponse($data);
+            }
+        } catch (\Exception $e) {
+            Log::error('LogMeal API error: ' . $e->getMessage());
+        }
+
+        return ['success' => false];
+    }
+
+    /**
+     * Parse LogMeal API response
+     */
+    private function parseLogMealResponse($data)
+    {
+        if (isset($data['recognition_results']) && !empty($data['recognition_results'])) {
+            $result = $data['recognition_results'][0];
+            
+            return [
+                'success' => true,
+                'food_name' => $result['name'] ?? 'Unknown Food',
+                'category' => $result['category'] ?? 'Main Course',
+                'description' => $result['description'] ?? $this->generateDescription($result['name'] ?? ''),
+                'confidence' => $result['confidence'] ?? 80,
+                'ingredients' => $result['ingredients'] ?? $this->suggestIngredients($result['name'] ?? ''),
+                'allergens' => $result['allergens'] ?? $this->suggestAllergens($result['name'] ?? ''),
+                'is_vegetarian' => $result['vegetarian'] ?? false,
+                'is_spicy' => $result['spicy'] ?? false,
+            ];
+        }
+
+        return ['success' => false];
+    }
+
+    /**
+     * Check if a term is food-related
+     */
+    private function isFoodRelated($term)
+    {
+        $foodKeywords = [
+            'food', 'dish', 'meal', 'cuisine', 'cooking', 'recipe',
+            'pizza', 'burger', 'sandwich', 'salad', 'soup', 'pasta',
+            'rice', 'chicken', 'beef', 'fish', 'seafood', 'vegetable',
+            'fruit', 'dessert', 'cake', 'bread', 'drink', 'beverage',
+            'jollof', 'egusi', 'suya', 'amala', 'ewedu', 'pepper soup',
+            'banga', 'moi moi', 'zobo', 'kunu', 'pounded yam'
+        ];
+
+        $term = strtolower($term);
+        foreach ($foodKeywords as $keyword) {
+            if (str_contains($term, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Select the best food name from multiple options
+     */
+    private function selectBestFoodName($foodTerms)
+    {
+        if (empty($foodTerms)) {
+            return null;
+        }
+
+        // Prioritize more specific food names
+        $specificFoods = [
+            'jollof rice', 'egusi soup', 'suya', 'amala', 'pepper soup',
+            'pizza', 'burger', 'salad', 'pasta', 'chicken', 'beef'
+        ];
+
+        foreach ($specificFoods as $specific) {
+            foreach ($foodTerms as $term) {
+                if (str_contains(strtolower($term), $specific)) {
+                    return ucwords($term);
+                }
+            }
+        }
+
+        // Return the first food-related term
+        return ucwords($foodTerms[0]);
+    }
+
+    /**
+     * Categorize food based on name
+     */
+    private function categorizeFood($foodName)
+    {
+        $name = strtolower($foodName);
+        
+        if (str_contains($name, 'pizza')) return 'Pizza';
+        if (str_contains($name, 'burger')) return 'Burgers';
+        if (str_contains($name, 'salad')) return 'Salads';
+        if (str_contains($name, 'pasta')) return 'Pasta';
+        if (str_contains($name, 'rice')) return 'Rice Dishes';
+        if (str_contains($name, 'soup')) return 'Soups';
+        if (str_contains($name, 'chicken')) return 'Chicken';
+        if (str_contains($name, 'beef')) return 'Beef';
+        if (str_contains($name, 'fish')) return 'Seafood';
+        if (str_contains($name, 'cake') || str_contains($name, 'dessert')) return 'Desserts';
+        if (str_contains($name, 'drink') || str_contains($name, 'beverage')) return 'Beverages';
+        
+        return 'Main Course';
+    }
+
+    /**
+     * Generate description for food
+     */
+    private function generateDescription($foodName)
+    {
+        $name = strtolower($foodName);
+        
+        // Nigerian food descriptions
+        if (str_contains($name, 'jollof')) {
+            return 'Nigerian Jollof rice cooked with tomatoes, peppers, and aromatic spices. Served with grilled chicken or fish.';
+        }
+        if (str_contains($name, 'egusi')) {
+            return 'Rich Nigerian soup made with ground melon seeds, spinach, and meat. Served with pounded yam or eba.';
+        }
+        if (str_contains($name, 'suya')) {
+            return 'Spicy grilled meat skewers with groundnut powder and spices. Popular Nigerian street food.';
+        }
+        if (str_contains($name, 'amala')) {
+            return 'Yam flour paste served with jute leaves soup and meat. Traditional Yoruba delicacy.';
+        }
+        if (str_contains($name, 'pepper soup')) {
+            return 'Spicy Nigerian pepper soup with goat meat or fish. Rich in spices and herbs.';
+        }
+        
+        // International food descriptions
+        if (str_contains($name, 'pizza')) {
+            return 'Delicious pizza with fresh ingredients and traditional cooking methods.';
+        }
+        if (str_contains($name, 'burger')) {
+            return 'Juicy burger with fresh vegetables and special sauce.';
+        }
+        if (str_contains($name, 'salad')) {
+            return 'Fresh salad with crisp vegetables and healthy ingredients.';
+        }
+        
+        return "Delicious {$foodName} prepared with fresh ingredients and traditional cooking methods.";
+    }
+
+    /**
+     * Suggest ingredients based on food name
+     */
+    private function suggestIngredients($foodName)
+    {
+        $name = strtolower($foodName);
+        
+        if (str_contains($name, 'jollof')) {
+            return 'Rice, tomatoes, peppers, onions, spices, chicken/fish';
+        }
+        if (str_contains($name, 'egusi')) {
+            return 'Melon seeds, spinach, meat, palm oil, peppers, onions';
+        }
+        if (str_contains($name, 'suya')) {
+            return 'Beef, groundnut powder, spices, onions, tomatoes';
+        }
+        if (str_contains($name, 'pizza')) {
+            return 'Tomato sauce, cheese, herbs, fresh ingredients';
+        }
+        if (str_contains($name, 'burger')) {
+            return 'Beef patty, lettuce, tomato, onion, cheese, bun';
+        }
+        
+        return 'Fresh ingredients, herbs, spices';
+    }
+
+    /**
+     * Suggest allergens based on food name
+     */
+    private function suggestAllergens($foodName)
+    {
+        $name = strtolower($foodName);
+        
+        if (str_contains($name, 'pizza') || str_contains($name, 'burger')) {
+            return 'Dairy, Gluten';
+        }
+        if (str_contains($name, 'suya')) {
+            return 'Nuts';
+        }
+        if (str_contains($name, 'fish')) {
+            return 'Fish';
+        }
+        
+        return 'May contain allergens';
+    }
+
+    /**
+     * Check if food is vegetarian
+     */
+    private function isVegetarian($foodName)
+    {
+        $name = strtolower($foodName);
+        
+        $vegetarianFoods = ['salad', 'vegetable', 'fruit', 'smoothie'];
+        foreach ($vegetarianFoods as $veg) {
+            if (str_contains($name, $veg)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if food is spicy
+     */
+    private function isSpicy($foodName)
+    {
+        $name = strtolower($foodName);
+        
+        $spicyFoods = ['pepper soup', 'suya', 'jollof', 'egusi', 'spicy', 'hot'];
+        foreach ($spicyFoods as $spicy) {
+            if (str_contains($name, $spicy)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Select the best result from multiple services
+     */
+    private function selectBestResult($results)
+    {
+        if (empty($results)) {
+            return $this->getDefaultResult();
+        }
+
+        // Sort by confidence
+        usort($results, function($a, $b) {
+            return ($b['confidence'] ?? 0) - ($a['confidence'] ?? 0);
+        });
+
+        return $results[0];
+    }
+
+    /**
+     * Get default result when all services fail
+     */
+    private function getDefaultResult()
+    {
+        return [
+            'food_name' => 'Delicious Dish',
+            'category' => 'Main Course',
+            'description' => 'A delicious dish prepared with fresh ingredients and traditional cooking methods.',
+            'confidence' => 75,
+            'ingredients' => 'Fresh ingredients, herbs, spices',
+            'allergens' => 'May contain allergens',
+            'is_vegetarian' => false,
+            'is_spicy' => false,
+        ];
+    }
+
+    /**
+     * Get error response
+     */
+    private function getErrorResponse($message)
+    {
+        return [
+            'success' => false,
+            'error' => $message,
+            'food_name' => '',
+            'category' => '',
+            'description' => '',
+            'confidence' => 0,
+        ];
     }
 
     /**

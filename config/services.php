@@ -41,4 +41,17 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM', 'whatsapp:+14155238886'),
     ],
 
+    'google_vision' => [
+        'api_key' => env('GOOGLE_VISION_API_KEY'),
+    ],
+
+    'azure_vision' => [
+        'api_key' => env('AZURE_VISION_API_KEY'),
+        'endpoint' => env('AZURE_VISION_ENDPOINT'),
+    ],
+
+    'food_recognition' => [
+        'api_key' => env('FOOD_RECOGNITION_API_KEY', 'demo'),
+    ],
+
 ];
