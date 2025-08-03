@@ -200,11 +200,26 @@ class Restaurant extends Model
     {
         try {
             if ($this->logo && \Storage::disk('public')->exists($this->logo)) {
-                return \Storage::disk('public')->url($this->logo);
+                $url = \Storage::disk('public')->url($this->logo);
+                // Add cache-busting parameter
+                $url .= '?v=' . time();
+                \Log::info('Restaurant model logo_url generated', [
+                    'restaurant_id' => $this->id,
+                    'logo_path' => $this->logo,
+                    'logo_url' => $url,
+                    'exists' => \Storage::disk('public')->exists($this->logo)
+                ]);
+                return $url;
             }
+            
+            \Log::warning('Restaurant model logo_url - file not found', [
+                'restaurant_id' => $this->id,
+                'logo_path' => $this->logo,
+                'exists' => $this->logo ? \Storage::disk('public')->exists($this->logo) : false
+            ]);
             return null;
         } catch (\Exception $e) {
-            \Log::error('Error getting restaurant logo URL', [
+            \Log::error('Error getting restaurant logo URL from model', [
                 'restaurant_id' => $this->id,
                 'logo_path' => $this->logo,
                 'error' => $e->getMessage()

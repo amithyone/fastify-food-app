@@ -386,6 +386,27 @@ Route::get('/test-storage', function () {
     }
 })->name('test.storage');
 
+// Test image serving
+Route::get('/test-image/{filename}', function ($filename) {
+    try {
+        $path = 'restaurants/logos/' . $filename;
+        if (\Storage::disk('public')->exists($path)) {
+            $url = \Storage::disk('public')->url($path);
+            return response()->json([
+                'success' => true,
+                'path' => $path,
+                'url' => $url,
+                'exists' => true,
+                'size' => \Storage::disk('public')->size($path),
+                'mime_type' => \Storage::disk('public')->mimeType($path)
+            ]);
+        }
+        return response()->json(['success' => false, 'error' => 'File not found']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+})->name('test.image');
+
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes
