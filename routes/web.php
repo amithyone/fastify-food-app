@@ -11,6 +11,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\AIMenuController;
+use App\Http\Controllers\PromotionController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -584,6 +585,14 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/ai/store', [AIMenuController::class, 'storeMenuItem'])->name('restaurant.ai.store');
     Route::get('/{slug}/ai/categories', [AIMenuController::class, 'getCategories'])->name('restaurant.ai.categories');
     Route::post('/{slug}/ai/correct', [AIMenuController::class, 'correctRecognition'])->name('restaurant.ai.correct');
+    
+    // Promotion Management Routes
+    Route::get('/{slug}/promotions', [PromotionController::class, 'index'])->name('restaurant.promotions');
+    Route::get('/{slug}/promotions/{planId}', [PromotionController::class, 'show'])->name('restaurant.promotions.show');
+    Route::post('/{slug}/promotions/payment', [PromotionController::class, 'createPayment'])->name('restaurant.promotions.payment');
+    Route::get('/{slug}/promotions/payment/{paymentId}', [PromotionController::class, 'payment'])->name('restaurant.promotions.payment.show');
+    Route::get('/{slug}/promotions/payment/{paymentId}/status', [PromotionController::class, 'checkPaymentStatus'])->name('restaurant.promotions.payment.status');
+    Route::get('/{slug}/promotions/analytics', [PromotionController::class, 'analytics'])->name('restaurant.promotions.analytics');
 });
 
 // Restaurant browsing routes
@@ -620,4 +629,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     
     Route::get('/config', [PWAController::class, 'getConfig'])->name('admin.config');
     Route::put('/config', [PWAController::class, 'updateConfig'])->name('admin.config.update');
+    
+    // Admin Promotion Management
+    Route::get('/promotions', [PromotionController::class, 'adminIndex'])->name('admin.promotions');
+    Route::get('/promotions/payments', [PromotionController::class, 'adminPayments'])->name('admin.promotions.payments');
+    Route::post('/promotions/payments/{paymentId}/mark-paid', [PromotionController::class, 'markAsPaid'])->name('admin.promotions.payments.mark-paid');
 });

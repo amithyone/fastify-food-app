@@ -309,6 +309,21 @@
                     </div>
                 </div>
             </a>
+
+            <a href="{{ route('restaurant.promotions', $restaurant->slug) }}" 
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-star text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Promotions</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Boost your restaurant visibility</p>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <!-- Restaurant Promotion Ads Section -->
