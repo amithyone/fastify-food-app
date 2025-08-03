@@ -11,18 +11,32 @@
                 <div class="flex items-center space-x-4">
                     @php
                         $logoUrl = $restaurant->logo_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('square');
+                        $hasLogo = !empty($restaurant->logo);
                         \Log::info('Dashboard logo URL', [
                             'restaurant_id' => $restaurant->id,
                             'logo_url' => $logoUrl,
-                            'has_logo' => !empty($restaurant->logo),
+                            'has_logo' => $hasLogo,
                             'logo_path' => $restaurant->logo
                         ]);
                     @endphp
-                    <img src="{{ $logoUrl }}" 
-                         alt="{{ $restaurant->name }}" 
-                         class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700"
-                         onerror="console.error('Logo failed to load:', this.src); this.style.display='none';"
-                         onload="console.log('Logo loaded successfully:', this.src);">
+                    
+                    @if($hasLogo)
+                        <div class="relative">
+                            <img src="{{ $logoUrl }}" 
+                                 alt="{{ $restaurant->name }}" 
+                                 class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; console.error('Logo failed to load:', this.src);"
+                                 onload="console.log('Logo loaded successfully:', this.src);">
+                            <!-- Fallback placeholder -->
+                            <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center" style="display: none;">
+                                <i class="fas fa-store text-2xl text-gray-400"></i>
+                            </div>
+                        </div>
+                    @else
+                        <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                            <i class="fas fa-store text-2xl text-gray-400"></i>
+                        </div>
+                    @endif
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $restaurant->name }}</h1>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Restaurant Dashboard</p>

@@ -325,10 +325,16 @@
                             <label for="logo" class="cursor-pointer">
                                                 <div id="logo-preview" class="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
                     @if($restaurant->logo_url)
-                        <img src="{{ $restaurant->logo_url }}" 
-                             class="w-full h-full object-cover rounded-lg" 
-                             onerror="this.parentElement.innerHTML='<i class=\'fas fa-camera text-2xl text-gray-400\'></i>'; console.error('Logo image failed to load:', this.src);"
-                             onload="console.log('Logo loaded successfully:', this.src);">
+                        <div class="relative w-full h-full">
+                            <img src="{{ $restaurant->logo_url }}" 
+                                 class="w-full h-full object-cover rounded-lg" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; console.error('Logo image failed to load:', this.src);"
+                                 onload="console.log('Logo loaded successfully:', this.src);">
+                            <!-- Fallback placeholder -->
+                            <div class="w-full h-full flex items-center justify-center" style="display: none;">
+                                <i class="fas fa-camera text-2xl text-gray-400"></i>
+                            </div>
+                        </div>
                     @else
                         <i class="fas fa-camera text-2xl text-gray-400"></i>
                     @endif

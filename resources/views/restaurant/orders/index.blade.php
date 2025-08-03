@@ -10,9 +10,18 @@
             <div class="flex justify-between items-center py-8">
                 <div class="flex items-center space-x-4">
                     @if($restaurant->logo_url)
-                        <img src="{{ $restaurant->logo_url }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
+                        <div class="relative">
+                            <img src="{{ $restaurant->logo_url }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <!-- Fallback placeholder -->
+                            <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center" style="display: none;">
+                                <i class="fas fa-store text-xl text-gray-400"></i>
+                            </div>
+                        </div>
                     @else
-                        <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
+                        <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                            <i class="fas fa-store text-xl text-gray-400"></i>
+                        </div>
                     @endif
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $restaurant->name }}</h1>
