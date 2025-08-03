@@ -4,6 +4,21 @@
      data-location="{{ strtolower($restaurant->city ?? '') }}"
      onclick="window.location.href='{{ route('menu.restaurant', $restaurant->slug) }}'">
     
+    @if(isset($featured) && $featured)
+        <!-- Featured Badge -->
+        <div class="absolute top-2 left-2 z-20">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                @if($featured->badge_color === 'red') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                @elseif($featured->badge_color === 'green') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                @elseif($featured->badge_color === 'blue') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                @elseif($featured->badge_color === 'purple') bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
+                @else bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 @endif">
+                <i class="fas fa-star mr-1"></i>
+                {{ $featured->badge_text }}
+            </span>
+        </div>
+    @endif
+    
     <!-- Top Section - Background Image -->
     <div class="h-24 bg-gradient-to-br from-orange-200 to-orange-400 dark:from-gray-700 dark:to-gray-900 flex items-center justify-center relative">
         @if($restaurant->banner)
@@ -26,8 +41,18 @@
     <!-- Bottom Section - Content -->
     <div class="p-3 flex-1 flex flex-col justify-between">
         <div>
-            <h3 class="text-base font-semibold text-gray-800 dark:text-white leading-tight restaurant-name">{{ $restaurant->name }}</h3>
+            <h3 class="text-base font-semibold text-gray-800 dark:text-white leading-tight restaurant-name">
+                @if(isset($featured) && $featured && $featured->title)
+                    {{ $featured->title }}
+                @else
+                    {{ $restaurant->name }}
+                @endif
+            </h3>
             <span class="text-xs text-gray-500 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded cuisine-type">{{ $restaurant->cuisine_type ?? 'Restaurant' }}</span>
+            
+            @if(isset($featured) && $featured && $featured->description)
+                <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">{{ Str::limit($featured->description, 60) }}</p>
+            @endif
             
             <!-- Location -->
             @if($restaurant->city || $restaurant->state)

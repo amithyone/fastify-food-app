@@ -201,9 +201,9 @@
                 @endphp
 
                 @if($featuredRestaurants->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="featuredRestaurantsGrid">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="featuredRestaurantsGrid">
                         @foreach($featuredRestaurants as $featured)
-                            @include('components.featured-restaurant-card', ['featured' => $featured])
+                            @include('components.restaurant-card', ['restaurant' => $featured->restaurant, 'featured' => $featured])
                         @endforeach
                     </div>
                 @else
