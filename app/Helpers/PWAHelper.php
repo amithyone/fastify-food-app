@@ -254,10 +254,20 @@ class PWAHelper
      */
     public static function getMenuItemImage($imagePath = null, $type = 'square')
     {
-        if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
-            return \Storage::disk('public')->url($imagePath);
+        try {
+            if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
+                $url = \Storage::disk('public')->url($imagePath);
+                $url = self::fixStorageUrl($url);
+                return $url;
+            }
+            return self::getPlaceholderImage($type);
+        } catch (\Exception $e) {
+            \Log::error('Error getting menu item image', [
+                'path' => $imagePath,
+                'error' => $e->getMessage()
+            ]);
+            return self::getPlaceholderImage($type);
         }
-        return self::getPlaceholderImage($type);
     }
 
     /**
