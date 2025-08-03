@@ -273,12 +273,23 @@ function showRestaurantDetails(restaurantId) {
     
     // Fetch restaurant details from API
     fetch(`/api/restaurants/${restaurantId}/details`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Restaurant details loaded:', data);
+            
+            if (data.error) {
+                throw new Error(data.message || 'Failed to load restaurant details');
+            }
+            
             modalTitle.textContent = data.name;
             modalContent.innerHTML = `
                 <div class="space-y-4">
-                    ${data.logo ? `<img src="${data.logo}" alt="${data.name}" class="w-16 h-16 object-contain mx-auto rounded-lg">` : ''}
+                    ${data.logo ? `<img src="${data.logo}" alt="${data.name}" class="w-16 h-16 object-contain mx-auto rounded-lg" onerror="this.style.display='none'">` : ''}
                     
                     <div class="text-center">
                         <h4 class="font-semibold text-gray-900 dark:text-white mb-2">${data.name}</h4>
@@ -290,11 +301,11 @@ function showRestaurantDetails(restaurantId) {
                         <p class="text-sm text-gray-600 dark:text-gray-400">${data.description}</p>
                     </div>` : ''}
                     
-                    ${data.address ? `<div>
+                    ${data.full_address ? `<div>
                         <h5 class="font-medium text-gray-900 dark:text-white mb-2">Location</h5>
                         <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
                             <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-                            ${data.address}
+                            ${data.full_address}
                         </p>
                     </div>` : ''}
                     
@@ -323,12 +334,29 @@ function showRestaurantDetails(restaurantId) {
                             <span class="text-sm text-gray-500 dark:text-gray-400">(${data.average_rating ? data.average_rating.toFixed(1) : '0.0'})</span>
                         </div>
                     </div>
+                    
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <a href="/menu/${data.slug}" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center">
+                            <i class="fas fa-utensils mr-2"></i>
+                            View Menu
+                        </a>
+                    </div>
                 </div>
             `;
         })
         .catch(error => {
+            console.error('Error loading restaurant details:', error);
             modalTitle.textContent = 'Error';
-            modalContent.innerHTML = '<p class="text-red-500">Failed to load restaurant details.</p>';
+            modalContent.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-3"></i>
+                    <p class="text-red-500 mb-3">Failed to load restaurant details.</p>
+                    <p class="text-sm text-gray-500">${error.message}</p>
+                    <button onclick="closeRestaurantModal()" class="mt-3 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        Close
+                    </button>
+                </div>
+            `;
         });
 }
 
