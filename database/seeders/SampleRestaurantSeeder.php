@@ -378,6 +378,15 @@ class SampleRestaurantSeeder extends Seeder
         // Update restaurant to set the owner
         $restaurant->update(['owner_id' => $restaurantOwner->id]);
 
+        // Create manager record for restaurant owner
+        \App\Models\Manager::create([
+            'user_id' => $restaurantOwner->id,
+            'restaurant_id' => $restaurant->id,
+            'role' => 'owner',
+            'is_active' => true,
+            'permissions' => ['all'],
+        ]);
+
         // Create an admin user
         $admin = User::create([
             'name' => 'Admin User',
