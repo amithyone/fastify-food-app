@@ -42,6 +42,23 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased h-full">
+    <!-- PWA Loading Screen -->
+    <div id="pwaLoadingScreen" class="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50 transition-opacity duration-500">
+        <div class="text-center">
+            <div class="w-24 h-24 mx-auto mb-6 relative">
+                <img src="/favicon.png" alt="Fastify" class="w-full h-full object-contain animate-pulse">
+                <div class="absolute inset-0 bg-orange-500 rounded-full opacity-20 animate-ping"></div>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Fastify</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">Loading your food experience...</p>
+            <div class="flex justify-center space-x-1">
+                <div class="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="min-h-full bg-gray-50 dark:bg-gray-900">
         <!-- Page Heading -->
         @if (isset($header))
@@ -281,6 +298,35 @@
                 subscribeToPushNotifications();
             }
         }
+
+        // PWA Loading Screen Management
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('pwaLoadingScreen');
+            
+            // Hide loading screen after page is fully loaded
+            window.addEventListener('load', function() {
+                setTimeout(() => {
+                    if (loadingScreen) {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                        }, 500);
+                    }
+                }, 1000); // Show loading screen for at least 1 second
+            });
+
+            // Hide loading screen immediately if page is already loaded
+            if (document.readyState === 'complete') {
+                setTimeout(() => {
+                    if (loadingScreen) {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                        }, 500);
+                    }
+                }, 1000);
+            }
+        });
     </script>
 
     @stack('scripts')

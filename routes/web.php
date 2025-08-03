@@ -68,6 +68,11 @@ Route::get('/', function () {
     return redirect('/dashboard');
 });
 
+// Splash Screen Route
+Route::get('/splash', function () {
+    return view('splash');
+})->name('splash');
+
 // Dashboard Route (accessible without login)
 Route::get('/dashboard', function () {
     return view('dashboard');

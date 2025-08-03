@@ -2,7 +2,7 @@
   "name": "Fastify - Food Ordering",
   "short_name": "Fastify",
   "description": "Order delicious food from your favorite restaurants with Fastify",
-  "start_url": "/",
+  "start_url": "/splash.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#f97316",
