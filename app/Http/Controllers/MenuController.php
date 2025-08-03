@@ -472,24 +472,51 @@ class MenuController extends Controller
         
         if (Auth::check()) {
             if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories. You need manager privileges.'], 403);
+                }
                 abort(403, 'Unauthorized access to restaurant categories. You need manager privileges.');
             }
         } else {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+            }
             return redirect()->route('login')->with('error', 'Please login to access the restaurant categories.');
         }
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-        
-        $validated['restaurant_id'] = $restaurant->id;
-        $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
-        
-        Category::create($validated);
-        
-        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category created successfully!');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'is_active' => 'boolean',
+            ]);
+            
+            $validated['restaurant_id'] = $restaurant->id;
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+            $validated['is_active'] = $validated['is_active'] ?? true;
+            
+            $category = Category::create($validated);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Category created successfully!',
+                    'category' => $category
+                ]);
+            }
+            
+            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category created successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Error creating category: ' . $e->getMessage());
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Error creating category: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('restaurant.menu', $slug)->with('error', 'Error creating category: ' . $e->getMessage());
+        }
     }
 
     public function updateCategory(Request $request, $slug, $category)
@@ -499,23 +526,50 @@ class MenuController extends Controller
         
         if (Auth::check()) {
             if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories. You need manager privileges.'], 403);
+                }
                 abort(403, 'Unauthorized access to restaurant categories. You need manager privileges.');
             }
         } else {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+            }
             return redirect()->route('login')->with('error', 'Please login to access the restaurant categories.');
         }
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-        
-        $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
-        
-        $category->update($validated);
-        
-        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category updated successfully!');
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'is_active' => 'boolean',
+            ]);
+            
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+            $validated['is_active'] = $validated['is_active'] ?? true;
+            
+            $category->update($validated);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Category updated successfully!',
+                    'category' => $category->fresh()
+                ]);
+            }
+            
+            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category updated successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Error updating category: ' . $e->getMessage());
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Error updating category: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('restaurant.menu', $slug)->with('error', 'Error updating category: ' . $e->getMessage());
+        }
     }
 
     public function destroyCategory(Request $request, $slug, $category)
@@ -525,19 +579,51 @@ class MenuController extends Controller
         
         if (Auth::check()) {
             if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories. You need manager privileges.'], 403);
+                }
                 abort(403, 'Unauthorized access to restaurant categories. You need manager privileges.');
             }
         } else {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+            }
             return redirect()->route('login')->with('error', 'Please login to access the restaurant categories.');
         }
         
-        // Check if category has menu items
-        if ($category->menuItems()->count() > 0) {
-            return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category with menu items. Please move or delete the items first.');
+        try {
+            // Check if category has menu items
+            if ($category->menuItems()->count() > 0) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Cannot delete category with menu items. Please move or delete the items first.'
+                    ], 400);
+                }
+                return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category with menu items. Please move or delete the items first.');
+            }
+            
+            $category->delete();
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Category deleted successfully!'
+                ]);
+            }
+            
+            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category deleted successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Error deleting category: ' . $e->getMessage());
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Error deleting category: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('restaurant.menu', $slug)->with('error', 'Error deleting category: ' . $e->getMessage());
         }
-        
-        $category->delete();
-        
-        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category deleted successfully!');
     }
 }

@@ -436,6 +436,72 @@ Route::get('/test-logo', function () {
     return $html;
 })->name('test.logo');
 
+// Test Google Vision API key
+Route::get('/test-google-vision', function () {
+    try {
+        $apiKey = config('services.google_vision.api_key');
+        
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Google Vision API key not found in configuration',
+                'config_key' => 'services.google_vision.api_key',
+                'env_key' => 'GOOGLE_VISION_API_KEY'
+            ]);
+        }
+        
+        // Test with a simple image (base64 encoded small test image)
+        $testImageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='; // 1x1 pixel
+        
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post("https://vision.googleapis.com/v1/images:annotate?key={$apiKey}", [
+            'requests' => [
+                [
+                    'image' => [
+                        'content' => $testImageData
+                    ],
+                    'features' => [
+                        [
+                            'type' => 'LABEL_DETECTION',
+                            'maxResults' => 1
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+        
+        if ($response->successful()) {
+            $data = $response->json();
+            return response()->json([
+                'success' => true,
+                'message' => 'Google Vision API key is working!',
+                'api_key_length' => strlen($apiKey),
+                'api_key_preview' => substr($apiKey, 0, 10) . '...',
+                'response_status' => $response->status(),
+                'response_data' => $data
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'error' => 'Google Vision API request failed',
+                'status_code' => $response->status(),
+                'response' => $response->json(),
+                'api_key_length' => strlen($apiKey),
+                'api_key_preview' => substr($apiKey, 0, 10) . '...'
+            ]);
+        }
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Exception occurred: ' . $e->getMessage(),
+            'api_key_length' => $apiKey ? strlen($apiKey) : 0,
+            'api_key_preview' => $apiKey ? (substr($apiKey, 0, 10) . '...') : 'Not set'
+        ]);
+    }
+})->name('test.google.vision');
+
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes

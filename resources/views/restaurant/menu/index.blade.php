@@ -702,14 +702,21 @@ function deleteCategory(id) {
         fetch(`{{ route('restaurant.categories.destroy', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', id), {
             method: 'DELETE',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
         }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert('Error deleting category');
-            }
+            return response.json().then(data => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error deleting category: ' + (data.message || 'Unknown error'));
+                }
+            });
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting category');
         });
     }
 }
@@ -887,16 +894,20 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update existing category
             fetch(`{{ route('restaurant.categories.update', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', editingCategoryId), {
                 method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
                 body: formData
             }).then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    response.text().then(text => {
-                        console.error('Error response:', text);
-                        alert('Error updating category: ' + text);
-                    });
-                }
+                return response.json().then(data => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        console.error('Error response:', data);
+                        alert('Error updating category: ' + (data.message || 'Unknown error'));
+                    }
+                });
             }).catch(error => {
                 console.error('Fetch error:', error);
                 alert('Error updating category');
@@ -905,16 +916,20 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create new category
             fetch(`{{ route('restaurant.categories.store', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
                 body: formData
             }).then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    response.text().then(text => {
-                        console.error('Error response:', text);
-                        alert('Error creating category: ' + text);
-                    });
-                }
+                return response.json().then(data => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        console.error('Error response:', data);
+                        alert('Error creating category: ' + (data.message || 'Unknown error'));
+                    }
+                });
             }).catch(error => {
                 console.error('Fetch error:', error);
                 alert('Error creating category');
