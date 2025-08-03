@@ -605,6 +605,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
     
+    Route::get('/restaurants', [RestaurantController::class, 'adminIndex'])->name('admin.restaurants');
+    Route::get('/restaurants/{restaurant}/edit', [RestaurantController::class, 'adminEdit'])->name('admin.restaurants.edit');
+    Route::put('/restaurants/{restaurant}', [RestaurantController::class, 'adminUpdate'])->name('admin.restaurants.update');
+    Route::delete('/restaurants/{restaurant}', [RestaurantController::class, 'adminDestroy'])->name('admin.restaurants.destroy');
+    
     Route::get('/orders', [OrderController::class, 'adminIndex'])->name('admin.orders');
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
     

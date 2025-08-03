@@ -673,4 +673,109 @@ class RestaurantController extends Controller
             
         return view('restaurants.recent', compact('recentRestaurants'));
     }
+
+    // Admin Methods
+    public function adminIndex()
+    {
+        // Check if user is admin
+        if (!Auth::user()->is_admin) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $restaurants = Restaurant::with(['owner', 'menuItems', 'categories', 'ratings'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.restaurants.index', compact('restaurants'));
+    }
+
+    public function adminEdit(Restaurant $restaurant)
+    {
+        // Check if user is admin
+        if (!Auth::user()->is_admin) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('admin.restaurants.edit', compact('restaurant'));
+    }
+
+    public function adminUpdate(Request $request, Restaurant $restaurant)
+    {
+        // Check if user is admin
+        if (!Auth::user()->is_admin) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'whatsapp_number' => 'required|string|max:20',
+            'phone_number' => 'nullable|string|max:20',
+            'email' => 'nullable|email',
+            'address' => 'required|string',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
+            'currency' => 'required|string|max:10',
+            'is_active' => 'boolean',
+            'is_verified' => 'boolean',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        try {
+            $data = $request->except(['logo', 'banner']);
+
+            // Handle logo upload
+            if ($request->hasFile('logo')) {
+                if ($restaurant->logo) {
+                    Storage::disk('public')->delete($restaurant->logo);
+                }
+                $data['logo'] = $request->file('logo')->store('restaurants/logos', 'public');
+            }
+
+            // Handle banner upload
+            if ($request->hasFile('banner')) {
+                if ($restaurant->banner_image) {
+                    Storage::disk('public')->delete($restaurant->banner_image);
+                }
+                $data['banner_image'] = $request->file('banner')->store('restaurants/banners', 'public');
+            }
+
+            $restaurant->update($data);
+
+            return redirect()->route('admin.restaurants')
+                ->with('success', 'Restaurant updated successfully!');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to update restaurant. Please try again.']);
+        }
+    }
+
+    public function adminDestroy(Restaurant $restaurant)
+    {
+        // Check if user is admin
+        if (!Auth::user()->is_admin) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        try {
+            // Delete associated files
+            if ($restaurant->logo) {
+                Storage::disk('public')->delete($restaurant->logo);
+            }
+            if ($restaurant->banner_image) {
+                Storage::disk('public')->delete($restaurant->banner_image);
+            }
+
+            $restaurant->delete();
+
+            return redirect()->route('admin.restaurants')
+                ->with('success', 'Restaurant deleted successfully!');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to delete restaurant. Please try again.']);
+        }
+    }
 } 

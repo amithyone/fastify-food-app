@@ -150,6 +150,38 @@
             </div>
 
             @auth
+            @if(Auth::user()->is_admin)
+            <!-- Manage Restaurants (Admin Only) -->
+            <div class="rounded-lg shadow p-4 border border-purple-300 dark:border-purple-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #a855f7, #7c3aed) !important;" onclick="window.location.href='{{ route('admin.restaurants') }}'">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-cog text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">Manage Restaurants</h3>
+                        <p class="text-xl font-bold text-white">{{ \App\Models\Restaurant::count() }}</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(Auth::user()->primaryRestaurant)
+            <!-- Manage My Restaurant (Restaurant Owner) -->
+            <div class="rounded-lg shadow p-4 border border-green-300 dark:border-green-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #10b981, #059669) !important;" onclick="window.location.href='{{ route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug) }}'">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-store text-xl text-white"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-semibold text-white">Manage My Restaurant</h3>
+                        <p class="text-xs text-white opacity-80">{{ Auth::user()->primaryRestaurant->name }}</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+            @endauth
+
+            @auth
             <!-- Favorite Restaurants -->
             <div class="rounded-lg shadow p-4 border border-amber-300 dark:border-amber-700" style="background: linear-gradient(to bottom right, #fbbf24, #d97706) !important;">
                 <div class="flex items-center">
