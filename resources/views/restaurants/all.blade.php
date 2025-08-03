@@ -407,6 +407,24 @@ function closeRatingModal() {
     modal.classList.add('hidden');
 }
 
+function generateStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating - fullStars >= 0.5;
+    let starsHTML = '';
+    
+    for (let i = 0; i < 5; i++) {
+        if (i < fullStars) {
+            starsHTML += '<i class="fas fa-star text-orange-400"></i>';
+        } else if (i === fullStars && hasHalfStar) {
+            starsHTML += '<i class="fas fa-star-half-alt text-orange-400"></i>';
+        } else {
+            starsHTML += '<i class="far fa-star text-orange-400"></i>';
+        }
+    }
+    
+    return starsHTML;
+}
+
 function updateStars(rating) {
     const stars = document.querySelectorAll('#starRating i');
     stars.forEach((star, index) => {
