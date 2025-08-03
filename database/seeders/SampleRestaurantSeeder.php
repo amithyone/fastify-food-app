@@ -373,8 +373,10 @@ class SampleRestaurantSeeder extends Seeder
             'email' => 'chef@tasteofabuja.com',
             'password' => Hash::make('password'),
             'phone_number' => '+234 801 234 5678',
-            'restaurant_id' => $restaurant->id,
         ]);
+
+        // Update restaurant to set the owner
+        $restaurant->update(['owner_id' => $restaurantOwner->id]);
 
         // Create an admin user
         $admin = User::create([

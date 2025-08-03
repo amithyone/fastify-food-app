@@ -136,15 +136,15 @@
             </div>
             @endauth
 
-            <!-- All Restaurants -->
+            <!-- Featured Restaurants -->
             <div class="rounded-lg shadow p-4 border border-blue-300 dark:border-blue-700 cursor-pointer hover:scale-105 transition-transform" style="background: linear-gradient(to bottom right, #60a5fa, #2563eb) !important;" onclick="window.location.href='{{ route('restaurants.all') }}'">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <i class="fas fa-store text-xl text-white"></i>
+                        <i class="fas fa-star text-xl text-white"></i>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-sm font-semibold text-white">All Restaurants</h3>
-                        <p class="text-xl font-bold text-white">{{ \App\Models\Restaurant::where('is_active', true)->count() }}</p>
+                        <h3 class="text-sm font-semibold text-white">Featured Restaurants</h3>
+                        <p class="text-xl font-bold text-white">{{ \App\Models\FeaturedRestaurant::currentlyFeatured()->count() }}</p>
                     </div>
                 </div>
             </div>
@@ -178,36 +178,43 @@
             @endauth
         </div>
 
-        <!-- All Restaurants Section -->
+        <!-- Featured Restaurants Section -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-gray-200 dark:border-gray-700">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">All Restaurants</h2>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Featured Restaurants</h2>
                         <p class="text-gray-600 dark:text-gray-400">Discover amazing restaurants on Fastify</p>
                     </div>
+                    <a href="{{ route('restaurants.all') }}" class="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium">
+                        View All →
+                    </a>
                 </div>
             </div>
             
             <div class="p-6">
                 @php
-                    $allRestaurants = \App\Models\Restaurant::where('is_active', true)
-                        ->with('ratings')
-                        ->orderBy('name')
+                    $featuredRestaurants = \App\Models\FeaturedRestaurant::currentlyFeatured()
+                        ->with('restaurant.ratings')
+                        ->ordered()
                         ->get();
                 @endphp
 
-                @if($allRestaurants->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="restaurantsGrid">
-                        @foreach($allRestaurants as $restaurant)
-                            @include('components.restaurant-card', ['restaurant' => $restaurant])
+                @if($featuredRestaurants->count() > 0)
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="featuredRestaurantsGrid">
+                        @foreach($featuredRestaurants as $featured)
+                            @include('components.featured-restaurant-card', ['featured' => $featured])
                         @endforeach
                     </div>
                 @else
                     <div class="text-center py-8">
-                        <i class="fas fa-utensils text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
-                        <p class="text-gray-600 dark:text-gray-400">No restaurants available</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-500">Check back later for new restaurants</p>
+                        <i class="fas fa-star text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                        <p class="text-gray-600 dark:text-gray-400">No featured restaurants available</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500">Check back later for featured restaurants</p>
+                        <a href="{{ route('restaurants.all') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-utensils mr-2"></i>
+                            View All Restaurants
+                        </a>
                     </div>
                 @endif
             </div>
