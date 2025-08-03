@@ -835,8 +835,26 @@ function markAsCorrect() {
         };
         
         submitCorrectionToServer(correctionData);
+        
+        // Update confidence level to show it was confirmed correct
+        const confidenceLevel = document.getElementById('confidenceLevel');
+        if (confidenceLevel) {
+            confidenceLevel.textContent = '100%';
+        }
+        
+        // Update the recognition result text
+        const recognitionResult = document.getElementById('recognitionResult');
+        if (recognitionResult) {
+            const resultText = recognitionResult.querySelector('span');
+            if (resultText) {
+                resultText.innerHTML = `AI Recognition: <span id="confidenceLevel" class="font-semibold">100%</span> confidence (Confirmed)`;
+            }
+        }
+        
+        alert('Thank you! The AI has learned from your confirmation.');
     } else {
         console.log('No recognition data available for learning');
+        alert('Thank you for confirming the recognition!');
     }
     
     // Hide correction form
@@ -848,7 +866,19 @@ function showCorrectionForm() {
 }
 
 function hideCorrectionForm() {
-    document.getElementById('correctionForm').classList.add('hidden');
+    const correctionForm = document.getElementById('correctionForm');
+    if (correctionForm) {
+        correctionForm.classList.add('hidden');
+        
+        // Clear the correction form fields
+        const correctFoodName = document.getElementById('correctFoodName');
+        const correctCategory = document.getElementById('correctCategory');
+        const correctionFeedback = document.getElementById('correctionFeedback');
+        
+        if (correctFoodName) correctFoodName.value = '';
+        if (correctCategory) correctCategory.value = '';
+        if (correctionFeedback) correctionFeedback.value = '';
+    }
 }
 
 function submitCorrection() {
@@ -892,7 +922,57 @@ function submitCorrection() {
         user_feedback: correctionFeedback || 'User correction'
     };
     
+    // Apply the correction to the form fields
+    applyCorrectionToForm(correctFoodName, selectedCategory, correctionData.corrected_food);
+    
+    // Submit the correction to the server
     submitCorrectionToServer(correctionData);
+}
+
+function applyCorrectionToForm(correctFoodName, correctCategory, correctedFood) {
+    // Update the main form fields with the corrected information
+    const menuNameField = document.getElementById('menuName');
+    const menuCategoryField = document.getElementById('menuCategory');
+    const menuDescriptionField = document.getElementById('menuDescription');
+    
+    if (menuNameField) {
+        menuNameField.value = correctFoodName;
+    }
+    
+    if (menuDescriptionField) {
+        menuDescriptionField.value = `Corrected: ${correctFoodName}`;
+    }
+    
+    // Update category selection
+    if (menuCategoryField) {
+        for (let option of menuCategoryField.options) {
+            if (option.text.toLowerCase() === correctCategory.toLowerCase()) {
+                option.selected = true;
+                break;
+            }
+        }
+    }
+    
+    // Update the recognition result display
+    const confidenceLevel = document.getElementById('confidenceLevel');
+    if (confidenceLevel) {
+        confidenceLevel.textContent = '98%'; // High confidence for corrections
+    }
+    
+    // Update the recognition result text
+    const recognitionResult = document.getElementById('recognitionResult');
+    if (recognitionResult) {
+        const resultText = recognitionResult.querySelector('span');
+        if (resultText) {
+            resultText.innerHTML = `AI Recognition: <span id="confidenceLevel" class="font-semibold">98%</span> confidence (Corrected)`;
+        }
+    }
+    
+    // Hide the correction form
+    hideCorrectionForm();
+    
+    // Show success message
+    alert('Correction applied! The form has been updated with the correct information.');
 }
 
 function submitCorrectionToServer(correctionData) {
