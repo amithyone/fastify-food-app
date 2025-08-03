@@ -693,6 +693,11 @@ function closeAIMenuModal() {
     window.dispatchEvent(new CustomEvent('close-modal', { detail: 'ai-menu-modal' }));
     document.getElementById('aiMenuForm').reset();
     document.getElementById('recognitionResult').classList.add('hidden');
+    document.getElementById('correctionForm').classList.add('hidden');
+    
+    // Reset AI variables
+    currentImageHash = null;
+    currentRecognitionData = null;
 }
 
 function recognizeFood() {
@@ -816,6 +821,8 @@ function markAsCorrect() {
         };
         
         submitCorrectionToServer(correctionData);
+    } else {
+        console.log('No recognition data available for learning');
     }
     
     // Hide correction form
@@ -831,9 +838,19 @@ function hideCorrectionForm() {
 }
 
 function submitCorrection() {
-    const correctFoodName = document.getElementById('correctFoodName').value;
-    const correctCategory = document.getElementById('correctCategory').value;
-    const correctionFeedback = document.getElementById('correctionFeedback').value;
+    const correctFoodNameElement = document.getElementById('correctFoodName');
+    const correctCategoryElement = document.getElementById('correctCategory');
+    const correctionFeedbackElement = document.getElementById('correctionFeedback');
+    
+    if (!correctFoodNameElement || !correctCategoryElement) {
+        console.error('Correction form elements not found');
+        alert('Error: Form elements not found. Please refresh the page and try again.');
+        return;
+    }
+    
+    const correctFoodName = correctFoodNameElement.value;
+    const correctCategory = correctCategoryElement.value;
+    const correctionFeedback = correctionFeedbackElement ? correctionFeedbackElement.value : '';
     
     if (!correctFoodName || !correctCategory) {
         alert('Please provide the correct food name and category');
@@ -844,8 +861,11 @@ function submitCorrection() {
     const categorySelect = document.getElementById('correctCategory');
     const selectedCategory = categorySelect.options[categorySelect.selectedIndex].text;
     
+    // Generate a simple hash if none exists
+    const imageHash = currentImageHash || btoa(Date.now() + Math.random());
+    
     const correctionData = {
-        image_hash: currentImageHash,
+        image_hash: imageHash,
         corrected_food: {
             food_name: correctFoodName,
             category: selectedCategory,
