@@ -248,4 +248,93 @@ class Restaurant extends Model
             return null;
         }
     }
+
+    /**
+     * Get today's earnings (confirmed orders from today)
+     */
+    public function getTodayEarningsAttribute()
+    {
+        return $this->orders()
+            ->where('status', 'confirmed')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+    }
+
+    /**
+     * Get today's pay-on-delivery earnings
+     */
+    public function getTodayPayOnDeliveryEarningsAttribute()
+    {
+        return $this->orders()
+            ->where('payment_method', 'cash')
+            ->where('status', 'confirmed')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+    }
+
+    /**
+     * Get today's online payment earnings
+     */
+    public function getTodayOnlinePaymentEarningsAttribute()
+    {
+        return $this->orders()
+            ->whereIn('payment_method', ['card', 'transfer', 'wallet'])
+            ->where('status', 'confirmed')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+    }
+
+    /**
+     * Check if order affects today's earnings
+     */
+    public function orderAffectsTodayEarnings($order)
+    {
+        // Only confirmed orders from today affect earnings
+        return $order->status === 'confirmed' && 
+               $order->created_at->isToday() &&
+               $order->restaurant_id === $this->id;
+    }
+
+    /**
+     * Handle order status change impact on earnings
+     */
+    public function handleOrderStatusChange($order, $oldStatus, $newStatus)
+    {
+        $isPayOnDelivery = $order->payment_method === 'cash';
+        $amount = $order->total_amount;
+        
+        \Log::info('Order status change earnings impact', [
+            'restaurant_id' => $this->id,
+            'order_id' => $order->id,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'payment_method' => $order->payment_method,
+            'is_pay_on_delivery' => $isPayOnDelivery,
+            'amount' => $amount,
+            'created_today' => $order->created_at->isToday()
+        ]);
+
+        // Only handle orders created today
+        if (!$order->created_at->isToday()) {
+            return;
+        }
+
+        // Pay-on-delivery orders: Add to earnings when confirmed, remove when cancelled
+        if ($isPayOnDelivery) {
+            if ($oldStatus !== 'confirmed' && $newStatus === 'confirmed') {
+                \Log::info('Pay-on-delivery order confirmed - adding to today\'s earnings', [
+                    'order_id' => $order->id,
+                    'amount' => $amount
+                ]);
+            } elseif ($oldStatus === 'confirmed' && $newStatus === 'cancelled') {
+                \Log::info('Pay-on-delivery order cancelled - removing from today\'s earnings', [
+                    'order_id' => $order->id,
+                    'amount' => $amount
+                ]);
+            }
+        }
+        
+        // Online payment orders: Already paid, so they always count when confirmed
+        // (no special handling needed as they're already paid)
+    }
 }

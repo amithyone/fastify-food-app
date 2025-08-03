@@ -188,6 +188,16 @@
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Earnings</p>
                         <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $restaurant->currency }}{{ number_format($stats['today_earnings'] / 100, 2) }}</p>
+                        <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <div class="flex justify-between">
+                                <span>Pay on Delivery:</span>
+                                <span>{{ $restaurant->currency }}{{ number_format($stats['pay_on_delivery_earnings'] / 100, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Online Payments:</span>
+                                <span>{{ $restaurant->currency }}{{ number_format($stats['non_pay_on_delivery_earnings'] / 100, 2) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

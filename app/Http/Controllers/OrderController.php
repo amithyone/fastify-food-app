@@ -587,6 +587,9 @@ class OrderController extends Controller
         if ($order->restaurant_id !== $restaurant->id) {
             abort(403, 'Order does not belong to this restaurant.');
         }
+
+        $oldStatus = $order->status;
+        $isPayOnDelivery = $order->payment_method === 'cash';
         
         // Update order status
         $order->update([
@@ -596,13 +599,18 @@ class OrderController extends Controller
             'status_updated_by' => $user->id
         ]);
 
+        // Handle earnings calculation based on order status change
+        $restaurant->handleOrderStatusChange($order, $oldStatus, $request->status);
+
         // Log the status change
         \Log::info('Order status updated', [
             'order_id' => $order->id,
-            'old_status' => $order->getOriginal('status'),
+            'old_status' => $oldStatus,
             'new_status' => $request->status,
             'updated_by' => $user->id,
-            'status_note' => $request->status_note
+            'status_note' => $request->status_note,
+            'is_pay_on_delivery' => $isPayOnDelivery,
+            'payment_method' => $order->payment_method
         ]);
 
         return response()->json([
@@ -612,6 +620,8 @@ class OrderController extends Controller
             'status_note' => $request->status_note
         ]);
     }
+
+
 
     public function searchByTrackingCode(Request $request)
     {

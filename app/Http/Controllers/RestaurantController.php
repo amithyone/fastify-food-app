@@ -171,11 +171,27 @@ class RestaurantController extends Controller
             ->whereDate('created_at', today())
             ->sum('total_amount');
 
+        // Calculate today's earnings for pay-on-delivery orders
+        $payOnDeliveryEarnings = $restaurant->orders()
+            ->where('payment_method', 'cash')
+            ->where('status', 'confirmed')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+
+        // Calculate today's earnings for non-pay-on-delivery orders (card, transfer, wallet)
+        $nonPayOnDeliveryEarnings = $restaurant->orders()
+            ->whereIn('payment_method', ['card', 'transfer', 'wallet'])
+            ->where('status', 'confirmed')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+
         $stats = [
             'total_orders' => $restaurant->orders()->count(),
             'pending_orders' => $restaurant->orders()->where('status', 'pending')->count(),
             'total_menu_items' => $restaurant->menuItems()->count(),
             'today_earnings' => $todayEarnings,
+            'pay_on_delivery_earnings' => $payOnDeliveryEarnings,
+            'non_pay_on_delivery_earnings' => $nonPayOnDeliveryEarnings,
         ];
 
         $recent_orders = $restaurant->orders()->with('orderItems')->latest()->take(5)->get();
