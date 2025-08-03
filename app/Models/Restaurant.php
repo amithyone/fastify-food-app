@@ -201,8 +201,6 @@ class Restaurant extends Model
         try {
             if ($this->logo && \Storage::disk('public')->exists($this->logo)) {
                 $url = \Storage::disk('public')->url($this->logo);
-                // Add cache-busting parameter
-                $url .= '?v=' . time();
                 \Log::info('Restaurant model logo_url generated', [
                     'restaurant_id' => $this->id,
                     'logo_path' => $this->logo,

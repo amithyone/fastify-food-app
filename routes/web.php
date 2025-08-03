@@ -407,6 +407,35 @@ Route::get('/test-image/{filename}', function ($filename) {
     }
 })->name('test.image');
 
+// Test logo display
+Route::get('/test-logo', function () {
+    $restaurant = \App\Models\Restaurant::first();
+    if (!$restaurant) {
+        return 'No restaurant found';
+    }
+    
+    $logoUrl = $restaurant->logo_url;
+    $html = "
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Logo Test</title>
+    </head>
+    <body>
+        <h1>Logo Test</h1>
+        <p>Logo URL: {$logoUrl}</p>
+        <p>Logo Path: {$restaurant->logo}</p>
+        <p>File Exists: " . (\Storage::disk('public')->exists($restaurant->logo) ? 'Yes' : 'No') . "</p>
+        <img src='{$logoUrl}' alt='Restaurant Logo' style='width: 100px; height: 100px; border: 1px solid red;'>
+        <br>
+        <img src='{$logoUrl}' alt='Restaurant Logo' style='width: 200px; height: 200px; border: 1px solid blue;'>
+    </body>
+    </html>
+    ";
+    
+    return $html;
+})->name('test.logo');
+
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes

@@ -19,6 +19,11 @@
                             'logo_path' => $restaurant->logo
                         ]);
                     @endphp
+                    <script>
+                        console.log('Logo URL:', '{{ $logoUrl }}');
+                        console.log('Has Logo:', {{ $hasLogo ? 'true' : 'false' }});
+                        console.log('Logo Path:', '{{ $restaurant->logo }}');
+                    </script>
                     
                     @if($hasLogo)
                         <div class="relative">
