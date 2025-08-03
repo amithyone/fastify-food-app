@@ -132,7 +132,8 @@
     <div class="splash-container">
         <div class="logo-container">
             <div class="logo-glow"></div>
-            <img src="{{ asset('favicon.png') }}" alt="Fastify" class="logo">
+            <img src="{{ asset('favicon.png') }}" alt="Fastify" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="logo-fallback" style="display: none; width: 100%; height: 100%; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: bold;">F</div>
         </div>
         
         <h1 class="app-name">Fastify</h1>

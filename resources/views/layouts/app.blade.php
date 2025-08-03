@@ -46,8 +46,12 @@
     <div id="pwaLoadingScreen" class="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50 transition-opacity duration-500">
         <div class="text-center">
             <div class="w-24 h-24 mx-auto mb-6 relative">
-                <img src="/favicon.png" alt="Fastify" class="w-full h-full object-contain animate-pulse">
-                <div class="absolute inset-0 bg-orange-500 rounded-full opacity-20 animate-ping"></div>
+                <img src="{{ asset('favicon.png') }}" alt="Fastify" class="w-full h-full object-contain animate-pulse" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="absolute inset-0 bg-orange-500 rounded-full opacity-20 animate-ping" style="display: none;">
+                    <div class="w-full h-full flex items-center justify-center">
+                        <span class="text-white text-2xl font-bold">F</span>
+                    </div>
+                </div>
             </div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Fastify</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-4">Loading your food experience...</p>
