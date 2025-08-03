@@ -38,6 +38,14 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <!-- Custom Animations -->
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -46,7 +54,7 @@
     <div id="pwaLoadingScreen" class="fixed inset-0 bg-white dark:bg-gray-900 flex items-center justify-center z-50 transition-opacity duration-500">
         <div class="text-center">
             <div class="w-24 h-24 mx-auto mb-6 relative">
-                <img src="{{ asset('favicon.png') }}" alt="Fastify" class="w-full h-full object-contain animate-pulse" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <img src="{{ asset('favicon.png') }}" alt="Fastify" class="w-full h-full object-contain animate-pulse" style="animation: spin 3s linear infinite;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="absolute inset-0 bg-orange-500 rounded-full opacity-20 animate-ping" style="display: none;">
                     <div class="w-full h-full flex items-center justify-center">
                         <span class="text-white text-2xl font-bold">F</span>

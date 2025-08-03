@@ -39,7 +39,7 @@
             height: 100%;
             object-fit: contain;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-            animation: pulse 2s infinite;
+            animation: rotate360 3s linear infinite, pulse 2s infinite;
         }
 
         .logo-glow {
@@ -89,9 +89,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes rotate360 {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.05) rotate(180deg); }
         }
 
         @keyframes glow {
