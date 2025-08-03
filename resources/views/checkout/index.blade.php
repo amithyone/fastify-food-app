@@ -463,6 +463,11 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         });
     });
     
+    // Calculate totals directly to ensure accuracy
+    const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')) || 0;
+    const deliveryFee = restaurantRadio && restaurantRadio.checked ? 0 : 500;
+    const calculatedTotal = subtotal + deliveryFee;
+    
     const orderData = {
         items: orderItems,
         customer_info: restaurantRadio.checked ? {
@@ -481,9 +486,9 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             in_restaurant: false
         },
         payment_method: formData.get('payment_method'),
-        subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')),
-        delivery_fee: parseFloat(document.getElementById('deliveryFee').textContent.replace('₦', '').replace(',', '')),
-        total: parseFloat(document.getElementById('total').textContent.replace('₦', '').replace(',', ''))
+        subtotal: subtotal,
+        delivery_fee: deliveryFee,
+        total: calculatedTotal
     };
     
     // Debug: Log the order data

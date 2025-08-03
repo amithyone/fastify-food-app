@@ -159,14 +159,32 @@ class OrderController extends Controller
                 throw new \Exception('No restaurant found for order items');
             }
 
-            // Calculate total from items
-            $total = 0;
+            // Use the total sent from frontend to ensure consistency
+            $total = $request->total;
+            
+            // Validate that the total matches our calculation
+            $calculatedTotal = 0;
             foreach ($request->items as $item) {
-                $total += $item['price'] * $item['quantity'];
+                $calculatedTotal += $item['price'] * $item['quantity'];
             }
-
-            // Add delivery fee
-            $total += $request->delivery_fee;
+            $calculatedTotal += $request->delivery_fee;
+            
+            // Log for debugging
+            \Log::info('Order total validation:', [
+                'frontend_total' => $total,
+                'calculated_total' => $calculatedTotal,
+                'delivery_fee' => $request->delivery_fee,
+                'items' => $request->items
+            ]);
+            
+            // Use the frontend total but log if there's a discrepancy
+            if (abs($total - $calculatedTotal) > 1) { // Allow 1 kobo difference for rounding
+                \Log::warning('Order total mismatch detected', [
+                    'frontend_total' => $total,
+                    'calculated_total' => $calculatedTotal,
+                    'difference' => $total - $calculatedTotal
+                ]);
+            }
 
             // Prepare customer info
             $customerInfo = $request->customer_info;
