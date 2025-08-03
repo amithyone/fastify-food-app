@@ -1,7 +1,7 @@
 {
   "name": "Fastify - Food Ordering",
   "short_name": "Fastify",
-  "description": "Order delicious food from your favorite restaurants",
+  "description": "Order delicious food from your favorite restaurants with Fastify",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -13,7 +13,13 @@
   "icons": [
     {
       "src": "/favicon.png",
-      "sizes": "192x192",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -24,10 +30,22 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [

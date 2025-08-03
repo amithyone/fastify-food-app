@@ -73,10 +73,8 @@
     <div id="pwaInstallPrompt" class="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-200 dark:border-gray-700 z-50 hidden max-w-md mx-auto">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                    </svg>
+                <div class="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+                    <img src="/favicon.png" alt="Fastify" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Install Fastify</h3>
@@ -103,6 +101,7 @@
             appName: "Fastify",
             shortName: "Fastify",
             themeColor: "#f97316",
+            logo: "/favicon.png",
             features: {
                 wallet: true,
                 rewards: true,
