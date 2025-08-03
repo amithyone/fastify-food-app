@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Manager;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -166,6 +167,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin()
     {
         return $this->is_admin;
+    }
+
+    /**
+     * Check if user can manage a specific restaurant
+     */
+    public function canManageRestaurant($restaurant)
+    {
+        // Admins can manage all restaurants
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Check if user is a manager of this restaurant
+        return Manager::canAccessRestaurant($this->id, $restaurant->id, 'manager');
     }
 
     /**

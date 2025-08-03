@@ -24,6 +24,19 @@ class AIFoodRecognitionService
     public function recognizeFood(UploadedFile $image)
     {
         try {
+            // Validate image
+            if (!$image || !$image->isValid()) {
+                Log::error('Invalid image uploaded for recognition');
+                return [
+                    'success' => false,
+                    'error' => 'Invalid image file. Please try again.',
+                    'food_name' => '',
+                    'category' => '',
+                    'description' => '',
+                    'confidence' => 0,
+                ];
+            }
+
             // For now, we'll use a more sophisticated mock that analyzes image characteristics
             // In production, you'd integrate with a real food recognition API like:
             // - Google Cloud Vision API
@@ -33,6 +46,12 @@ class AIFoodRecognitionService
             // - Clarifai Food Recognition
             
             $result = $this->analyzeImageCharacteristics($image);
+            
+            Log::info('AI food recognition successful', [
+                'file' => $image->getClientOriginalName(),
+                'size' => $image->getSize(),
+                'result' => $result
+            ]);
             
             return [
                 'success' => true,
@@ -46,11 +65,16 @@ class AIFoodRecognitionService
                 'is_spicy' => $result['is_spicy'] ?? false,
             ];
         } catch (\Exception $e) {
-            Log::error('Food recognition error: ' . $e->getMessage());
+            Log::error('Food recognition error: ' . $e->getMessage(), [
+                'file' => $image ? $image->getClientOriginalName() : 'unknown',
+                'size' => $image ? $image->getSize() : 0,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return [
                 'success' => false,
-                'error' => 'Unable to recognize food from image. Please try again or add manually.',
+                'error' => 'Unable to recognize food from image. Please try again.',
                 'food_name' => '',
                 'category' => '',
                 'description' => '',
@@ -81,18 +105,7 @@ class AIFoodRecognitionService
         // Check if we have learned corrections for this image
         $learnedCorrection = $this->getLearnedCorrections($imageHash);
         if ($learnedCorrection) {
-            return [
-                'success' => true,
-                'food_name' => $learnedCorrection['food_name'],
-                'category' => $learnedCorrection['category'],
-                'description' => $learnedCorrection['description'],
-                'confidence' => 98, // High confidence for learned corrections
-                'ingredients' => $learnedCorrection['ingredients'] ?? '',
-                'allergens' => $learnedCorrection['allergens'] ?? '',
-                'is_vegetarian' => $learnedCorrection['is_vegetarian'] ?? false,
-                'is_spicy' => $learnedCorrection['is_spicy'] ?? false,
-                'learned' => true,
-            ];
+            return $learnedCorrection;
         }
         
         // Use the hash to generate consistent but varied results
@@ -117,6 +130,13 @@ class AIFoodRecognitionService
     {
         try {
             $imagePath = $image->getPathname();
+            
+            // Check if file exists and is readable
+            if (!file_exists($imagePath) || !is_readable($imagePath)) {
+                Log::warning('Image file not accessible for color analysis', ['path' => $imagePath]);
+                return $this->getDefaultColorAnalysis();
+            }
+            
             $imageType = exif_imagetype($imagePath);
             
             if ($imageType === IMAGETYPE_JPEG || $imageType === IMAGETYPE_PNG) {
@@ -137,6 +157,11 @@ class AIFoodRecognitionService
                     foreach ($samplePoints as $point) {
                         $x = (int)($width * $point[0]);
                         $y = (int)($height * $point[1]);
+                        
+                        // Ensure coordinates are within bounds
+                        $x = max(0, min($x, $width - 1));
+                        $y = max(0, min($y, $height - 1));
+                        
                         $rgb = imagecolorat($imageResource, $x, $y);
                         $colors[] = [
                             'r' => ($rgb >> 16) & 0xFF,
@@ -151,10 +176,27 @@ class AIFoodRecognitionService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Color analysis failed: ' . $e->getMessage());
+            Log::error('Color analysis failed: ' . $e->getMessage(), [
+                'file' => $image->getClientOriginalName(),
+                'size' => $image->getSize(),
+                'error' => $e->getMessage()
+            ]);
         }
         
-        return ['dominant_colors' => [], 'brightness' => 'medium', 'saturation' => 'medium'];
+        return $this->getDefaultColorAnalysis();
+    }
+
+    /**
+     * Get default color analysis when image analysis fails
+     */
+    private function getDefaultColorAnalysis()
+    {
+        return [
+            'dominant_colors' => [],
+            'brightness' => 'medium',
+            'warm_colors' => false,
+            'avg_rgb' => ['r' => 128, 'g' => 128, 'b' => 128]
+        ];
     }
 
     /**

@@ -340,6 +340,21 @@ Route::post('/test-story-creation', function () {
     }
 })->name('test.story.creation');
 
+// Test AI recognition
+Route::post('/test-ai-recognition', function (Request $request) {
+    try {
+        $aiService = app(\App\Services\AIFoodRecognitionService::class);
+        $result = $aiService->recognizeFood($request->file('image'));
+        return response()->json($result);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+})->name('test.ai.recognition');
+
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes
