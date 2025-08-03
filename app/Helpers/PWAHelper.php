@@ -95,6 +95,18 @@ class PWAHelper
     }
 
     /**
+     * Fix storage URL to include port number if needed
+     */
+    public static function fixStorageUrl($url)
+    {
+        // Fix URL if it doesn't include port number
+        if (str_contains($url, 'localhost/storage') && !str_contains($url, ':8000')) {
+            return str_replace('http://localhost/storage', 'http://localhost:8000/storage', $url);
+        }
+        return $url;
+    }
+
+    /**
      * Get PWA meta tags
      */
     public static function getMetaTags()
@@ -256,6 +268,9 @@ class PWAHelper
         try {
             if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
                 $url = \Storage::disk('public')->url($imagePath);
+                
+                $url = self::fixStorageUrl($url);
+                
                 \Log::info('Restaurant image URL generated', [
                     'path' => $imagePath,
                     'url' => $url,
