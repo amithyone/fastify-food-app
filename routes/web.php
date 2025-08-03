@@ -355,6 +355,37 @@ Route::post('/test-ai-recognition', function (Request $request) {
     }
 })->name('test.ai.recognition');
 
+// Test storage functionality
+Route::get('/test-storage', function () {
+    try {
+        $restaurant = \App\Models\Restaurant::first();
+        if (!$restaurant) {
+            return response()->json(['error' => 'No restaurant found']);
+        }
+        
+        $logoPath = $restaurant->logo;
+        $logoExists = \Storage::disk('public')->exists($logoPath);
+        $logoUrl = $logoExists ? \Storage::disk('public')->url($logoPath) : null;
+        
+        return response()->json([
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'logo_path' => $logoPath,
+            'logo_exists' => $logoExists,
+            'logo_url' => $logoUrl,
+            'storage_url' => \Storage::disk('public')->url(''),
+            'app_url' => config('app.url'),
+            'filesystem_disk' => config('filesystems.default'),
+            'public_disk_url' => config('filesystems.disks.public.url'),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+})->name('test.storage');
+
 Route::post('/guest-session', [OrderController::class, 'createGuestSession'])->name('guest.session');
 
 // Phone Verification Routes

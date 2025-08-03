@@ -253,11 +253,30 @@ class PWAHelper
      */
     public static function getRestaurantImage($imagePath = null, $type = 'square', $fallbackIcon = 'fas fa-store')
     {
-        if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
-            return \Storage::disk('public')->url($imagePath);
+        try {
+            if ($imagePath && \Storage::disk('public')->exists($imagePath)) {
+                $url = \Storage::disk('public')->url($imagePath);
+                \Log::info('Restaurant image URL generated', [
+                    'path' => $imagePath,
+                    'url' => $url,
+                    'exists' => \Storage::disk('public')->exists($imagePath)
+                ]);
+                return $url;
+            }
+            
+            \Log::warning('Restaurant image not found, using fallback', [
+                'path' => $imagePath,
+                'exists' => $imagePath ? \Storage::disk('public')->exists($imagePath) : false
+            ]);
+            
+            return self::getPlaceholderImage($type);
+        } catch (\Exception $e) {
+            \Log::error('Error getting restaurant image', [
+                'path' => $imagePath,
+                'error' => $e->getMessage()
+            ]);
+            return self::getPlaceholderImage($type);
         }
-        
-        return self::getPlaceholderImage($type);
     }
 
     /**
@@ -265,6 +284,26 @@ class PWAHelper
      */
     public static function hasValidRestaurantImage($imagePath = null)
     {
-        return $imagePath && \Storage::disk('public')->exists($imagePath);
+        try {
+            if (!$imagePath) {
+                return false;
+            }
+            
+            $exists = \Storage::disk('public')->exists($imagePath);
+            
+            \Log::info('Checking restaurant image validity', [
+                'path' => $imagePath,
+                'exists' => $exists,
+                'size' => $exists ? \Storage::disk('public')->size($imagePath) : 0
+            ]);
+            
+            return $exists;
+        } catch (\Exception $e) {
+            \Log::error('Error checking restaurant image validity', [
+                'path' => $imagePath,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 } 

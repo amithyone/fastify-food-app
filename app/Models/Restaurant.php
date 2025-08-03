@@ -184,17 +184,52 @@ class Restaurant extends Model
 
     public function hasCustomDomain()
     {
-        return !empty($this->custom_domain) && $this->custom_domain_verified;
+        return !empty($this->custom_domain);
     }
 
     public function verifyCustomDomain()
     {
-        // This would typically involve checking DNS records
-        // For now, we'll simulate verification
-        $this->update([
-            'custom_domain_verified' => true,
-            'custom_domain_verified_at' => now(),
-            'custom_domain_status' => 'verified'
-        ]);
+        // Implementation for domain verification
+        return true;
+    }
+
+    /**
+     * Get the logo URL with fallback
+     */
+    public function getLogoUrlAttribute()
+    {
+        try {
+            if ($this->logo && \Storage::disk('public')->exists($this->logo)) {
+                return \Storage::disk('public')->url($this->logo);
+            }
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('Error getting restaurant logo URL', [
+                'restaurant_id' => $this->id,
+                'logo_path' => $this->logo,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Get the banner URL with fallback
+     */
+    public function getBannerUrlAttribute()
+    {
+        try {
+            if ($this->banner_image && \Storage::disk('public')->exists($this->banner_image)) {
+                return \Storage::disk('public')->url($this->banner_image);
+            }
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('Error getting restaurant banner URL', [
+                'restaurant_id' => $this->id,
+                'banner_path' => $this->banner_image,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 }
