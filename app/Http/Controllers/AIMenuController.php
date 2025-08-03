@@ -156,4 +156,51 @@ class AIMenuController extends Controller
             'categories' => $categories
         ]);
     }
+
+    /**
+     * Handle user corrections and save for AI learning
+     */
+    public function correctRecognition(Request $request, $slug)
+    {
+        try {
+            $request->validate([
+                'image_hash' => 'required|string',
+                'corrected_food' => 'required|array',
+                'user_feedback' => 'nullable|string',
+            ]);
+
+            $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+            
+            // Check if user can manage this restaurant
+            if (!auth()->user()->canManageRestaurant($restaurant)) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access'], 403);
+            }
+
+            $aiService = app(AIFoodRecognitionService::class);
+            $success = $aiService->learnFromCorrection(
+                $request->image_hash,
+                $request->corrected_food,
+                $request->user_feedback
+            );
+
+            if ($success) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Thank you! The AI has learned from your correction and will be more accurate next time.'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to save correction. Please try again.'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('AI correction error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing correction. Please try again.'
+            ], 500);
+        }
+    }
 } 

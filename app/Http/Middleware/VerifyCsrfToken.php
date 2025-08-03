@@ -18,5 +18,6 @@ class VerifyCsrfToken extends Middleware
         'quick-login',
         'test-story-creation',
         'restaurant/*/ai/*',
+        'restaurant/*/ai/correct',
     ];
 } 

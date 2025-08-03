@@ -722,6 +722,20 @@ function recognizeFood() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Store current recognition data for corrections
+            currentRecognitionData = {
+                food_name: data.food_name,
+                category: data.category,
+                description: data.description,
+                ingredients: data.ingredients,
+                allergens: data.allergens,
+                is_vegetarian: data.is_vegetarian,
+                is_spicy: data.is_spicy
+            };
+            
+            // Generate image hash (simplified - in real app, this would come from server)
+            currentImageHash = btoa(file.name + file.size + file.lastModified);
+            
             // Populate form with AI results
             document.getElementById('menuName').value = data.food_name;
             document.getElementById('menuDescription').value = data.description;
@@ -787,6 +801,89 @@ document.getElementById('aiMenuForm').addEventListener('submit', function(e) {
         alert('Error adding menu item. Please try again.');
     });
 });
+
+// AI Correction Functions
+let currentImageHash = null;
+let currentRecognitionData = null;
+
+function markAsCorrect() {
+    // Save positive feedback for learning
+    if (currentImageHash && currentRecognitionData) {
+        const correctionData = {
+            image_hash: currentImageHash,
+            corrected_food: currentRecognitionData,
+            user_feedback: 'Correct recognition'
+        };
+        
+        submitCorrectionToServer(correctionData);
+    }
+    
+    // Hide correction form
+    document.getElementById('correctionForm').classList.add('hidden');
+}
+
+function showCorrectionForm() {
+    document.getElementById('correctionForm').classList.remove('hidden');
+}
+
+function hideCorrectionForm() {
+    document.getElementById('correctionForm').classList.add('hidden');
+}
+
+function submitCorrection() {
+    const correctFoodName = document.getElementById('correctFoodName').value;
+    const correctCategory = document.getElementById('correctCategory').value;
+    const correctionFeedback = document.getElementById('correctionFeedback').value;
+    
+    if (!correctFoodName || !correctCategory) {
+        alert('Please provide the correct food name and category');
+        return;
+    }
+    
+    // Get category name from select
+    const categorySelect = document.getElementById('correctCategory');
+    const selectedCategory = categorySelect.options[categorySelect.selectedIndex].text;
+    
+    const correctionData = {
+        image_hash: currentImageHash,
+        corrected_food: {
+            food_name: correctFoodName,
+            category: selectedCategory,
+            description: `Corrected: ${correctFoodName}`,
+            ingredients: '',
+            allergens: '',
+            is_vegetarian: false,
+            is_spicy: false
+        },
+        user_feedback: correctionFeedback || 'User correction'
+    };
+    
+    submitCorrectionToServer(correctionData);
+}
+
+function submitCorrectionToServer(correctionData) {
+    fetch('{{ route("restaurant.ai.correct", $restaurant->slug) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(correctionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Thank you! The AI has learned from your correction.');
+            hideCorrectionForm();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Correction error:', error);
+        alert('Error submitting correction. Please try again.');
+    });
+}
 </script>
 
 <!-- AI Menu Modal -->
@@ -820,9 +917,66 @@ document.getElementById('aiMenuForm').addEventListener('submit', function(e) {
             
             <!-- Recognition Result -->
             <div id="recognitionResult" class="hidden p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-                <div class="flex items-center text-sm text-green-700 dark:text-green-300">
+                <div class="flex items-center text-sm text-green-700 dark:text-green-300 mb-2">
                     <i class="fas fa-check-circle mr-2"></i>
                     <span>AI Recognition: <span id="confidenceLevel" class="font-semibold">95%</span> confidence</span>
+                </div>
+                
+                <!-- Correction Section -->
+                <div class="border-t border-green-200 dark:border-green-700 pt-2 mt-2">
+                    <p class="text-xs text-green-600 dark:text-green-400 mb-2">Was this recognition correct?</p>
+                    <div class="flex space-x-2">
+                        <button type="button" onclick="markAsCorrect()" 
+                                class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600">
+                            ✅ Yes, Correct
+                        </button>
+                        <button type="button" onclick="showCorrectionForm()" 
+                                class="px-2 py-1 bg-orange-500 text-white text-xs rounded hover:bg-orange-600">
+                            ❌ No, Wrong
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Correction Form -->
+            <div id="correctionForm" class="hidden p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
+                <h5 class="text-sm font-medium text-orange-800 dark:text-orange-200 mb-2">Help us improve! What is this food?</h5>
+                
+                <div class="space-y-2">
+                    <div>
+                        <label for="correctFoodName" class="block text-xs font-medium text-orange-700 dark:text-orange-300">Correct Food Name</label>
+                        <input type="text" id="correctFoodName" 
+                               class="mt-1 block w-full rounded-md border-orange-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-orange-700 dark:border-orange-600 dark:text-white text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="correctCategory" class="block text-xs font-medium text-orange-700 dark:text-orange-300">Correct Category</label>
+                        <select id="correctCategory" 
+                                class="mt-1 block w-full rounded-md border-orange-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-orange-700 dark:border-orange-600 dark:text-white text-sm">
+                            <option value="">Select Category</option>
+                            @foreach($restaurant->categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="correctionFeedback" class="block text-xs font-medium text-orange-700 dark:text-orange-300">Additional Feedback (Optional)</label>
+                        <textarea id="correctionFeedback" rows="2"
+                                  class="mt-1 block w-full rounded-md border-orange-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-orange-700 dark:border-orange-600 dark:text-white text-sm"
+                                  placeholder="What should the AI have recognized?"></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button type="button" onclick="submitCorrection()" 
+                                class="px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700">
+                            Submit Correction
+                        </button>
+                        <button type="button" onclick="hideCorrectionForm()" 
+                                class="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
             

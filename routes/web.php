@@ -399,6 +399,7 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/ai/recognize', [AIMenuController::class, 'recognizeFood'])->name('restaurant.ai.recognize');
     Route::post('/{slug}/ai/store', [AIMenuController::class, 'storeMenuItem'])->name('restaurant.ai.store');
     Route::get('/{slug}/ai/categories', [AIMenuController::class, 'getCategories'])->name('restaurant.ai.categories');
+    Route::post('/{slug}/ai/correct', [AIMenuController::class, 'correctRecognition'])->name('restaurant.ai.correct');
 });
 
 // Restaurant browsing routes

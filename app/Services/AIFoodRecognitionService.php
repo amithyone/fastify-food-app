@@ -78,6 +78,23 @@ class AIFoodRecognitionService
         // Create a hash of the image for consistent recognition
         $imageHash = md5_file($image->getPathname());
         
+        // Check if we have learned corrections for this image
+        $learnedCorrection = $this->getLearnedCorrections($imageHash);
+        if ($learnedCorrection) {
+            return [
+                'success' => true,
+                'food_name' => $learnedCorrection['food_name'],
+                'category' => $learnedCorrection['category'],
+                'description' => $learnedCorrection['description'],
+                'confidence' => 98, // High confidence for learned corrections
+                'ingredients' => $learnedCorrection['ingredients'] ?? '',
+                'allergens' => $learnedCorrection['allergens'] ?? '',
+                'is_vegetarian' => $learnedCorrection['is_vegetarian'] ?? false,
+                'is_spicy' => $learnedCorrection['is_spicy'] ?? false,
+                'learned' => true,
+            ];
+        }
+        
         // Use the hash to generate consistent but varied results
         $hashValue = hexdec(substr($imageHash, 0, 8));
         
@@ -188,7 +205,7 @@ class AIFoodRecognitionService
         
         // Analyze aspect ratio for food type clues
         if ($aspectRatio > 1.5) {
-            // Wide images - likely pizza, burgers, sandwiches
+            // Wide images - likely pizza, burgers, sandwiches, Nigerian flatbreads
             $foodTypes[] = [
                 'food_name' => 'Margherita Pizza',
                 'category' => 'Pizza',
@@ -209,6 +226,27 @@ class AIFoodRecognitionService
                 'is_vegetarian' => false,
                 'is_spicy' => false,
             ];
+            // Nigerian Foods
+            $foodTypes[] = [
+                'food_name' => 'Jollof Rice',
+                'category' => 'Rice Dishes',
+                'description' => 'Nigerian Jollof rice cooked with tomatoes, peppers, and aromatic spices. Served with grilled chicken or fish.',
+                'confidence' => 90,
+                'ingredients' => 'Rice, tomatoes, peppers, onions, spices, chicken/fish',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+            $foodTypes[] = [
+                'food_name' => 'Pounded Yam & Efo Riro',
+                'category' => 'Main Course',
+                'description' => 'Smooth pounded yam served with rich vegetable soup made with spinach, meat, and palm oil.',
+                'confidence' => 88,
+                'ingredients' => 'Yam, spinach, meat, palm oil, peppers, onions',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
         } elseif ($aspectRatio < 0.8) {
             // Tall images - likely drinks, desserts, stacked items
             $foodTypes[] = [
@@ -228,6 +266,27 @@ class AIFoodRecognitionService
                 'confidence' => 90,
                 'ingredients' => 'Chocolate, flour, eggs, sugar, butter, cocoa powder',
                 'allergens' => 'Dairy, Eggs, Gluten',
+                'is_vegetarian' => true,
+                'is_spicy' => false,
+            ];
+            // Nigerian Drinks
+            $foodTypes[] = [
+                'food_name' => 'Zobo Drink',
+                'category' => 'Beverages',
+                'description' => 'Traditional Nigerian hibiscus drink with ginger and pineapple. Refreshing and healthy.',
+                'confidence' => 92,
+                'ingredients' => 'Hibiscus flowers, ginger, pineapple, sugar',
+                'allergens' => 'None',
+                'is_vegetarian' => true,
+                'is_spicy' => false,
+            ];
+            $foodTypes[] = [
+                'food_name' => 'Kunu Drink',
+                'category' => 'Beverages',
+                'description' => 'Traditional Nigerian millet drink with spices and coconut. Nutritious and refreshing.',
+                'confidence' => 89,
+                'ingredients' => 'Millet, coconut, spices, sugar',
+                'allergens' => 'None',
                 'is_vegetarian' => true,
                 'is_spicy' => false,
             ];
@@ -263,6 +322,47 @@ class AIFoodRecognitionService
                 'is_vegetarian' => true,
                 'is_spicy' => false,
             ];
+            // Nigerian Main Dishes
+            $foodTypes[] = [
+                'food_name' => 'Egusi Soup',
+                'category' => 'Soups',
+                'description' => 'Rich Nigerian soup made with ground melon seeds, spinach, and meat. Served with pounded yam or eba.',
+                'confidence' => 94,
+                'ingredients' => 'Melon seeds, spinach, meat, palm oil, peppers, onions',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+            $foodTypes[] = [
+                'food_name' => 'Amala & Ewedu',
+                'category' => 'Main Course',
+                'description' => 'Yam flour paste served with jute leaves soup and meat. Traditional Yoruba delicacy.',
+                'confidence' => 91,
+                'ingredients' => 'Yam flour, jute leaves, meat, palm oil, peppers',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+            $foodTypes[] = [
+                'food_name' => 'Suya',
+                'category' => 'Appetizers',
+                'description' => 'Spicy grilled meat skewers with groundnut powder and spices. Popular Nigerian street food.',
+                'confidence' => 93,
+                'ingredients' => 'Beef, groundnut powder, spices, onions, tomatoes',
+                'allergens' => 'Nuts',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+            $foodTypes[] = [
+                'food_name' => 'Moi Moi',
+                'category' => 'Appetizers',
+                'description' => 'Steamed bean pudding with peppers, onions, and fish. Nutritious and delicious.',
+                'confidence' => 90,
+                'ingredients' => 'Beans, peppers, onions, fish, palm oil',
+                'allergens' => 'Fish',
+                'is_vegetarian' => false,
+                'is_spicy' => false,
+            ];
         }
         
         // Add more variety based on file size (larger files might be more detailed photos)
@@ -276,6 +376,27 @@ class AIFoodRecognitionService
                 'allergens' => 'Fish',
                 'is_vegetarian' => false,
                 'is_spicy' => false,
+            ];
+            // Premium Nigerian Dishes
+            $foodTypes[] = [
+                'food_name' => 'Pepper Soup',
+                'category' => 'Soups',
+                'description' => 'Spicy Nigerian pepper soup with goat meat or fish. Rich in spices and herbs.',
+                'confidence' => 95,
+                'ingredients' => 'Goat meat/fish, peppers, spices, herbs, onions',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+            $foodTypes[] = [
+                'food_name' => 'Banga Soup',
+                'category' => 'Soups',
+                'description' => 'Rich palm nut soup with meat and fish. Served with starch or rice.',
+                'confidence' => 92,
+                'ingredients' => 'Palm nuts, meat, fish, peppers, spices',
+                'allergens' => 'Fish',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
             ];
         }
         
@@ -306,6 +427,46 @@ class AIFoodRecognitionService
             ];
         }
 
+        // Nigerian food filename detection
+        if (str_contains($fileName, 'jollof') || str_contains($fileName, 'rice')) {
+            $foodTypes[] = [
+                'food_name' => 'Jollof Rice',
+                'category' => 'Rice Dishes',
+                'description' => 'Nigerian Jollof rice with tomatoes, peppers, and aromatic spices. Served with grilled chicken.',
+                'confidence' => 96,
+                'ingredients' => 'Rice, tomatoes, peppers, onions, spices, chicken',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+        }
+
+        if (str_contains($fileName, 'egusi') || str_contains($fileName, 'melon')) {
+            $foodTypes[] = [
+                'food_name' => 'Egusi Soup',
+                'category' => 'Soups',
+                'description' => 'Rich Nigerian soup with ground melon seeds, spinach, and meat. Served with pounded yam.',
+                'confidence' => 97,
+                'ingredients' => 'Melon seeds, spinach, meat, palm oil, peppers',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+        }
+
+        if (str_contains($fileName, 'suya') || str_contains($fileName, 'kebab')) {
+            $foodTypes[] = [
+                'food_name' => 'Suya',
+                'category' => 'Appetizers',
+                'description' => 'Spicy grilled meat skewers with groundnut powder. Popular Nigerian street food.',
+                'confidence' => 95,
+                'ingredients' => 'Beef, groundnut powder, spices, onions',
+                'allergens' => 'Nuts',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
+        }
+
         // Add color-based adjustments
         if ($colorAnalysis && $colorAnalysis['brightness'] === 'bright') {
             $foodTypes[] = [
@@ -331,6 +492,17 @@ class AIFoodRecognitionService
                 'is_vegetarian' => false,
                 'is_spicy' => true,
             ];
+            // Nigerian Spicy Dishes
+            $foodTypes[] = [
+                'food_name' => 'Pepper Soup',
+                'category' => 'Soups',
+                'description' => 'Spicy Nigerian pepper soup with goat meat. Rich in peppers and aromatic spices.',
+                'confidence' => 92,
+                'ingredients' => 'Goat meat, peppers, spices, herbs, onions',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
+            ];
         }
 
         if ($colorAnalysis && in_array('green', $colorAnalysis['dominant_colors'])) {
@@ -343,6 +515,17 @@ class AIFoodRecognitionService
                 'allergens' => 'None',
                 'is_vegetarian' => true,
                 'is_spicy' => false,
+            ];
+            // Nigerian Green Dishes
+            $foodTypes[] = [
+                'food_name' => 'Efo Riro',
+                'category' => 'Soups',
+                'description' => 'Rich vegetable soup made with spinach, meat, and palm oil. Served with pounded yam.',
+                'confidence' => 89,
+                'ingredients' => 'Spinach, meat, palm oil, peppers, onions, spices',
+                'allergens' => 'None',
+                'is_vegetarian' => false,
+                'is_spicy' => true,
             ];
         }
         
@@ -420,5 +603,73 @@ class AIFoodRecognitionService
         ];
 
         return $basePrices[$category] ?? 2000;
+    }
+
+    /**
+     * Learn from user corrections and save for future recognition
+     */
+    public function learnFromCorrection($imageHash, $correctedFood, $userFeedback)
+    {
+        try {
+            $learningData = [
+                'image_hash' => $imageHash,
+                'corrected_food' => $correctedFood,
+                'user_feedback' => $userFeedback,
+                'learned_at' => now(),
+            ];
+            
+            // Save to database or file for future reference
+            $this->saveLearningData($learningData);
+            
+            Log::info('AI learned from correction', $learningData);
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to save learning data: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Save learning data for future reference
+     */
+    private function saveLearningData($data)
+    {
+        $learningFile = storage_path('app/ai_learning.json');
+        
+        // Load existing learning data
+        $existingData = [];
+        if (file_exists($learningFile)) {
+            $existingData = json_decode(file_get_contents($learningFile), true) ?? [];
+        }
+        
+        // Add new learning data
+        $existingData[] = $data;
+        
+        // Save back to file
+        file_put_contents($learningFile, json_encode($existingData, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Get learned corrections for similar images
+     */
+    private function getLearnedCorrections($imageHash)
+    {
+        $learningFile = storage_path('app/ai_learning.json');
+        
+        if (!file_exists($learningFile)) {
+            return null;
+        }
+        
+        $learningData = json_decode(file_get_contents($learningFile), true) ?? [];
+        
+        // Find similar image hashes (you could implement more sophisticated similarity)
+        foreach ($learningData as $data) {
+            if ($data['image_hash'] === $imageHash) {
+                return $data['corrected_food'];
+            }
+        }
+        
+        return null;
     }
 } 
