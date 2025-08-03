@@ -22,7 +22,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
             <div class="flex items-center space-x-3">
                 @if($restaurant->logo)
-                    <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-12 h-12 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
+                    <img src="{{ $restaurant->logo_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-12 h-12 rounded-lg object-contain bg-gray-100 dark:bg-gray-700">
                 @else
                     <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                         <i class="fas fa-utensils text-white"></i>

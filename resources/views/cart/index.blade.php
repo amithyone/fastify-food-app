@@ -60,7 +60,7 @@
                                     <!-- Restaurant Header -->
                                     <div class="flex items-center mb-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
                                         @if($restaurantCart['restaurant']->logo)
-                                            <img src="{{ Storage::url($restaurantCart['restaurant']->logo) }}" 
+                                            <img src="{{ $restaurantCart['restaurant']->logo_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" 
                                                  alt="{{ $restaurantCart['restaurant']->name }}" 
                                                  class="w-10 h-10 rounded-lg object-cover mr-3">
                                         @else

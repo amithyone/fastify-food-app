@@ -14,7 +14,7 @@
         <!-- Restaurant Logo/Name -->
         <div class="flex items-center flex-1">
             @if($restaurant->logo)
-                <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-8 h-8 rounded-full mr-2">
+                <img src="{{ $restaurant->logo_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-8 h-8 rounded-full mr-2">
             @else
                 <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-2">
                     <i class="fas fa-utensils text-white text-sm"></i>
@@ -46,7 +46,7 @@
         <!-- Restaurant Banner -->
         @if($restaurant->banner_image)
             <div class="mb-6 rounded-xl overflow-hidden shadow-lg" style="margin-top: 60px;">
-                <img src="{{ Storage::url($restaurant->banner_image) }}" alt="{{ $restaurant->name }}" class="w-full h-32 object-cover">
+                <img src="{{ $restaurant->banner_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('rectangle') }}" alt="{{ $restaurant->name }}" class="w-full h-32 object-cover">
             </div>
         @endif
 
@@ -54,7 +54,7 @@
         <div class="mb-6 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg" style="margin-top: {{ $restaurant->banner_image ? '0' : '60px' }};">
             <div class="flex items-start space-x-4">
                 @if($restaurant->logo)
-                    <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-cover">
+                    <img src="{{ $restaurant->logo_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-16 h-16 rounded-lg object-cover">
                 @else
                     <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">
                         <i class="fas fa-utensils text-white text-2xl"></i>

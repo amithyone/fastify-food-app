@@ -387,7 +387,7 @@
                                     <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                                         <div class="flex items-center">
                                             @if($restaurant->logo)
-                                                <img src="{{ Storage::url($restaurant->logo) }}" alt="{{ $restaurant->name }}" class="w-12 h-12 rounded-lg object-cover mr-3">
+                                                <img src="{{ $restaurant->logo_url ?? \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" alt="{{ $restaurant->name }}" class="w-12 h-12 rounded-lg object-cover mr-3">
                                             @else
                                                 <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3">
                                                     <i class="fas fa-utensils text-white"></i>
