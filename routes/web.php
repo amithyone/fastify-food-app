@@ -11,6 +11,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\AIMenuController;
+use App\Http\Controllers\PayVibeController;
 use App\Http\Controllers\PromotionController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -591,9 +592,38 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/promotions/{planId}', [PromotionController::class, 'show'])->name('restaurant.promotions.show');
     Route::post('/{slug}/promotions/payment', [PromotionController::class, 'createPayment'])->name('restaurant.promotions.payment');
     Route::get('/{slug}/promotions/payment/{paymentId}', [PromotionController::class, 'payment'])->name('restaurant.promotions.payment.show');
+    Route::get('/{slug}/promotions/payment/{paymentId}/payvibe', [PromotionController::class, 'payvibePayment'])->name('restaurant.promotions.payment.payvibe');
+    Route::get('/{slug}/promotions/payment/{paymentId}/virtual-account', [PromotionController::class, 'virtualAccountPayment'])->name('restaurant.promotions.payment.virtual-account');
     Route::get('/{slug}/promotions/payment/{paymentId}/status', [PromotionController::class, 'checkPaymentStatus'])->name('restaurant.promotions.payment.status');
+    
+    // PayVibe Payment Routes
+    Route::post('/{slug}/payvibe/initialize', [PayVibeController::class, 'initializePayment'])->name('restaurant.payvibe.initialize');
+    Route::post('/{slug}/payvibe/virtual-account', [PayVibeController::class, 'generateVirtualAccount'])->name('restaurant.payvibe.virtual-account');
+    Route::get('/payvibe/callback', [PayVibeController::class, 'callback'])->name('payvibe.callback');
+    Route::get('/payvibe/verify/{reference}', [PayVibeController::class, 'verifyPayment'])->name('payvibe.verify');
     Route::get('/{slug}/promotions/analytics', [PromotionController::class, 'analytics'])->name('restaurant.promotions.analytics');
+    
+    // Restaurant Delivery Settings Routes
+    Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');
+    Route::put('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'update'])->name('restaurant.delivery-settings.update');
+    Route::post('/{slug}/delivery-settings/menu-items', [RestaurantDeliverySettingController::class, 'updateMenuItemDeliveryMethods'])->name('restaurant.delivery-settings.menu-items');
+    
+    // API Routes for Delivery Settings
+    Route::get('/{slug}/api/delivery-settings', [RestaurantDeliverySettingController::class, 'apiIndex'])->name('restaurant.api.delivery-settings');
+    Route::get('/{slug}/api/menu-item-delivery-methods', [RestaurantDeliverySettingController::class, 'apiMenuItemDeliveryMethods'])->name('restaurant.api.menu-item-delivery-methods');
+    Route::get('/{slug}/api/menu-items/{menuItemId}/availability/{deliveryMethod}', [RestaurantDeliverySettingController::class, 'checkMenuItemAvailability'])->name('restaurant.api.menu-item-availability');
 });
+
+// Bank Transfer Payment Routes
+Route::middleware(['auth'])->prefix('bank-transfer')->name('bank-transfer.')->group(function () {
+    Route::post('/initialize', [BankTransferPaymentController::class, 'initialize'])->name('initialize');
+    Route::get('/status/{paymentId}', [BankTransferPaymentController::class, 'status'])->name('status');
+    Route::post('/generate-new-account/{paymentId}', [BankTransferPaymentController::class, 'generateNewAccount'])->name('generate-new-account');
+    Route::get('/user-payments', [BankTransferPaymentController::class, 'userPayments'])->name('user-payments');
+});
+
+// PayVibe Webhook Route (no auth required)
+Route::post('/webhook/bank-transfer', [BankTransferPaymentController::class, 'webhook'])->name('webhook.bank-transfer');
 
 // Restaurant browsing routes
 Route::prefix('restaurants')->name('restaurants.')->group(function () {
@@ -631,7 +661,17 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/config', [PWAController::class, 'updateConfig'])->name('admin.config.update');
     
     // Admin Promotion Management
-    Route::get('/promotions', [PromotionController::class, 'adminIndex'])->name('admin.promotions');
-    Route::get('/promotions/payments', [PromotionController::class, 'adminPayments'])->name('admin.promotions.payments');
-    Route::post('/promotions/payments/{paymentId}/mark-paid', [PromotionController::class, 'markAsPaid'])->name('admin.promotions.payments.mark-paid');
+Route::get('/promotions', [PromotionController::class, 'adminIndex'])->name('admin.promotions');
+Route::get('/promotions/payments', [PromotionController::class, 'adminPayments'])->name('admin.promotions.payments');
+Route::post('/promotions/payments/{paymentId}/mark-paid', [PromotionController::class, 'markAsPaid'])->name('admin.promotions.payments.mark-paid');
+
+// Admin Payment Settings Management
+Route::get('/payment-settings', [App\Http\Controllers\Admin\PaymentSettingController::class, 'index'])->name('admin.payment-settings.index');
+Route::get('/payment-settings/create', [App\Http\Controllers\Admin\PaymentSettingController::class, 'create'])->name('admin.payment-settings.create');
+Route::post('/payment-settings', [App\Http\Controllers\Admin\PaymentSettingController::class, 'store'])->name('admin.payment-settings.store');
+Route::get('/payment-settings/{paymentSetting}/edit', [App\Http\Controllers\Admin\PaymentSettingController::class, 'edit'])->name('admin.payment-settings.edit');
+Route::put('/payment-settings/{paymentSetting}', [App\Http\Controllers\Admin\PaymentSettingController::class, 'update'])->name('admin.payment-settings.update');
+Route::delete('/payment-settings/{paymentSetting}', [App\Http\Controllers\Admin\PaymentSettingController::class, 'destroy'])->name('admin.payment-settings.destroy');
+Route::patch('/payment-settings/{paymentSetting}/toggle', [App\Http\Controllers\Admin\PaymentSettingController::class, 'toggleStatus'])->name('admin.payment-settings.toggle');
+Route::post('/payment-settings/test-calculation', [App\Http\Controllers\Admin\PaymentSettingController::class, 'testCalculation'])->name('admin.payment-settings.test');
 });

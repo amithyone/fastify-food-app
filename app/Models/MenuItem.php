@@ -47,6 +47,11 @@ class MenuItem extends Model
         return $this->belongsTo(Restaurant::class);
     }
 
+    public function deliveryMethods()
+    {
+        return $this->hasMany(MenuItemDeliveryMethod::class);
+    }
+
     public function getFormattedPriceAttribute()
     {
         return '₦' . number_format($this->price, 0);

@@ -21,7 +21,14 @@
     <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Order Type</h3>
         <div class="space-y-3">
+            @php
+                // Get the first restaurant's delivery settings (assuming single restaurant orders)
+                $deliverySetting = $cartItems[0]['delivery_setting'] ?? null;
+                $deliveryFee = $deliverySetting ? $deliverySetting->delivery_fee : 500;
+            @endphp
+            
             <!-- Delivery Option -->
+            @if(!$deliverySetting || $deliverySetting->delivery_enabled)
             <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="deliveryOption">
                 <input type="radio" name="orderType" value="delivery" id="deliveryRadio" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
                 <div class="flex items-center flex-1">
@@ -33,12 +40,31 @@
                         <div class="text-sm text-gray-600 dark:text-gray-400">Deliver to your address</div>
                     </div>
                 </div>
-                <div class="text-sm font-medium text-gray-900 dark:text-white">₦500</div>
+                <div class="text-sm font-medium text-gray-900 dark:text-white">₦{{ number_format($deliveryFee, 0) }}</div>
             </label>
+            @endif
+            
+            <!-- Pickup Option -->
+            @if(!$deliverySetting || $deliverySetting->pickup_enabled)
+            <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="pickupOption">
+                <input type="radio" name="orderType" value="pickup" id="pickupRadio" class="mr-3 text-orange-500 focus:ring-orange-500" {{ (!$deliverySetting || !$deliverySetting->delivery_enabled) && ($deliverySetting && $deliverySetting->pickup_enabled) ? 'checked' : '' }}>
+                <div class="flex items-center flex-1">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-hand-holding-usd text-orange-500 text-xl mr-3"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900 dark:text-white">Pickup</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Collect your order at the restaurant</div>
+                    </div>
+                </div>
+                <div class="text-sm font-medium text-gray-900 dark:text-white">₦0</div>
+            </label>
+            @endif
             
             <!-- In Restaurant Option -->
+            @if(!$deliverySetting || $deliverySetting->in_restaurant_enabled)
             <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="restaurantOption">
-                <input type="radio" name="orderType" value="restaurant" id="restaurantRadio" class="mr-3 text-orange-500 focus:ring-orange-500">
+                <input type="radio" name="orderType" value="restaurant" id="restaurantRadio" class="mr-3 text-orange-500 focus:ring-orange-500" {{ (!$deliverySetting || (!$deliverySetting->delivery_enabled && !$deliverySetting->pickup_enabled)) && ($deliverySetting && $deliverySetting->in_restaurant_enabled) ? 'checked' : '' }}>
                 <div class="flex items-center flex-1">
                     <div class="flex-shrink-0">
                         <i class="fas fa-utensils text-orange-500 text-xl mr-3"></i>
@@ -50,6 +76,7 @@
                 </div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">₦0</div>
             </label>
+            @endif
         </div>
     </div>
 
@@ -89,6 +116,43 @@
                 <div>
                     <label for="restaurantNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Special Instructions (Optional)</label>
                     <textarea id="restaurantNotes" name="restaurantNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Any special requests or instructions..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup Information Section -->
+        <div id="pickupInfoSection" class="space-y-4 transition-all duration-300 ease-in-out" style="display: none;">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Pickup Information</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="pickupName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name for Pickup *</label>
+                    <input type="text" id="pickupName" name="pickupName" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Name to call when order is ready">
+                </div>
+                
+                <div>
+                    <label for="pickupPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number for Pickup *</label>
+                    <input type="tel" id="pickupPhone" name="pickupPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number to contact">
+                </div>
+                
+                <div>
+                    <label for="pickupTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pickup Time *</label>
+                    <select id="pickupTime" name="pickupTime" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                        <option value="asap">ASAP (Ready in 15-20 minutes)</option>
+                        <option value="30min">30 minutes from now</option>
+                        <option value="1hour">1 hour from now</option>
+                        <option value="custom">Custom time</option>
+                    </select>
+                </div>
+                
+                <div id="customPickupTime" class="hidden">
+                    <label for="customPickupDateTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Custom Pickup Time *</label>
+                    <input type="datetime-local" id="customPickupDateTime" name="customPickupDateTime" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                </div>
+                
+                <div>
+                    <label for="pickupNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Special Instructions (Optional)</label>
+                    <textarea id="pickupNotes" name="pickupNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Any special requests or instructions..."></textarea>
                 </div>
             </div>
         </div>
@@ -196,7 +260,7 @@
                 </label>
                 
                 <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <input type="radio" name="payment_method" value="transfer" class="mr-3 text-orange-500 focus:ring-orange-500">
+                    <input type="radio" name="payment_method" value="transfer" class="mr-3 text-orange-500 focus:ring-orange-500" onchange="handleBankTransferSelection()">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <div class="font-medium text-gray-900 dark:text-white">Bank Transfer</div>
@@ -274,7 +338,27 @@
     </a>
 </nav>
 
+<!-- Include Bank Transfer Modal -->
+@include('components.bank-transfer-modal')
+
 <script>
+// Bank Transfer Selection Handler
+function handleBankTransferSelection() {
+    const transferRadio = document.querySelector('input[name="payment_method"][value="transfer"]');
+    if (transferRadio.checked) {
+        // Get order total from the page
+        const totalElement = document.getElementById('total');
+        const totalText = totalElement.textContent;
+        const total = parseFloat(totalText.replace('₦', '').replace(',', '')) || 0;
+        
+        // Get order ID from form or create a temporary one
+        const orderId = document.querySelector('input[name="order_id"]')?.value || Date.now();
+        
+        // Open bank transfer modal
+        openBankTransferModal(orderId, total);
+    }
+}
+
 // Theme toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('themeToggle');
@@ -300,11 +384,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Order Type Selection
 document.addEventListener('DOMContentLoaded', function() {
     const deliveryRadio = document.getElementById('deliveryRadio');
+    const pickupRadio = document.getElementById('pickupRadio');
     const restaurantRadio = document.getElementById('restaurantRadio');
     const deliveryOption = document.getElementById('deliveryOption');
+    const pickupOption = document.getElementById('pickupOption');
     const restaurantOption = document.getElementById('restaurantOption');
     const customerInfoSection = document.getElementById('customerInfoSection');
     const restaurantInfoSection = document.getElementById('restaurantInfoSection');
+    const pickupInfoSection = document.getElementById('pickupInfoSection');
     const addressSection = document.getElementById('addressSection');
     
     console.log('Radio elements:', { deliveryRadio, restaurantRadio });
@@ -312,31 +399,51 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function handleOrderTypeChange() {
         const isRestaurant = restaurantRadio.checked;
-        console.log('Order type changed, restaurant mode:', isRestaurant);
+        const isPickup = pickupRadio.checked;
+        const isDelivery = deliveryRadio.checked;
+        
+        console.log('Order type changed:', { isRestaurant, isPickup, isDelivery });
+        
+        // Hide all sections first
+        customerInfoSection.style.maxHeight = '0px';
+        customerInfoSection.style.overflow = 'hidden';
+        customerInfoSection.style.opacity = '0';
+        customerInfoSection.style.marginBottom = '0px';
+        
+        restaurantInfoSection.style.display = 'none';
+        restaurantInfoSection.style.maxHeight = '0px';
+        restaurantInfoSection.style.overflow = 'hidden';
+        restaurantInfoSection.style.opacity = '0';
+        restaurantInfoSection.style.marginBottom = '0px';
+        
+        pickupInfoSection.style.display = 'none';
+        pickupInfoSection.style.maxHeight = '0px';
+        pickupInfoSection.style.overflow = 'hidden';
+        pickupInfoSection.style.opacity = '0';
+        pickupInfoSection.style.marginBottom = '0px';
+        
+        addressSection.style.maxHeight = '0px';
+        addressSection.style.overflow = 'hidden';
+        addressSection.style.opacity = '0';
+        addressSection.style.marginBottom = '0px';
+        
+        // Remove required attributes from all sections
+        document.querySelectorAll('#customerInfoSection input, #addressSection input, #addressSection textarea, #pickupInfoSection input, #pickupInfoSection select, #pickupInfoSection textarea').forEach(input => {
+            input.removeAttribute('required');
+        });
+        
+        // Remove styling from all options
+        deliveryOption.classList.remove('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
+        pickupOption.classList.remove('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
+        restaurantOption.classList.remove('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
         
         if (isRestaurant) {
-            // Restaurant mode - hide delivery sections, show restaurant section
-            customerInfoSection.style.maxHeight = '0px';
-            customerInfoSection.style.overflow = 'hidden';
-            customerInfoSection.style.opacity = '0';
-            customerInfoSection.style.marginBottom = '0px';
-            
-            addressSection.style.maxHeight = '0px';
-            addressSection.style.overflow = 'hidden';
-            addressSection.style.opacity = '0';
-            addressSection.style.marginBottom = '0px';
-            
-            // Show restaurant info section
+            // Restaurant mode - show restaurant section
             restaurantInfoSection.style.display = 'block';
             restaurantInfoSection.style.maxHeight = '1000px';
             restaurantInfoSection.style.overflow = 'visible';
             restaurantInfoSection.style.opacity = '1';
             restaurantInfoSection.style.marginBottom = '24px';
-            
-            // Remove required attributes from delivery sections
-            document.querySelectorAll('#customerInfoSection input, #addressSection input, #addressSection textarea').forEach(input => {
-                input.removeAttribute('required');
-            });
             
             // Add required attribute to table number
             document.getElementById('tableNumber').setAttribute('required', 'required');
@@ -346,9 +453,28 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update option styling
             restaurantOption.classList.add('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
-            deliveryOption.classList.remove('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
             
-            console.log('Restaurant mode - restaurant section shown, delivery sections hidden');
+            console.log('Restaurant mode - restaurant section shown');
+        } else if (isPickup) {
+            // Pickup mode - show pickup section
+            pickupInfoSection.style.display = 'block';
+            pickupInfoSection.style.maxHeight = '1000px';
+            pickupInfoSection.style.overflow = 'visible';
+            pickupInfoSection.style.opacity = '1';
+            pickupInfoSection.style.marginBottom = '24px';
+            
+            // Add required attributes to pickup fields
+            document.getElementById('pickupName').setAttribute('required', 'required');
+            document.getElementById('pickupPhone').setAttribute('required', 'required');
+            document.getElementById('pickupTime').setAttribute('required', 'required');
+            
+            // Update delivery fee to 0
+            updateDeliveryFee(0);
+            
+            // Update option styling
+            pickupOption.classList.add('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
+            
+            console.log('Pickup mode - pickup section shown');
         } else {
             // Delivery mode - show delivery sections, hide restaurant section
             customerInfoSection.style.maxHeight = '1000px';
@@ -390,12 +516,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add event listeners
-    if (deliveryRadio && restaurantRadio) {
+    if (deliveryRadio && pickupRadio && restaurantRadio) {
         deliveryRadio.addEventListener('change', handleOrderTypeChange);
+        pickupRadio.addEventListener('change', handleOrderTypeChange);
         restaurantRadio.addEventListener('change', handleOrderTypeChange);
         
         // Initialize with delivery mode
         handleOrderTypeChange();
+        
+        // Handle custom pickup time selection
+        const pickupTimeSelect = document.getElementById('pickupTime');
+        const customPickupTimeDiv = document.getElementById('customPickupTime');
+        const customPickupDateTime = document.getElementById('customPickupDateTime');
+        
+        if (pickupTimeSelect) {
+            pickupTimeSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customPickupTimeDiv.classList.remove('hidden');
+                    customPickupDateTime.setAttribute('required', 'required');
+                } else {
+                    customPickupTimeDiv.classList.add('hidden');
+                    customPickupDateTime.removeAttribute('required');
+                }
+            });
+        }
     } else {
         console.error('Radio buttons not found');
     }
@@ -415,7 +559,10 @@ function updateOrderSummary() {
     const subtotal = parseFloat(subtotalText.replace('₦', '').replace(',', '')) || 0;
     
     const restaurantRadio = document.getElementById('restaurantRadio');
-    const deliveryFee = restaurantRadio && restaurantRadio.checked ? 0 : 500;
+    // Get delivery fee from restaurant settings
+    const deliveryFeeElement = document.getElementById('deliveryFee');
+    const deliveryFeeText = deliveryFeeElement.textContent;
+    const deliveryFee = restaurantRadio && restaurantRadio.checked ? 0 : parseInt(deliveryFeeText.replace(/[^\d]/g, '')) || 500;
     const total = subtotal + deliveryFee;
     
     document.getElementById('deliveryFee').textContent = `₦${deliveryFee.toLocaleString()}`;
@@ -465,16 +612,44 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     
     // Calculate totals directly to ensure accuracy
     const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')) || 0;
-    const deliveryFee = restaurantRadio && restaurantRadio.checked ? 0 : 500;
+    // Get delivery fee from restaurant settings
+    const deliveryFeeElement = document.getElementById('deliveryFee');
+    const deliveryFeeText = deliveryFeeElement.textContent;
+    const deliveryFee = restaurantRadio && restaurantRadio.checked ? 0 : parseInt(deliveryFeeText.replace(/[^\d]/g, '')) || 500;
     const calculatedTotal = subtotal + deliveryFee;
     
-    const orderData = {
-        items: orderItems,
-        customer_info: restaurantRadio.checked ? {
+    // Determine order type and prepare customer info
+    const deliveryRadio = document.getElementById('deliveryRadio');
+    const pickupRadio = document.getElementById('pickupRadio');
+    
+    let customerInfo;
+    let orderType;
+    
+    if (restaurantRadio.checked) {
+        orderType = 'restaurant';
+        customerInfo = {
+            order_type: orderType,
             in_restaurant: true,
             table_number: formData.get('tableNumber'),
             restaurant_notes: formData.get('restaurantNotes')
-        } : {
+        };
+    } else if (pickupRadio.checked) {
+        orderType = 'pickup';
+        customerInfo = {
+            order_type: orderType,
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            email: formData.get('email'),
+            pickup_name: formData.get('pickupName'),
+            pickup_phone: formData.get('pickupPhone'),
+            pickup_time: formData.get('pickupTime'),
+            custom_pickup_datetime: formData.get('customPickupDateTime'),
+            pickup_notes: formData.get('pickupNotes')
+        };
+    } else {
+        orderType = 'delivery';
+        customerInfo = {
+            order_type: orderType,
             name: formData.get('name'),
             phone: formData.get('phone'),
             email: formData.get('email'),
@@ -484,7 +659,12 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             postal_code: formData.get('postal_code'),
             instructions: formData.get('instructions'),
             in_restaurant: false
-        },
+        };
+    }
+    
+    const orderData = {
+        items: orderItems,
+        customer_info: customerInfo,
         payment_method: formData.get('payment_method'),
         subtotal: subtotal,
         delivery_fee: deliveryFee,
@@ -493,6 +673,15 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     
     // Debug: Log the order data
     console.log('Sending order data:', orderData);
+    
+    // Check if bank transfer is selected
+    const paymentMethod = formData.get('payment_method');
+    if (paymentMethod === 'transfer') {
+        // For bank transfer, we'll handle the payment through the modal
+        // The order will be created after payment confirmation
+        alert('Please complete the bank transfer payment in the modal that opened.');
+        return;
+    }
     
     // Send order to server
     fetch('/orders', {

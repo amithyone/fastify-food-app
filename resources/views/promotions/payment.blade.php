@@ -99,6 +99,30 @@
                         Copy Details
                     </button>
                 </div>
+
+                <!-- Alternative Payment Methods -->
+                <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Alternative Payment Methods</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="{{ route('restaurant.promotions.payment.payvibe', ['slug' => $restaurant->slug, 'paymentId' => $payment->id]) }}" 
+                           class="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-700">
+                            <i class="fas fa-credit-card text-blue-500 mr-3"></i>
+                            <div>
+                                <div class="font-medium text-gray-900 dark:text-white">PayVibe Secure Payment</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Pay with cards, bank transfer, or mobile money</div>
+                            </div>
+                        </a>
+                        <a href="{{ route('restaurant.promotions.payment.virtual-account', ['slug' => $restaurant->slug, 'paymentId' => $payment->id]) }}" 
+                           class="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-200 dark:border-green-700">
+                            <i class="fas fa-university text-green-500 mr-3"></i>
+                            <div>
+                                <div class="font-medium text-gray-900 dark:text-white">Virtual Account</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Generate virtual account for bank transfer</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

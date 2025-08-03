@@ -19,19 +19,44 @@ class Order extends Model
         'allergies',
         'delivery_time',
         'total_amount',
+        'subtotal',
+        'service_charge',
+        'tax_amount',
+        'delivery_fee',
+        'discount_amount',
+        'discount_code',
+        'charge_breakdown',
         'status',
         'status_note',
         'status_updated_at',
         'status_updated_by',
         'notes',
         'tracking_code',
-        'tracking_code_expires_at'
+        'tracking_code_expires_at',
+        'order_type',
+        'pickup_code',
+        'pickup_time',
+        'pickup_name',
+        'pickup_phone',
+        'payment_method',
+        'payment_reference',
+        'gateway_reference',
+        'payment_status',
+        'paid_at'
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'service_charge' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'charge_breakdown' => 'array',
+        'pickup_time' => 'datetime',
         'tracking_code_expires_at' => 'datetime',
         'status_updated_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function orderItems()
@@ -63,6 +88,7 @@ class Order extends Model
     {
         $statuses = [
             'pending' => 'bg-yellow-100 text-yellow-800',
+            'pending_payment' => 'bg-orange-100 text-orange-800',
             'confirmed' => 'bg-blue-100 text-blue-800',
             'preparing' => 'bg-orange-100 text-orange-800',
             'ready' => 'bg-green-100 text-green-800',
@@ -93,6 +119,168 @@ class Order extends Model
         ];
 
         return $statuses[$this->payment_status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-200';
+    }
+
+    /**
+     * Get formatted subtotal
+     */
+    public function getFormattedSubtotalAttribute()
+    {
+        return '₦' . number_format($this->subtotal ?? 0, 2);
+    }
+
+    /**
+     * Get formatted service charge
+     */
+    public function getFormattedServiceChargeAttribute()
+    {
+        return '₦' . number_format($this->service_charge ?? 0, 2);
+    }
+
+    /**
+     * Get formatted tax amount
+     */
+    public function getFormattedTaxAmountAttribute()
+    {
+        return '₦' . number_format($this->tax_amount ?? 0, 2);
+    }
+
+    /**
+     * Get formatted delivery fee
+     */
+    public function getFormattedDeliveryFeeAttribute()
+    {
+        return '₦' . number_format($this->delivery_fee ?? 0, 2);
+    }
+
+    /**
+     * Get formatted discount amount
+     */
+    public function getFormattedDiscountAmountAttribute()
+    {
+        return '₦' . number_format($this->discount_amount ?? 0, 2);
+    }
+
+    /**
+     * Check if order has any charges
+     */
+    public function hasCharges()
+    {
+        return ($this->service_charge ?? 0) > 0 || 
+               ($this->tax_amount ?? 0) > 0 || 
+               ($this->delivery_fee ?? 0) > 0;
+    }
+
+    /**
+     * Check if order has discount
+     */
+    public function hasDiscount()
+    {
+        return ($this->discount_amount ?? 0) > 0;
+    }
+
+    /**
+     * Get charge breakdown for display
+     */
+    public function getChargeBreakdownDisplay()
+    {
+        $breakdown = [];
+        
+        if ($this->service_charge > 0) {
+            $breakdown[] = [
+                'name' => 'Service Charge',
+                'amount' => $this->formatted_service_charge
+            ];
+        }
+        
+        if ($this->tax_amount > 0) {
+            $breakdown[] = [
+                'name' => 'Tax',
+                'amount' => $this->formatted_tax_amount
+            ];
+        }
+        
+        if ($this->delivery_fee > 0) {
+            $breakdown[] = [
+                'name' => 'Delivery Fee',
+                'amount' => $this->formatted_delivery_fee
+            ];
+        }
+        
+        if ($this->discount_amount > 0) {
+            $breakdown[] = [
+                'name' => 'Discount',
+                'amount' => '-' . $this->formatted_discount_amount
+            ];
+        }
+        
+        return $breakdown;
+    }
+
+    /**
+     * Generate pickup code
+     */
+    public function generatePickupCode()
+    {
+        return strtoupper(substr(md5($this->id . time()), 0, 6));
+    }
+
+    /**
+     * Check if order is pickup type
+     */
+    public function isPickup()
+    {
+        return $this->order_type === 'pickup';
+    }
+
+    /**
+     * Check if order is delivery type
+     */
+    public function isDelivery()
+    {
+        return $this->order_type === 'delivery';
+    }
+
+    /**
+     * Check if order is in restaurant type
+     */
+    public function isInRestaurant()
+    {
+        return $this->order_type === 'in_restaurant';
+    }
+
+    /**
+     * Get order type display name
+     */
+    public function getOrderTypeDisplayAttribute()
+    {
+        $types = [
+            'delivery' => 'Delivery',
+            'pickup' => 'Pickup',
+            'in_restaurant' => 'In Restaurant'
+        ];
+
+        return $types[$this->order_type] ?? ucfirst($this->order_type);
+    }
+
+    /**
+     * Get formatted pickup time
+     */
+    public function getFormattedPickupTimeAttribute()
+    {
+        if (!$this->pickup_time) {
+            return 'ASAP';
+        }
+        
+        return $this->pickup_time->format('M j, Y g:i A');
+    }
+
+    /**
+     * Check if pickup time is in the future
+     */
+    public function isPickupTimeFuture()
+    {
+        return $this->pickup_time && $this->pickup_time->isFuture();
     }
 
     public function isRestaurantOrder()

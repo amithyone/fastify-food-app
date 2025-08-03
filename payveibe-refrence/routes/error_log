@@ -1,0 +1,32 @@
+[26-Mar-2025 07:23:48 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/web.php:30
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/web.php on line 30
+[26-Mar-2025 07:23:50 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/api.php:20
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/api.php on line 20
+[14-Apr-2025 09:40:39 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/api.php:20
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/api.php on line 20
+[14-Apr-2025 09:40:39 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/web.php:31
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/web.php on line 31
+[21-Apr-2025 22:32:10 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/api.php:20
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/api.php on line 20
+[21-Apr-2025 22:32:10 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/web.php:31
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/web.php on line 31
+[06-May-2025 20:56:58 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/api.php:20
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/api.php on line 20
+[06-May-2025 20:56:58 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/wolrdhome/faddedsms.com/routes/web.php:31
+Stack trace:
+#0 {main}
+  thrown in /home/wolrdhome/faddedsms.com/routes/web.php on line 31

@@ -54,4 +54,12 @@ return [
         'api_key' => env('FOOD_RECOGNITION_API_KEY', 'demo'),
     ],
 
+    'payvibe' => [
+        'public_key' => env('PAYVIBE_PUBLIC_KEY'),
+        'secret_key' => env('PAYVIBE_SECRET_KEY'),
+        'base_url' => env('PAYVIBE_BASE_URL', 'https://payvibeapi.six3tech.com/api'),
+        'test_mode' => env('PAYVIBE_TEST_MODE', true),
+        'product_identifier' => env('PAYVIBE_PRODUCT_IDENTIFIER', 'fast'),
+    ],
+
 ];

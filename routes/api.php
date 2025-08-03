@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\PayVibeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -188,4 +189,7 @@ Route::post('/featured-restaurants/{id}/click', function ($id) {
             'message' => 'Failed to track click: ' . $e->getMessage()
         ], 500);
     }
-}); 
+});
+
+// PayVibe Webhook Route
+Route::post('/webhook/payvibe', [PayVibeController::class, 'webhook'])->name('api.payvibe.webhook'); 

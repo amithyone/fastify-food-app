@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\MenuItem;
 use App\Models\UserReward;
 use App\Models\TableQR;
+use App\Services\PaymentCalculationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,13 @@ use App\Models\Restaurant;
 
 class OrderController extends Controller
 {
+    protected $paymentCalculationService;
+
+    public function __construct(PaymentCalculationService $paymentCalculationService)
+    {
+        $this->paymentCalculationService = $paymentCalculationService;
+    }
+
     public function cart()
     {
         return view('cart.index');
@@ -49,10 +57,14 @@ class OrderController extends Controller
                 }
 
                 if (!empty($restaurantItems)) {
+                    // Get restaurant delivery settings
+                    $deliverySetting = $restaurant->deliverySetting;
+                    
                     $cartItems[] = [
                         'restaurant' => $restaurant,
                         'items' => $restaurantItems,
-                        'total' => $restaurantTotal
+                        'total' => $restaurantTotal,
+                        'delivery_setting' => $deliverySetting
                     ];
                     $total += $restaurantTotal;
                 }
@@ -159,52 +171,82 @@ class OrderController extends Controller
                 throw new \Exception('No restaurant found for order items');
             }
 
-            // Use the total sent from frontend to ensure consistency
-            $total = $request->total;
-            
-            // Validate that the total matches our calculation
-            $calculatedTotal = 0;
+            // Calculate subtotal from items
+            $subtotal = 0;
             foreach ($request->items as $item) {
-                $calculatedTotal += $item['price'] * $item['quantity'];
+                $subtotal += $item['price'] * $item['quantity'];
             }
-            $calculatedTotal += $request->delivery_fee;
+
+            // Calculate charges using payment calculation service
+            $orderData = [
+                'subtotal' => $subtotal,
+                'payment_method' => $request->payment_method
+            ];
+
+            $charges = $this->paymentCalculationService->calculateOrderCharges($subtotal, $orderData);
             
             // Log for debugging
-            \Log::info('Order total validation:', [
-                'frontend_total' => $total,
-                'calculated_total' => $calculatedTotal,
-                'delivery_fee' => $request->delivery_fee,
-                'items' => $request->items
+            \Log::info('Order charges calculation:', [
+                'subtotal' => $subtotal,
+                'charges' => $charges,
+                'frontend_total' => $request->total
             ]);
-            
-            // Use the frontend total but log if there's a discrepancy
-            if (abs($total - $calculatedTotal) > 1) { // Allow 1 kobo difference for rounding
-                \Log::warning('Order total mismatch detected', [
-                    'frontend_total' => $total,
-                    'calculated_total' => $calculatedTotal,
-                    'difference' => $total - $calculatedTotal
-                ]);
-            }
 
             // Prepare customer info
             $customerInfo = $request->customer_info;
-            $customerName = $customerInfo['in_restaurant'] ? 'Restaurant Customer' : $customerInfo['name'];
-            $phoneNumber = $customerInfo['in_restaurant'] ? 'N/A' : $customerInfo['phone'];
-            $deliveryAddress = $customerInfo['in_restaurant'] ? 
-                'Table: ' . $customerInfo['table_number'] : 
-                $customerInfo['address'] . ', ' . $customerInfo['city'] . ', ' . $customerInfo['state'];
+            $orderType = $customerInfo['order_type'] ?? 'delivery';
+            
+            // Determine customer name and phone based on order type
+            if ($orderType === 'pickup') {
+                $customerName = $customerInfo['pickup_name'] ?? $customerInfo['name'] ?? 'Pickup Customer';
+                $phoneNumber = $customerInfo['pickup_phone'] ?? $customerInfo['phone'] ?? 'N/A';
+                $deliveryAddress = 'Pickup at Restaurant';
+            } elseif ($orderType === 'restaurant') {
+                $customerName = 'Restaurant Customer';
+                $phoneNumber = 'N/A';
+                $deliveryAddress = 'Table: ' . ($customerInfo['table_number'] ?? 'N/A');
+            } else {
+                $customerName = $customerInfo['name'] ?? 'Delivery Customer';
+                $phoneNumber = $customerInfo['phone'] ?? 'N/A';
+                $deliveryAddress = $customerInfo['address'] . ', ' . $customerInfo['city'] . ', ' . $customerInfo['state'];
+            }
             
             // Prepare notes
-            $notes = 'Payment Method: ' . ucfirst($request->payment_method) . 
-                    ($customerInfo['in_restaurant'] ? ' | In Restaurant' : ' | Delivery');
+            $notes = 'Payment Method: ' . ucfirst($request->payment_method) . ' | ' . ucfirst($orderType);
             
-            if ($customerInfo['in_restaurant'] && !empty($customerInfo['restaurant_notes'])) {
+            if ($orderType === 'pickup' && !empty($customerInfo['pickup_notes'])) {
+                $notes .= ' | Pickup Notes: ' . $customerInfo['pickup_notes'];
+            } elseif ($orderType === 'restaurant' && !empty($customerInfo['restaurant_notes'])) {
                 $notes .= ' | Notes: ' . $customerInfo['restaurant_notes'];
-            } elseif (!$customerInfo['in_restaurant'] && !empty($customerInfo['instructions'])) {
+            } elseif ($orderType === 'delivery' && !empty($customerInfo['instructions'])) {
                 $notes .= ' | Instructions: ' . $customerInfo['instructions'];
             }
 
-            // Create order
+            // Calculate pickup time
+            $pickupTime = null;
+            if ($orderType === 'pickup') {
+                $pickupTimeOption = $customerInfo['pickup_time'] ?? 'asap';
+                switch ($pickupTimeOption) {
+                    case 'asap':
+                        $pickupTime = now()->addMinutes(20);
+                        break;
+                    case '30min':
+                        $pickupTime = now()->addMinutes(30);
+                        break;
+                    case '1hour':
+                        $pickupTime = now()->addHour();
+                        break;
+                    case 'custom':
+                        $pickupTime = $customerInfo['custom_pickup_datetime'] ? 
+                            \Carbon\Carbon::parse($customerInfo['custom_pickup_datetime']) : 
+                            now()->addMinutes(20);
+                        break;
+                    default:
+                        $pickupTime = now()->addMinutes(20);
+                }
+            }
+
+            // Create order with calculated charges
             $order = Order::create([
                 'restaurant_id' => $restaurantId,
                 'user_id' => Auth::id(), // Will be null for guest users
@@ -213,10 +255,22 @@ class OrderController extends Controller
                 'phone_number' => $phoneNumber,
                 'delivery_address' => $deliveryAddress,
                 'allergies' => $customerInfo['instructions'] ?? null, // Re-purposed for delivery instructions
-                'delivery_time' => $customerInfo['in_restaurant'] ? 'In Restaurant' : 'ASAP',
-                'total_amount' => $total,
-                'status' => 'pending',
+                'delivery_time' => $orderType === 'restaurant' ? 'In Restaurant' : 'ASAP',
+                'order_type' => $orderType,
+                'pickup_code' => $orderType === 'pickup' ? strtoupper(substr(md5(uniqid()), 0, 6)) : null,
+                'pickup_time' => $pickupTime,
+                'pickup_name' => $orderType === 'pickup' ? ($customerInfo['pickup_name'] ?? $customerName) : null,
+                'pickup_phone' => $orderType === 'pickup' ? ($customerInfo['pickup_phone'] ?? $phoneNumber) : null,
+                'subtotal' => $charges['subtotal'],
+                'service_charge' => $charges['service_charge'],
+                'tax_amount' => $charges['tax_amount'],
+                'delivery_fee' => $charges['delivery_fee'],
+                'discount_amount' => $charges['discount_amount'],
+                'charge_breakdown' => $charges['breakdown'],
+                'total_amount' => $charges['total'],
+                'status' => $request->payment_method === 'transfer' ? 'pending_payment' : 'pending',
                 'notes' => $notes,
+                'payment_method' => $request->payment_method
             ]);
 
             // Generate tracking code for guest orders (non-authenticated users)
@@ -251,7 +305,7 @@ class OrderController extends Controller
                         $wallet = $user->getWalletOrCreate();
                         
                         // Calculate reward points (1 point per ₦100 spent)
-                        $pointsEarned = (int) ($total / 100);
+                        $pointsEarned = (int) ($charges['total'] / 100);
                         
                         if ($pointsEarned > 0) {
                             // Create reward record
@@ -259,7 +313,7 @@ class OrderController extends Controller
                                 'user_id' => $user->id,
                                 'order_id' => $order->id,
                                 'points_earned' => $pointsEarned,
-                                'order_amount' => $total,
+                                'order_amount' => $charges['total'],
                                 'payment_method' => 'transfer',
                                 'status' => 'credited',
                                 'credited_at' => now(),
@@ -277,12 +331,12 @@ class OrderController extends Controller
                         $wallet = $user->getWalletOrCreate();
                         
                         // Check if user has sufficient balance
-                        if ($wallet->balance < $total) {
+                        if ($wallet->balance < $charges['total']) {
                             throw new \Exception('Insufficient wallet balance');
                         }
                         
                         // Debit the amount from wallet
-                        $wallet->debit($total, "Payment for order #{$order->id}", $order->id);
+                        $wallet->debit($charges['total'], "Payment for order #{$order->id}", $order->id);
                         
                         // Update order payment status
                         $order->update([

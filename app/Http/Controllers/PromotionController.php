@@ -131,6 +131,44 @@ class PromotionController extends Controller
     }
 
     /**
+     * Show PayVibe payment page
+     */
+    public function payvibePayment($slug, $paymentId)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $payment = PromotionPayment::with(['promotionPlan', 'featuredRestaurant'])
+            ->where('id', $paymentId)
+            ->where('restaurant_id', $restaurant->id)
+            ->firstOrFail();
+        
+        // Check if user can manage this restaurant
+        if (!Auth::user()->canManageRestaurant($restaurant)) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('promotions.payvibe-payment', compact('restaurant', 'payment'));
+    }
+
+    /**
+     * Show virtual account payment page
+     */
+    public function virtualAccountPayment($slug, $paymentId)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        $payment = PromotionPayment::with(['promotionPlan', 'featuredRestaurant'])
+            ->where('id', $paymentId)
+            ->where('restaurant_id', $restaurant->id)
+            ->firstOrFail();
+        
+        // Check if user can manage this restaurant
+        if (!Auth::user()->canManageRestaurant($restaurant)) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('promotions.virtual-account-payment', compact('restaurant', 'payment'));
+    }
+
+    /**
      * Check payment status
      */
     public function checkPaymentStatus($slug, $paymentId)
