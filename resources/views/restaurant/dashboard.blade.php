@@ -649,39 +649,44 @@ function updateAllStatus(newStatus) {
 }
 
 // Status update form submission
-document.getElementById('statusUpdateForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    if (!currentOrderId) {
-        alert('No order selected');
-        return;
-    }
-    
-    const formData = new FormData(e.target);
-    
-    fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => 'ORDER_ID']) }}`.replace('ORDER_ID', currentOrderId), {
-        method: 'PUT',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: formData
-    }).then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            return response.text().then(text => {
-                console.error('Error response:', text);
-                throw new Error('Status update failed - Server returned: ' + text.substring(0, 100));
+document.addEventListener('DOMContentLoaded', function() {
+    const statusUpdateForm = document.getElementById('statusUpdateForm');
+    if (statusUpdateForm) {
+        statusUpdateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentOrderId) {
+                alert('No order selected');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            
+            fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => 'ORDER_ID']) }}`.replace('ORDER_ID', currentOrderId), {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error('Status update failed - Server returned: ' + text.substring(0, 100));
+                    });
+                }
+            }).then(data => {
+                console.log('Status update success:', data);
+                closeStatusUpdateModal();
+                window.location.reload();
+            }).catch(error => {
+                console.error('Status update error:', error);
+                alert('Error updating order status: ' + error.message);
             });
-        }
-    }).then(data => {
-        console.log('Status update success:', data);
-        closeStatusUpdateModal();
-        window.location.reload();
-    }).catch(error => {
-        console.error('Status update error:', error);
-        alert('Error updating order status: ' + error.message);
-    });
+        });
+    }
 });
 
 // AI Menu Modal
@@ -770,7 +775,11 @@ function recognizeFood() {
     })
     .catch(error => {
         console.error('Recognition error:', error);
-        alert('Error recognizing food. Please try again.');
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
+        alert('Error recognizing food. Please try again. Check console for details.');
     })
     .finally(() => {
         document.getElementById('recognizeBtn').innerHTML = '<i class="fas fa-robot mr-2"></i>Recognize Food';
@@ -779,32 +788,37 @@ function recognizeFood() {
 }
 
 // AI Menu form submission
-document.getElementById('aiMenuForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    
-    fetch('{{ route("restaurant.ai.store", $restaurant->slug) }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Menu item added successfully!');
-            closeAIMenuModal();
-            window.location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Add menu item error:', error);
-        alert('Error adding menu item. Please try again.');
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    const aiMenuForm = document.getElementById('aiMenuForm');
+    if (aiMenuForm) {
+        aiMenuForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            fetch('{{ route("restaurant.ai.store", $restaurant->slug) }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Menu item added successfully!');
+                    closeAIMenuModal();
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Add menu item error:', error);
+                alert('Error adding menu item. Please try again.');
+            });
+        });
+    }
 });
 
 // AI Correction Functions
