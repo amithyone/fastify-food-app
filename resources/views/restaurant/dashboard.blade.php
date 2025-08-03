@@ -311,6 +311,117 @@
             </a>
         </div>
 
+        <!-- Restaurant Promotion Ads Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8 border border-orange-200 dark:border-orange-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                            <i class="fas fa-star text-orange-500 mr-2"></i>
+                            Promote Your Restaurant
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Boost your visibility and attract more customers</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                            Featured
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                @php
+                    $currentFeatured = \App\Models\FeaturedRestaurant::where('restaurant_id', $restaurant->id)
+                        ->currentlyFeatured()
+                        ->first();
+                @endphp
+
+                @if($currentFeatured)
+                    <!-- Current Active Promotion -->
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-700">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                <span class="font-medium text-green-800 dark:text-green-200">Active Promotion</span>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                {{ $currentFeatured->badge_text }}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">{{ $currentFeatured->display_title }}</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ $currentFeatured->display_description }}</p>
+                                
+                                <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                                    <span><i class="fas fa-eye mr-1"></i> {{ $currentFeatured->impression_count }} impressions</span>
+                                    <span><i class="fas fa-mouse-pointer mr-1"></i> {{ $currentFeatured->click_count }} clicks</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                    <div>Started: {{ $currentFeatured->featured_from ? $currentFeatured->featured_from->format('M j, Y') : 'Now' }}</div>
+                                    <div>Ends: {{ $currentFeatured->featured_until ? $currentFeatured->featured_until->format('M j, Y') : 'Ongoing' }}</div>
+                                </div>
+                                
+                                <button onclick="editPromotion({{ $currentFeatured->id }})" 
+                                        class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
+                                    <i class="fas fa-edit mr-1"></i>
+                                    Edit Promotion
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <!-- No Active Promotion -->
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-star text-orange-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Boost Your Restaurant's Visibility</h4>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                            Get featured on our homepage and attract more customers. Create custom promotions with badges, special offers, and targeted messaging.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-eye text-blue-600"></i>
+                                </div>
+                                <h5 class="font-medium text-gray-900 dark:text-white text-sm">Increased Visibility</h5>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Appear on homepage</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-chart-line text-green-600"></i>
+                                </div>
+                                <h5 class="font-medium text-gray-900 dark:text-white text-sm">More Orders</h5>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Attract new customers</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                    <i class="fas fa-bullhorn text-purple-600"></i>
+                                </div>
+                                <h5 class="font-medium text-gray-900 dark:text-white text-sm">Custom Promotions</h5>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Special offers & badges</p>
+                            </div>
+                        </div>
+                        
+                        <button onclick="createPromotion()" 
+                                class="inline-flex items-center px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                            <i class="fas fa-plus mr-2"></i>
+                            Create Promotion
+                        </button>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <!-- Quick Status Updates -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -1218,4 +1329,206 @@ function submitCorrectionToServer(correctionData) {
         </form>
     </div>
 </x-modal>
+
+<!-- Promotion Modal -->
+<x-modal name="promotion-modal" maxWidth="lg">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white" id="promotionModalTitle">Create Promotion</h3>
+            <button onclick="closePromotionModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="promotionForm" onsubmit="submitPromotion(event)">
+            <div class="space-y-4">
+                <div>
+                    <label for="promotionTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Promotion Title</label>
+                    <input type="text" id="promotionTitle" name="title" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <p class="text-xs text-gray-500 mt-1">This will be displayed as the main headline</p>
+                </div>
+                
+                <div>
+                    <label for="promotionDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                    <textarea id="promotionDescription" name="description" rows="3"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                              placeholder="Describe your promotion, special offers, or unique selling points"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promotionBadge" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Badge Text</label>
+                        <select id="promotionBadge" name="badge_text"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">No Badge</option>
+                            <option value="New">New</option>
+                            <option value="Popular">Popular</option>
+                            <option value="Limited Time">Limited Time</option>
+                            <option value="Special Offer">Special Offer</option>
+                            <option value="Best Seller">Best Seller</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="promotionBadgeColor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Badge Color</label>
+                        <select id="promotionBadgeColor" name="badge_color"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="orange">Orange</option>
+                            <option value="green">Green</option>
+                            <option value="red">Red</option>
+                            <option value="blue">Blue</option>
+                            <option value="purple">Purple</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promotionCtaText" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Button Text</label>
+                        <input type="text" id="promotionCtaText" name="cta_text" value="Order Now"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="promotionCtaLink" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Custom Link (Optional)</label>
+                        <input type="url" id="promotionCtaLink" name="cta_link"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                               placeholder="Leave empty to use menu link">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="promotionStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                        <input type="datetime-local" id="promotionStartDate" name="featured_from"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="promotionEndDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                        <input type="datetime-local" id="promotionEndDate" name="featured_until"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="promotionImage" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Promotion Image (Optional)</label>
+                    <input type="file" id="promotionImage" name="ad_image" accept="image/*"
+                           class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
+                    <p class="text-xs text-gray-500 mt-1">Upload a custom image for your promotion. If not provided, your restaurant logo will be used.</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="closePromotionModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                    <span id="promotionSubmitText">Create Promotion</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</x-modal>
+
+<script>
+// Promotion functions
+let currentPromotionId = null;
+
+function createPromotion() {
+    currentPromotionId = null;
+    document.getElementById('promotionModalTitle').textContent = 'Create Promotion';
+    document.getElementById('promotionSubmitText').textContent = 'Create Promotion';
+    document.getElementById('promotionForm').reset();
+    
+    // Set default dates
+    const now = new Date();
+    const future = new Date();
+    future.setDate(future.getDate() + 30);
+    
+    document.getElementById('promotionStartDate').value = now.toISOString().slice(0, 16);
+    document.getElementById('promotionEndDate').value = future.toISOString().slice(0, 16);
+    
+    // Show modal
+    const modal = document.getElementById('promotion-modal');
+    modal.classList.remove('hidden');
+}
+
+function editPromotion(promotionId) {
+    currentPromotionId = promotionId;
+    document.getElementById('promotionModalTitle').textContent = 'Edit Promotion';
+    document.getElementById('promotionSubmitText').textContent = 'Update Promotion';
+    
+    // Fetch promotion data and populate form
+    fetch(`/api/featured-restaurants/${promotionId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('promotionTitle').value = data.title || '';
+            document.getElementById('promotionDescription').value = data.description || '';
+            document.getElementById('promotionBadge').value = data.badge_text || '';
+            document.getElementById('promotionBadgeColor').value = data.badge_color || 'orange';
+            document.getElementById('promotionCtaText').value = data.cta_text || 'Order Now';
+            document.getElementById('promotionCtaLink').value = data.cta_link || '';
+            
+            if (data.featured_from) {
+                document.getElementById('promotionStartDate').value = data.featured_from.slice(0, 16);
+            }
+            if (data.featured_until) {
+                document.getElementById('promotionEndDate').value = data.featured_until.slice(0, 16);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching promotion:', error);
+            alert('Error loading promotion data');
+        });
+    
+    // Show modal
+    const modal = document.getElementById('promotion-modal');
+    modal.classList.remove('hidden');
+}
+
+function closePromotionModal() {
+    const modal = document.getElementById('promotion-modal');
+    modal.classList.add('hidden');
+    currentPromotionId = null;
+}
+
+function submitPromotion(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    formData.append('restaurant_id', {{ $restaurant->id }});
+    
+    const url = currentPromotionId 
+        ? `/api/featured-restaurants/${currentPromotionId}` 
+        : '/api/featured-restaurants';
+    
+    const method = currentPromotionId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closePromotionModal();
+            // Reload page to show updated promotion
+            window.location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to save promotion'));
+        }
+    })
+    .catch(error => {
+        console.error('Error saving promotion:', error);
+        alert('Error saving promotion');
+    });
+}
+</script>
 @endsection 
