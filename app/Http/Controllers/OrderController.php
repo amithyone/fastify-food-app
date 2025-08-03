@@ -299,7 +299,7 @@ class OrderController extends Controller
         // Check if user can view this order
         if ($user && $user->isAdmin()) {
             // Admin can view any order
-        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+        } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
             // Restaurant owner can view their own restaurant's orders
         } elseif (Auth::check() && $order->user_id === Auth::id()) {
             // User can view their own orders
@@ -359,9 +359,9 @@ class OrderController extends Controller
                 ->paginate(20);
         } 
         // If user is restaurant owner, show only their restaurant's orders
-        elseif ($user && $user->isRestaurantOwner()) {
+        elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant) {
             $orders = Order::with(['orderItems.menuItem', 'restaurant'])
-                ->where('restaurant_id', $user->restaurant_id)
+                ->where('restaurant_id', $user->primaryRestaurant->id)
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
         } 
@@ -385,7 +385,7 @@ class OrderController extends Controller
         // Check if user can update this order
         if ($user && $user->isAdmin()) {
             // Admin can update any order
-        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+        } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
             // Restaurant owner can update their own restaurant's orders
         } else {
             abort(403, 'Unauthorized access to update this order.');
@@ -407,7 +407,7 @@ class OrderController extends Controller
         // Check if user can view this order
         if ($user && $user->isAdmin()) {
             // Admin can view any order
-        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+        } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
             // Restaurant owner can view their own restaurant's orders
         } elseif (Auth::check() && $order->user_id === Auth::id()) {
             // User can view their own orders
@@ -432,7 +432,7 @@ class OrderController extends Controller
         // Check if user can view this order
         if ($user && $user->isAdmin()) {
             // Admin can view any order
-        } elseif ($user && $user->isRestaurantOwner() && $order->restaurant_id === $user->restaurant_id) {
+        } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
             // Restaurant owner can view their own restaurant's orders
         } elseif (Auth::check() && $order->user_id === Auth::id()) {
             // User can view their own orders
