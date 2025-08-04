@@ -25,6 +25,8 @@ class Restaurant extends Model
         'state',
         'postal_code',
         'country',
+        'latitude',
+        'longitude',
         'currency',
         'business_hours',
         'is_active',

@@ -6,13 +6,21 @@ use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Restaurant;
 use App\Models\Story;
+use App\Services\LocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class MenuController extends Controller
 {
-    public function index($slug = null)
+    protected $locationService;
+
+    public function __construct(LocationService $locationService)
+    {
+        $this->locationService = $locationService;
+    }
+
+    public function index(Request $request, $slug = null)
     {
         if ($slug) {
             // Restaurant-specific menu
@@ -23,12 +31,36 @@ class MenuController extends Controller
             
             return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurant'));
         } else {
-            // Default menu (for backward compatibility)
-        $categories = Category::with('menuItems')->where('is_active', true)->get();
-        $menuItems = MenuItem::with('category')->where('is_available', true)->get();
-        $stories = Story::active()->ordered()->get();
-        
-        return view('menu.index', compact('categories', 'menuItems', 'stories'));
+            // Location-based menu for guest users
+            $userLocation = $this->locationService->getUserLocation($request);
+            $restaurants = $this->locationService->getRestaurantsByLocation(
+                $userLocation['city'], 
+                $userLocation['state'], 
+                $userLocation['country']
+            );
+            
+            // If no restaurants found in user's location, show all active restaurants
+            if ($restaurants->isEmpty()) {
+                $restaurants = Restaurant::where('is_active', true)->get();
+            }
+            
+            // Get all categories and menu items from restaurants in the location
+            $categories = collect();
+            $menuItems = collect();
+            $stories = collect();
+            
+            foreach ($restaurants as $restaurant) {
+                $categories = $categories->merge($restaurant->categories()->with('menuItems')->where('is_active', true)->get());
+                $menuItems = $menuItems->merge($restaurant->menuItems()->with('category')->where('is_available', true)->get());
+                $stories = $stories->merge($restaurant->stories()->active()->ordered()->get());
+            }
+            
+            // Remove duplicates
+            $categories = $categories->unique('id');
+            $menuItems = $menuItems->unique('id');
+            $stories = $stories->unique('id');
+            
+            return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurants', 'userLocation'));
         }
     }
 

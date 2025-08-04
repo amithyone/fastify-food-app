@@ -152,6 +152,27 @@ Route::get('/menu/search', [MenuController::class, 'search'])->name('menu.search
 Route::get('/menu/category/{category}', [MenuController::class, 'category'])->name('menu.category');
 Route::get('/menu/items', [MenuController::class, 'items'])->name('menu.items');
 
+// Location Test Route
+Route::get('/test-location', function (Request $request) {
+    $locationService = app(\App\Services\LocationService::class);
+    $location = $locationService->getUserLocation($request);
+    $restaurants = $locationService->getRestaurantsByLocation($location['city'], $location['state'], $location['country']);
+    
+    return response()->json([
+        'user_location' => $location,
+        'restaurants_found' => $restaurants->count(),
+        'restaurants' => $restaurants->map(function($r) {
+            return [
+                'id' => $r->id,
+                'name' => $r->name,
+                'city' => $r->city,
+                'state' => $r->state,
+                'country' => $r->country
+            ];
+        })
+    ]);
+})->name('test.location');
+
 // Checkout Route
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout.index');
 
