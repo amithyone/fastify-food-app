@@ -299,10 +299,9 @@ class OrderController extends Controller
             }
 
             // Create order with calculated charges
-            $order = Order::create([
+            $orderData = [
                 'restaurant_id' => $restaurantId,
                 'user_id' => $userId, // Will be null for guest users
-                'created_by' => Auth::id(), // Track who created the order
                 'session_id' => $sessionId, // For guest session tracking
                 'order_number' => (new Order())->generateOrderNumber(),
                 'customer_name' => $customerName,
@@ -325,7 +324,14 @@ class OrderController extends Controller
                 'status' => $request->payment_method === 'transfer' ? 'pending_payment' : 'pending',
                 'notes' => $notes,
                 'payment_method' => $request->payment_method
-            ]);
+            ];
+
+            // Add created_by if the column exists
+            if (Schema::hasColumn('orders', 'created_by')) {
+                $orderData['created_by'] = Auth::id();
+            }
+
+            $order = Order::create($orderData);
 
             \Log::info('Order created successfully:', ['order_id' => $order->id, 'order_number' => $order->order_number]);
 
