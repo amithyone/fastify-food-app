@@ -36,7 +36,31 @@ class BankTransferPaymentController extends Controller
         // Check if user can pay for this order
         // Allow guest orders (user_id = null) to be paid by anyone
         // Allow authenticated users to pay for their own orders
-        if (Auth::check() && $order->user_id !== null && $order->user_id !== Auth::id()) {
+        // Allow restaurant managers to access orders from their managed restaurants
+        $user = Auth::user();
+        $canAccess = false;
+        
+        if (Auth::check()) {
+            // User can access if:
+            // 1. They own the order (user_id matches)
+            // 2. They are a restaurant manager for this restaurant
+            // 3. They are an admin
+            if ($order->user_id === Auth::id()) {
+                $canAccess = true;
+            } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+                $canAccess = true;
+            } elseif ($user->isAdmin()) {
+                $canAccess = true;
+            } elseif ($order->user_id === null) {
+                // Guest orders can be accessed by anyone
+                $canAccess = true;
+            }
+        } else {
+            // Guest users can only access guest orders
+            $canAccess = ($order->user_id === null);
+        }
+        
+        if (!$canAccess) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized access to this order'
@@ -47,11 +71,16 @@ class BankTransferPaymentController extends Controller
         Log::info('Bank transfer payment authorization check', [
             'order_id' => $order->id,
             'order_user_id' => $order->user_id,
+            'order_restaurant_id' => $order->restaurant_id,
             'auth_check' => Auth::check(),
             'auth_id' => Auth::id(),
+            'user_name' => $user ? $user->name : 'Guest',
+            'user_is_manager' => $user ? $user->isRestaurantOwner() : false,
+            'user_is_admin' => $user ? $user->isAdmin() : false,
+            'user_restaurant_id' => $user && $user->primaryRestaurant ? $user->primaryRestaurant->id : null,
             'customer_name' => $order->customer_name,
             'order_number' => $order->order_number,
-            'authorization_passed' => !(Auth::check() && $order->user_id !== null && $order->user_id !== Auth::id())
+            'can_access' => $canAccess
         ]);
 
         // Check if payment already exists
