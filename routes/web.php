@@ -51,21 +51,8 @@ Route::middleware(['custom.domain'])->group(function () {
 // Include Auth Routes
 require __DIR__.'/auth.php';
 
-// Phone Verification Routes
-Route::middleware(['auth'])->group(function () {
-    Route::get('/phone/verification/notice', function () {
-        return view('auth.phone-verification-notice');
-    })->name('phone.verification.notice');
-    
-    Route::get('/phone/verification', [PhoneVerificationController::class, 'show'])
-        ->name('phone.verification.show');
-    Route::post('/phone/verification/send', [PhoneVerificationController::class, 'sendCode'])
-        ->name('phone.verification.send');
-    Route::post('/phone/verification/verify', [PhoneVerificationController::class, 'verify'])
-        ->name('phone.verification.verify');
-    Route::post('/phone/verification/resend', [PhoneVerificationController::class, 'resend'])
-        ->name('phone.verification.resend');
-});
+// Phone Verification Routes - REMOVED
+// These routes have been removed as phone authentication is no longer supported
 
 /*
 |--------------------------------------------------------------------------
