@@ -269,14 +269,21 @@ class OrderController extends Controller
             $userId = null;
             if (Auth::check()) {
                 $user = Auth::user();
-                if ($user && User::find($user->id)) {
+                if ($user) {
                     $userId = $user->id;
+                    \Log::info('User authenticated for order creation', [
+                        'user_id' => $userId,
+                        'user_name' => $user->name,
+                        'user_email' => $user->email
+                    ]);
                 }
             }
             
             \Log::info('Creating order with data:', [
                 'restaurant_id' => $restaurantId,
                 'user_id' => $userId,
+                'auth_check' => Auth::check(),
+                'auth_id' => Auth::id(),
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
                 'delivery_address' => $deliveryAddress,
@@ -615,10 +622,28 @@ class OrderController extends Controller
         }
 
         $order = Order::with('orderItems.menuItem')->findOrFail($id);
+        $user = Auth::user();
+        
+        // Debug logging
+        \Log::info('User order show access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'order_id' => $order->id,
+            'order_user_id' => $order->user_id,
+            'order_customer_name' => $order->customer_name,
+            'auth_id' => Auth::id(),
+            'user_owns_order' => $order->user_id === Auth::id()
+        ]);
         
         // Check if user owns this order
         if ($order->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized access to this order.');
+            \Log::warning('Unauthorized order access attempt', [
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'order_user_id' => $order->user_id,
+                'auth_id' => Auth::id()
+            ]);
+            abort(403, 'Unauthorized access to this order. Order user ID: ' . $order->user_id . ', Your ID: ' . Auth::id());
         }
         
         return view('orders.user-show', compact('order'));
