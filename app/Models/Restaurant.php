@@ -29,6 +29,12 @@ class Restaurant extends Model
         'business_hours',
         'is_active',
         'is_verified',
+        'is_open',
+        'opening_time',
+        'closing_time',
+        'weekly_schedule',
+        'status_message',
+        'auto_open_close',
         'theme_color',
         'secondary_color',
         'settings',
@@ -43,6 +49,11 @@ class Restaurant extends Model
         'settings' => 'array',
         'is_active' => 'boolean',
         'is_verified' => 'boolean',
+        'is_open' => 'boolean',
+        'opening_time' => 'datetime',
+        'closing_time' => 'datetime',
+        'weekly_schedule' => 'array',
+        'auto_open_close' => 'boolean',
     ];
 
     // Relationships
@@ -125,6 +136,16 @@ class Restaurant extends Model
     public function scopeVerified($query)
     {
         return $query->where('is_verified', true);
+    }
+
+    public function scopeOpen($query)
+    {
+        return $query->where('is_open', true);
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->where('is_open', false);
     }
 
     // Accessors
@@ -246,8 +267,23 @@ class Restaurant extends Model
     {
         try {
             if ($this->banner_image && \Storage::disk('public')->exists($this->banner_image)) {
-                return \Storage::disk('public')->url($this->banner_image);
+                $url = \Storage::disk('public')->url($this->banner_image);
+                $url = \App\Helpers\PWAHelper::fixStorageUrl($url);
+                
+                \Log::info('Restaurant model banner_url generated', [
+                    'restaurant_id' => $this->id,
+                    'banner_path' => $this->banner_image,
+                    'banner_url' => $url,
+                    'exists' => \Storage::disk('public')->exists($this->banner_image)
+                ]);
+                return $url;
             }
+            
+            \Log::warning('Restaurant model banner_url - file not found', [
+                'restaurant_id' => $this->id,
+                'banner_path' => $this->banner_image,
+                'exists' => $this->banner_image ? \Storage::disk('public')->exists($this->banner_image) : false
+            ]);
             return null;
         } catch (\Exception $e) {
             \Log::error('Error getting restaurant banner URL', [
@@ -346,5 +382,107 @@ class Restaurant extends Model
         
         // Online payment orders: Already paid, so they always count when confirmed
         // (no special handling needed as they're already paid)
+    }
+
+    /**
+     * Check if restaurant is currently open
+     */
+    public function isCurrentlyOpen()
+    {
+        if (!$this->is_open) {
+            return false;
+        }
+
+        if ($this->auto_open_close && $this->opening_time && $this->closing_time) {
+            $now = now();
+            $openingTime = \Carbon\Carbon::parse($this->opening_time);
+            $closingTime = \Carbon\Carbon::parse($this->closing_time);
+            
+            // Handle overnight hours (e.g., 22:00 - 06:00)
+            if ($closingTime < $openingTime) {
+                return $now->gte($openingTime) || $now->lte($closingTime);
+            }
+            
+            return $now->gte($openingTime) && $now->lte($closingTime);
+        }
+
+        return $this->is_open;
+    }
+
+    /**
+     * Get open/close status display
+     */
+    public function getStatusDisplayAttribute()
+    {
+        if ($this->isCurrentlyOpen()) {
+            return [
+                'status' => 'open',
+                'text' => 'Open',
+                'color' => 'green',
+                'icon' => 'fas fa-circle'
+            ];
+        } else {
+            return [
+                'status' => 'closed',
+                'text' => 'Closed',
+                'color' => 'red',
+                'icon' => 'fas fa-circle'
+            ];
+        }
+    }
+
+    /**
+     * Get formatted business hours
+     */
+    public function getFormattedBusinessHoursAttribute()
+    {
+        if ($this->opening_time && $this->closing_time) {
+            return $this->opening_time->format('g:i A') . ' - ' . $this->closing_time->format('g:i A');
+        }
+        return 'Hours not set';
+    }
+
+    /**
+     * Get status message
+     */
+    public function getStatusMessageAttribute()
+    {
+        if ($this->attributes['status_message'] ?? null) {
+            return $this->attributes['status_message'];
+        }
+        
+        if (!$this->isCurrentlyOpen()) {
+            if ($this->opening_time && $this->closing_time) {
+                return "We're closed. Open today from " . $this->opening_time->format('g:i A') . " to " . $this->closing_time->format('g:i A');
+            }
+            return "We're currently closed";
+        }
+        
+        return "We're open now";
+    }
+
+    /**
+     * Toggle open/close status
+     */
+    public function toggleStatus()
+    {
+        $this->update(['is_open' => !$this->is_open]);
+        return $this->is_open;
+    }
+
+    /**
+     * Set restaurant as open
+     */
+    public function open()
+    {
+        $this->update(['is_open' => true]);
+    }
+
+    /**
+     * Set restaurant as closed
+     */
+    public function close()
+    {
+        $this->update(['is_open' => false]);
     }
 }

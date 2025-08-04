@@ -13,6 +13,9 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\AIMenuController;
 use App\Http\Controllers\PayVibeController;
 use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\RestaurantStatusController;
+use App\Http\Controllers\RestaurantDeliverySettingController;
+use App\Http\Controllers\BankTransferPaymentController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -604,14 +607,22 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/promotions/analytics', [PromotionController::class, 'analytics'])->name('restaurant.promotions.analytics');
     
     // Restaurant Delivery Settings Routes
-    Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');
-    Route::put('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'update'])->name('restaurant.delivery-settings.update');
-    Route::post('/{slug}/delivery-settings/menu-items', [RestaurantDeliverySettingController::class, 'updateMenuItemDeliveryMethods'])->name('restaurant.delivery-settings.menu-items');
-    
-    // API Routes for Delivery Settings
-    Route::get('/{slug}/api/delivery-settings', [RestaurantDeliverySettingController::class, 'apiIndex'])->name('restaurant.api.delivery-settings');
-    Route::get('/{slug}/api/menu-item-delivery-methods', [RestaurantDeliverySettingController::class, 'apiMenuItemDeliveryMethods'])->name('restaurant.api.menu-item-delivery-methods');
-    Route::get('/{slug}/api/menu-items/{menuItemId}/availability/{deliveryMethod}', [RestaurantDeliverySettingController::class, 'checkMenuItemAvailability'])->name('restaurant.api.menu-item-availability');
+Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');
+Route::put('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'update'])->name('restaurant.delivery-settings.update');
+Route::post('/{slug}/delivery-settings/menu-items', [RestaurantDeliverySettingController::class, 'updateMenuItemDeliveryMethods'])->name('restaurant.delivery-settings.menu-items');
+
+// API Routes for Delivery Settings
+Route::get('/{slug}/api/delivery-settings', [RestaurantDeliverySettingController::class, 'apiIndex'])->name('restaurant.api.delivery-settings');
+Route::get('/{slug}/api/menu-item-delivery-methods', [RestaurantDeliverySettingController::class, 'apiMenuItemDeliveryMethods'])->name('restaurant.api.menu-item-delivery-methods');
+Route::get('/{slug}/api/menu-items/{menuItemId}/availability/{deliveryMethod}', [RestaurantDeliverySettingController::class, 'checkMenuItemAvailability'])->name('restaurant.api.menu-item-availability');
+
+// Restaurant Status Management Routes
+Route::get('/{slug}/status', [RestaurantStatusController::class, 'index'])->name('restaurant.status.index');
+Route::post('/{slug}/status/toggle', [RestaurantStatusController::class, 'toggleStatus'])->name('restaurant.status.toggle');
+Route::post('/{slug}/status/open', [RestaurantStatusController::class, 'open'])->name('restaurant.status.open');
+Route::post('/{slug}/status/close', [RestaurantStatusController::class, 'close'])->name('restaurant.status.close');
+Route::post('/{slug}/status/business-hours', [RestaurantStatusController::class, 'updateBusinessHours'])->name('restaurant.status.business-hours');
+Route::get('/{slug}/status/get', [RestaurantStatusController::class, 'getStatus'])->name('restaurant.status.get');
 });
 
 // Bank Transfer Payment Routes

@@ -119,7 +119,7 @@
                         </div>
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-900 dark:text-white">x{{ $item->quantity }}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $restaurant->currency }}{{ number_format($item->total_price / 100, 2) }}</p>
+                                                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $restaurant->currency }}{{ number_format($item->total_price) }}</p>
                         </div>
                     </div>
                 @endforeach

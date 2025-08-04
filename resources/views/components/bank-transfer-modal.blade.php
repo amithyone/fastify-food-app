@@ -214,32 +214,51 @@ function initializeBankTransferPayment(orderId, amount) {
 }
 
 function displayPaymentDetails(paymentData) {
+    console.log('Displaying payment details:', paymentData);
+    
     document.getElementById('bankTransferLoading').classList.add('hidden');
     document.getElementById('bankTransferDetails').classList.remove('hidden');
 
     // Set payment details
-    document.getElementById('paymentAmount').textContent = '₦' + parseFloat(paymentData.amount).toLocaleString();
-    document.getElementById('serviceCharge').textContent = '₦' + parseFloat(paymentData.service_charge_amount).toLocaleString();
-    document.getElementById('totalAmount').textContent = '₦' + (parseFloat(paymentData.amount) + parseFloat(paymentData.service_charge_amount)).toLocaleString();
+    document.getElementById('paymentAmount').textContent = '₦' + parseFloat(paymentData.amount || 0).toLocaleString();
+    document.getElementById('serviceCharge').textContent = '₦' + parseFloat(paymentData.service_charge_amount || 0).toLocaleString();
+    document.getElementById('totalAmount').textContent = '₦' + (parseFloat(paymentData.amount || 0) + parseFloat(paymentData.service_charge_amount || 0)).toLocaleString();
     
-    document.getElementById('virtualAccountNumber').value = paymentData.virtual_account_number;
-    document.getElementById('bankName').value = paymentData.bank_name;
-    document.getElementById('accountName').value = paymentData.account_name;
-    document.getElementById('paymentReference').value = paymentData.payment_reference;
+    document.getElementById('virtualAccountNumber').value = paymentData.virtual_account_number || '';
+    document.getElementById('bankName').value = paymentData.bank_name || '';
+    document.getElementById('accountName').value = paymentData.account_name || '';
+    document.getElementById('paymentReference').value = paymentData.payment_reference || '';
     
-    document.getElementById('rewardPointsRate').textContent = paymentData.reward_points_rate;
-    document.getElementById('rewardThreshold').textContent = paymentData.reward_points_threshold;
+    document.getElementById('rewardPointsRate').textContent = paymentData.reward_points_rate || 1;
+    document.getElementById('rewardThreshold').textContent = paymentData.reward_points_threshold || 100;
     
-    // Set payment instructions
-    const instructions = paymentData.payment_instructions.split('\n');
-    const instructionsHtml = instructions.map(instruction => `<div>${instruction}</div>`).join('');
-    document.getElementById('paymentInstructions').innerHTML = instructionsHtml;
+    // Set payment instructions with error handling
+    const instructionsElement = document.getElementById('paymentInstructions');
+    if (paymentData.payment_instructions) {
+        const instructions = paymentData.payment_instructions.split('\n');
+        const instructionsHtml = instructions.map(instruction => `<div>${instruction}</div>`).join('');
+        instructionsElement.innerHTML = instructionsHtml;
+    } else {
+        // Default payment instructions if none provided
+        instructionsElement.innerHTML = `
+            <div>1. Open your banking app</div>
+            <div>2. Transfer the exact amount to the account number above</div>
+            <div>3. Use the payment reference as your transfer description</div>
+            <div>4. Click "I have paid" after completing the transfer</div>
+        `;
+    }
     
     // Set expiration time
-    const expiresAt = new Date(paymentData.expires_at);
-    document.getElementById('timeRemaining').textContent = getTimeRemaining(expiresAt);
+    if (paymentData.expires_at) {
+        const expiresAt = new Date(paymentData.expires_at);
+        document.getElementById('timeRemaining').textContent = getTimeRemaining(expiresAt);
+    } else {
+        document.getElementById('timeRemaining').textContent = '24 hours';
+    }
     
     currentPaymentId = paymentData.payment_id;
+    
+    console.log('Payment details displayed successfully');
 }
 
 function startPaymentStatusCheck(paymentId) {

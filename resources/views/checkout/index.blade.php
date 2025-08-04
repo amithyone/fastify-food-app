@@ -346,17 +346,72 @@
 function handleBankTransferSelection() {
     const transferRadio = document.querySelector('input[name="payment_method"][value="transfer"]');
     if (transferRadio.checked) {
-        // Get order total from the page
-        const totalElement = document.getElementById('total');
-        const totalText = totalElement.textContent;
-        const total = parseFloat(totalText.replace('₦', '').replace(',', '')) || 0;
-        
-        // Get order ID from form or create a temporary one
-        const orderId = document.querySelector('input[name="order_id"]')?.value || Date.now();
-        
-        // Open bank transfer modal
-        openBankTransferModal(orderId, total);
+        // Bank transfer will be handled after order creation
+        // No need to open modal immediately
+        console.log('Bank transfer selected - will be handled after order creation');
     }
+}
+
+// Initialize Bank Transfer Payment
+function initializeBankTransferPayment(orderId, amount) {
+    // Open the bank transfer modal
+    document.getElementById('bankTransferModal').classList.remove('hidden');
+    
+    // Initialize the payment
+    fetch('/bank-transfer/initialize', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            order_id: orderId,
+            amount: amount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Bank transfer initialization response:', data);
+        if (data.success) {
+            // Call the modal's display function to show payment details
+            if (typeof displayPaymentDetails === 'function') {
+                console.log('Calling displayPaymentDetails with data:', data.data);
+                displayPaymentDetails(data.data);
+                if (data.data.payment_id) {
+                    startPaymentStatusCheck(data.data.payment_id);
+                }
+            } else {
+                console.error('displayPaymentDetails function not found');
+                showNotification('Payment initialized but display function not available', 'error');
+            }
+            console.log('Bank transfer payment initialized successfully');
+        } else {
+            console.error('Bank transfer initialization failed:', data.message);
+            showNotification(data.message || 'Failed to initialize payment', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to initialize payment. Please try again.', 'error');
+    });
+}
+
+// Notification function
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        type === 'success' ? 'bg-green-500 text-white' : 
+        type === 'error' ? 'bg-red-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Theme toggle functionality
@@ -677,9 +732,50 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     // Check if bank transfer is selected
     const paymentMethod = formData.get('payment_method');
     if (paymentMethod === 'transfer') {
-        // For bank transfer, we'll handle the payment through the modal
-        // The order will be created after payment confirmation
-        alert('Please complete the bank transfer payment in the modal that opened.');
+        // For bank transfer, we need to create the order first, then initialize payment
+        // Show loading state
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Order...';
+        submitBtn.disabled = true;
+        
+        // Create order first, then initialize bank transfer
+        fetch('/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Order created successfully, now initialize bank transfer
+                const orderId = data.order_id || (data.order && data.order.id);
+                const total = parseFloat(data.order?.total_amount || data.total || 0);
+                
+                if (orderId) {
+                    // Initialize bank transfer payment
+                    initializeBankTransferPayment(orderId, total);
+                } else {
+                    showNotification('Order created but could not get order ID', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            } else {
+                showNotification(data.message || 'Failed to create order', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to create order', 'error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+        
         return;
     }
     

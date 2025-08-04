@@ -339,6 +339,21 @@
                     </div>
                 </div>
             </a>
+
+            <a href="{{ route('restaurant.status.index', $restaurant->slug) }}" 
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-door-open text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Restaurant Status</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Manage open/close status</p>
+                    </div>
+                </div>
+            </a>
         </div>
 
         <!-- Restaurant Promotion Ads Section -->

@@ -130,7 +130,7 @@ class OrderController extends Controller
         
         $request->validate([
             'customer_info' => 'required|array',
-            'customer_info.in_restaurant' => 'required|boolean',
+            'customer_info.order_type' => 'required|in:delivery,pickup,restaurant,in_restaurant',
             'payment_method' => 'required|in:cash,card,transfer,wallet',
             'items' => 'required|array|min:1',
             'subtotal' => 'required|numeric|min:0',
@@ -138,8 +138,10 @@ class OrderController extends Controller
             'total' => 'required|numeric|min:0',
         ]);
 
-        // Additional validation for delivery orders
-        if (!$request->customer_info['in_restaurant']) {
+        // Additional validation based on order type
+        $orderType = $request->customer_info['order_type'] ?? 'delivery';
+        
+        if ($orderType === 'delivery') {
             $request->validate([
                 'customer_info.name' => 'required|string|max:255',
                 'customer_info.phone' => 'required|string|max:20',
@@ -147,8 +149,13 @@ class OrderController extends Controller
                 'customer_info.city' => 'required|string|max:100',
                 'customer_info.state' => 'required|string|max:100',
             ]);
-        } else {
-            // Additional validation for restaurant orders
+        } elseif ($orderType === 'pickup') {
+            $request->validate([
+                'customer_info.pickup_name' => 'required|string|max:255',
+                'customer_info.pickup_phone' => 'required|string|max:20',
+                'customer_info.pickup_time' => 'required|string',
+            ]);
+        } elseif ($orderType === 'restaurant' || $orderType === 'in_restaurant') {
             $request->validate([
                 'customer_info.table_number' => 'required|string|max:50',
             ]);
@@ -156,6 +163,8 @@ class OrderController extends Controller
 
         try {
             DB::beginTransaction();
+            
+            \Log::info('Starting order creation transaction');
 
             // Get restaurant_id from the first cart item (all items in cart should be from same restaurant)
             $restaurantId = null;
@@ -164,6 +173,7 @@ class OrderController extends Controller
                 $firstMenuItem = MenuItem::find($request->items[0]['id']);
                 if ($firstMenuItem) {
                     $restaurantId = $firstMenuItem->restaurant_id;
+                    \Log::info('Found restaurant ID:', ['restaurant_id' => $restaurantId]);
                 }
             }
 
@@ -196,12 +206,14 @@ class OrderController extends Controller
             $customerInfo = $request->customer_info;
             $orderType = $customerInfo['order_type'] ?? 'delivery';
             
+            \Log::info('Preparing customer info:', ['order_type' => $orderType, 'customer_info' => $customerInfo]);
+            
             // Determine customer name and phone based on order type
             if ($orderType === 'pickup') {
                 $customerName = $customerInfo['pickup_name'] ?? $customerInfo['name'] ?? 'Pickup Customer';
                 $phoneNumber = $customerInfo['pickup_phone'] ?? $customerInfo['phone'] ?? 'N/A';
                 $deliveryAddress = 'Pickup at Restaurant';
-            } elseif ($orderType === 'restaurant') {
+            } elseif ($orderType === 'restaurant' || $orderType === 'in_restaurant') {
                 $customerName = 'Restaurant Customer';
                 $phoneNumber = 'N/A';
                 $deliveryAddress = 'Table: ' . ($customerInfo['table_number'] ?? 'N/A');
@@ -210,6 +222,12 @@ class OrderController extends Controller
                 $phoneNumber = $customerInfo['phone'] ?? 'N/A';
                 $deliveryAddress = $customerInfo['address'] . ', ' . $customerInfo['city'] . ', ' . $customerInfo['state'];
             }
+            
+            \Log::info('Customer info prepared:', [
+                'customer_name' => $customerName,
+                'phone_number' => $phoneNumber,
+                'delivery_address' => $deliveryAddress
+            ]);
             
             // Prepare notes
             $notes = 'Payment Method: ' . ucfirst($request->payment_method) . ' | ' . ucfirst($orderType);
@@ -246,6 +264,17 @@ class OrderController extends Controller
                 }
             }
 
+            \Log::info('Creating order with data:', [
+                'restaurant_id' => $restaurantId,
+                'user_id' => Auth::id(),
+                'customer_name' => $customerName,
+                'phone_number' => $phoneNumber,
+                'delivery_address' => $deliveryAddress,
+                'order_type' => $orderType === 'restaurant' ? 'in_restaurant' : $orderType,
+                'total_amount' => $charges['total'],
+                'status' => $request->payment_method === 'transfer' ? 'pending_payment' : 'pending'
+            ]);
+
             // Create order with calculated charges
             $order = Order::create([
                 'restaurant_id' => $restaurantId,
@@ -256,7 +285,7 @@ class OrderController extends Controller
                 'delivery_address' => $deliveryAddress,
                 'allergies' => $customerInfo['instructions'] ?? null, // Re-purposed for delivery instructions
                 'delivery_time' => $orderType === 'restaurant' ? 'In Restaurant' : 'ASAP',
-                'order_type' => $orderType,
+                'order_type' => $orderType === 'restaurant' ? 'in_restaurant' : $orderType,
                 'pickup_code' => $orderType === 'pickup' ? strtoupper(substr(md5(uniqid()), 0, 6)) : null,
                 'pickup_time' => $pickupTime,
                 'pickup_name' => $orderType === 'pickup' ? ($customerInfo['pickup_name'] ?? $customerName) : null,
@@ -272,6 +301,8 @@ class OrderController extends Controller
                 'notes' => $notes,
                 'payment_method' => $request->payment_method
             ]);
+
+            \Log::info('Order created successfully:', ['order_id' => $order->id, 'order_number' => $order->order_number]);
 
             // Generate tracking code for guest orders (non-authenticated users)
             if (!Auth::check()) {
@@ -290,67 +321,106 @@ class OrderController extends Controller
                     throw new \Exception('Item missing ID: ' . json_encode($item));
                 }
                 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'menu_item_id' => $item['id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['price'],
                     'total_price' => $item['price'] * $item['quantity'],
                 ]);
+                
+                \Log::info('Order item created:', [
+                    'order_item_id' => $orderItem->id,
+                    'menu_item_id' => $item['id'],
+                    'quantity' => $item['quantity']
+                ]);
             }
 
-                    // Handle reward points for bank transfer payments
-                    if ($request->payment_method === 'transfer' && Auth::check()) {
-                        $user = Auth::user();
-                        $wallet = $user->getWalletOrCreate();
-                        
-                        // Calculate reward points (1 point per ₦100 spent)
-                        $pointsEarned = (int) ($charges['total'] / 100);
-                        
-                        if ($pointsEarned > 0) {
-                            // Create reward record
-                            \App\Models\UserReward::create([
-                                'user_id' => $user->id,
-                                'order_id' => $order->id,
-                                'points_earned' => $pointsEarned,
-                                'order_amount' => $charges['total'],
-                                'payment_method' => 'transfer',
-                                'status' => 'credited',
-                                'credited_at' => now(),
-                                'expires_at' => now()->addMonths(6)
-                            ]);
+            \Log::info('All order items created successfully');
 
-                            // Credit points to wallet immediately
-                            $wallet->credit(0, $pointsEarned, "Reward points from order #{$order->id}", $order->id);
-                        }
-                    }
+            // Handle reward points for bank transfer payments
+            if ($request->payment_method === 'transfer' && Auth::check()) {
+                \Log::info('Processing reward points for bank transfer payment');
+                
+                $user = Auth::user();
+                $wallet = $user->getWalletOrCreate();
+                
+                // Calculate reward points (1 point per ₦100 spent)
+                $pointsEarned = (int) ($charges['total'] / 100);
+                
+                if ($pointsEarned > 0) {
+                    \Log::info('Calculated reward points:', ['points_earned' => $pointsEarned]);
+                    
+                    // Find existing reward record or create new one
+                    $userReward = \App\Models\UserReward::firstOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'restaurant_id' => $restaurantId
+                        ],
+                        [
+                            'points' => 0,
+                            'total_spent' => 0,
+                            'orders_count' => 0,
+                            'tier' => 'bronze'
+                        ]
+                    );
+                    
+                    // Update the reward record with new order data
+                    $userReward->update([
+                        'order_id' => $order->id,
+                        'points_earned' => $pointsEarned,
+                        'order_amount' => $charges['total'],
+                        'payment_method' => 'transfer',
+                        'status' => 'credited',
+                        'credited_at' => now(),
+                        'expires_at' => now()->addMonths(6),
+                        'points' => $userReward->points + $pointsEarned,
+                        'total_spent' => $userReward->total_spent + $charges['total'],
+                        'orders_count' => $userReward->orders_count + 1,
+                        'last_order_at' => now()
+                    ]);
 
-                    // Handle wallet payments
-                    if ($request->payment_method === 'wallet' && Auth::check()) {
-                        $user = Auth::user();
-                        $wallet = $user->getWalletOrCreate();
-                        
-                        // Check if user has sufficient balance
-                        if ($wallet->balance < $charges['total']) {
-                            throw new \Exception('Insufficient wallet balance');
-                        }
-                        
-                        // Debit the amount from wallet
-                        $wallet->debit($charges['total'], "Payment for order #{$order->id}", $order->id);
-                        
-                        // Update order payment status
-                        $order->update([
-                            'payment_status' => 'paid'
-                        ]);
-                    }
+                    // Credit points to wallet immediately
+                    $wallet->credit($pointsEarned, "Reward points from order #{$order->id}", $order->id);
+                    
+                    \Log::info('Reward points processed successfully');
+                }
+            }
+
+            // Handle wallet payments
+            if ($request->payment_method === 'wallet' && Auth::check()) {
+                \Log::info('Processing wallet payment');
+                
+                $user = Auth::user();
+                $wallet = $user->getWalletOrCreate();
+                
+                // Check if user has sufficient balance
+                if ($wallet->balance < $charges['total']) {
+                    throw new \Exception('Insufficient wallet balance');
+                }
+                
+                // Debit the amount from wallet
+                $wallet->debit($charges['total'], "Payment for order #{$order->id}", $order->id);
+                
+                // Update order payment status
+                $order->update([
+                    'payment_status' => 'paid'
+                ]);
+                
+                \Log::info('Wallet payment processed successfully');
+            }
 
             DB::commit();
+            
+            \Log::info('Order creation transaction committed successfully');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Order placed successfully!',
                 'order_number' => $order->order_number ?? 'ORD-' . $order->id,
-                'order_id' => $order->id
+                'order_id' => $order->id,
+                'order' => $order,
+                'total' => $charges['total']
             ]);
 
         } catch (\Exception $e) {

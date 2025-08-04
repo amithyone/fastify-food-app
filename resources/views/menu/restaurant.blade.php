@@ -125,7 +125,7 @@
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="font-semibold text-gray-900 dark:text-white">{{ $item->name }}</h3>
                                 <span class="font-bold text-lg" style="color: {{ $restaurant->theme_color }};">
-                                    {{ $restaurant->currency }}{{ number_format($item->price / 100, 2) }}
+                                    {{ $restaurant->currency }}{{ number_format($item->price) }}
                                 </span>
                             </div>
                             @if($item->description)

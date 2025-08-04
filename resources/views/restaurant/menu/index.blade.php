@@ -155,7 +155,7 @@
                                             </div>
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
-                                            {{ $restaurant->currency }}{{ number_format($item->price / 100, 2) }}
+                                            {{ $restaurant->currency }}{{ number_format($item->price) }}
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
@@ -251,7 +251,7 @@
                                             </div>
                                             <span class="text-xs font-medium text-gray-900 dark:text-white truncate">{{ $item->name }}</span>
                                         </div>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ $restaurant->currency }}{{ number_format($item->price / 100, 2) }}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">{{ $restaurant->currency }}{{ number_format($item->price) }}</span>
                                     </div>
                                 @endforeach
                             </div>

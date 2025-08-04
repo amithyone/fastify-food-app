@@ -90,7 +90,7 @@
                                                     @endif
                                                     <div>
                                                         <h4 class="item-name font-medium text-gray-900 dark:text-white text-sm">{{ $item['name'] }}</h4>
-                                                        <p class="item-price text-xs text-gray-600 dark:text-gray-400">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['price'] / 100, 2) }}</p>
+                                                        <p class="item-price text-xs text-gray-600 dark:text-gray-400">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['price']) }}</p>
                                                     </div>
                                                 </div>
                                                 
@@ -108,7 +108,7 @@
                                                     </div>
                                                     
                                                     <div class="text-right">
-                                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['total'] / 100, 2) }}</p>
+                                                        <p class="font-semibold text-gray-900 dark:text-white text-sm">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['total']) }}</p>
                                                     </div>
                                                     
                                                     <button onclick="removeItem({{ $item['id'] }})" 
@@ -124,7 +124,7 @@
                                     <div class="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
                                         <div class="flex justify-between items-center">
                                             <span class="font-semibold text-gray-900 dark:text-white text-sm">Restaurant Total:</span>
-                                            <span class="font-bold text-orange-600 dark:text-orange-400 text-sm">{{ $restaurantCart['restaurant']->currency }}{{ number_format($restaurantCart['total'] / 100, 2) }}</span>
+                                            <span class="font-bold text-orange-600 dark:text-orange-400 text-sm">{{ $restaurantCart['restaurant']->currency }}{{ number_format($restaurantCart['total']) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -142,7 +142,7 @@
                             <div class="space-y-3">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600 dark:text-gray-400 text-sm">Subtotal:</span>
-                                    <span class="font-semibold text-gray-900 dark:text-white text-sm">{{ $cartItems[0]['restaurant']->currency ?? '₦' }}{{ number_format($total / 100, 2) }}</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white text-sm">{{ $cartItems[0]['restaurant']->currency ?? '₦' }}{{ number_format($total) }}</span>
                                 </div>
                                 
                                 <div class="flex justify-between">
@@ -158,7 +158,7 @@
                                 <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
                                     <div class="flex justify-between">
                                         <span class="text-base font-bold text-gray-900 dark:text-white">Total:</span>
-                                        <span class="text-base font-bold text-orange-600 dark:text-orange-400">{{ $cartItems[0]['restaurant']->currency ?? '₦' }}{{ number_format($total / 100, 2) }}</span>
+                                        <span class="text-base font-bold text-orange-600 dark:text-orange-400">{{ $cartItems[0]['restaurant']->currency ?? '₦' }}{{ number_format($total) }}</span>
                                     </div>
                                 </div>
                             </div>
