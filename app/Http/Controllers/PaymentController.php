@@ -32,21 +32,25 @@ class PaymentController extends Controller
             
             // Check if user can access this order
             // Allow guest orders (user_id = null) to be paid by anyone
-            // Allow authenticated users to pay for their own orders
+            // Allow authenticated users to pay for their own orders (regardless of restaurant)
             // Allow restaurant managers to access orders from their managed restaurants
+            // Allow admins to access any order
             $user = Auth::user();
             $canAccess = false;
             
             if (Auth::check()) {
                 // User can access if:
-                // 1. They own the order (user_id matches)
+                // 1. They own the order (user_id matches) - REGARDLESS of restaurant
                 // 2. They are a restaurant manager for this restaurant
                 // 3. They are an admin
                 if ($order->user_id === Auth::id()) {
+                    // User owns this order - they can access it regardless of which restaurant it's from
                     $canAccess = true;
                 } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+                    // Restaurant manager accessing orders from their managed restaurant
                     $canAccess = true;
                 } elseif ($user->isAdmin()) {
+                    // Admin can access any order
                     $canAccess = true;
                 } elseif ($order->user_id === null) {
                     // Guest orders can be accessed by anyone
