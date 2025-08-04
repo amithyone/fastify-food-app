@@ -31,12 +31,24 @@ class PaymentController extends Controller
             $order = Order::findOrFail($request->order_id);
             
             // Check if user can access this order
-            if (Auth::check() && $order->user_id !== Auth::id()) {
+            // Allow guest orders (user_id = null) to be paid by anyone
+            // Allow authenticated users to pay for their own orders
+            if (Auth::check() && $order->user_id !== null && $order->user_id !== Auth::id()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized access to this order'
                 ], 403);
             }
+            
+            // Log for debugging
+            Log::info('Payment authorization check', [
+                'order_id' => $order->id,
+                'order_user_id' => $order->user_id,
+                'auth_check' => Auth::check(),
+                'auth_id' => Auth::id(),
+                'customer_name' => $order->customer_name,
+                'order_number' => $order->order_number
+            ]);
 
             // Check if order is already paid
             if ($order->status === 'paid') {
