@@ -630,18 +630,38 @@ class OrderController extends Controller
             'user_name' => $user->name,
             'order_id' => $order->id,
             'order_user_id' => $order->user_id,
+            'order_restaurant_id' => $order->restaurant_id,
             'order_customer_name' => $order->customer_name,
             'auth_id' => Auth::id(),
-            'user_owns_order' => $order->user_id === Auth::id()
+            'user_owns_order' => $order->user_id === Auth::id(),
+            'user_is_manager' => $user->isRestaurantOwner(),
+            'user_is_admin' => $user->isAdmin()
         ]);
         
-        // Check if user owns this order
-        if ($order->user_id !== Auth::id()) {
+        // Check if user can access this order
+        // Allow users to view their own orders regardless of restaurant
+        // Allow restaurant managers to view orders from their managed restaurants
+        // Allow admins to view any order
+        $canAccess = false;
+        
+        if ($order->user_id === Auth::id()) {
+            // User owns this order - they can view it regardless of which restaurant it's from
+            $canAccess = true;
+        } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+            // Restaurant manager viewing orders from their managed restaurant
+            $canAccess = true;
+        } elseif ($user->isAdmin()) {
+            // Admin can view any order
+            $canAccess = true;
+        }
+        
+        if (!$canAccess) {
             \Log::warning('Unauthorized order access attempt', [
                 'user_id' => $user->id,
                 'order_id' => $order->id,
                 'order_user_id' => $order->user_id,
-                'auth_id' => Auth::id()
+                'auth_id' => Auth::id(),
+                'can_access' => $canAccess
             ]);
             abort(403, 'Unauthorized access to this order. Order user ID: ' . $order->user_id . ', Your ID: ' . Auth::id());
         }
