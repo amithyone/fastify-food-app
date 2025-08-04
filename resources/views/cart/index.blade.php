@@ -226,6 +226,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateQuantity(itemId, newQuantity) {
     if (newQuantity < 0) return;
     
+    // Show loading state on the specific button
+    const button = event.target.closest('button');
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+    button.disabled = true;
+    
     fetch('{{ route("cart.update") }}', {
         method: 'POST',
         headers: {
@@ -240,13 +246,47 @@ function updateQuantity(itemId, newQuantity) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Update the quantity display
+            const quantitySpan = button.parentElement.querySelector('.item-quantity');
+            if (quantitySpan) {
+                quantitySpan.textContent = newQuantity;
+            }
+            
+            // Update item total
+            const itemContainer = button.closest('.cart-item');
+            const totalSpan = itemContainer.querySelector('.text-right p');
+            if (totalSpan && data.item_total) {
+                totalSpan.textContent = '{{ $cartItems[0]["restaurant"]->currency ?? "₦" }}' + data.item_total;
+            }
+            
+            // Update restaurant total
+            updateRestaurantTotal(data.restaurant_total);
+            
+            // Update cart total
+            updateCartTotal(data.cart_total);
+            
+            // Update cart count in header if exists
+            updateCartCount(data.cart_count);
         }
+    })
+    .catch(error => {
+        console.error('Error updating quantity:', error);
+    })
+    .finally(() => {
+        // Restore button
+        button.innerHTML = originalContent;
+        button.disabled = false;
     });
 }
 
 function removeItem(itemId) {
     if (!confirm('Are you sure you want to remove this item?')) return;
+    
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+    button.disabled = true;
     
     fetch('{{ route("cart.remove") }}', {
         method: 'POST',
@@ -261,13 +301,66 @@ function removeItem(itemId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Remove the item from DOM
+            const itemContainer = button.closest('.cart-item');
+            if (itemContainer) {
+                itemContainer.style.transition = 'all 0.3s ease';
+                itemContainer.style.opacity = '0';
+                itemContainer.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    itemContainer.remove();
+                    
+                    // Check if restaurant has no more items
+                    const restaurantContainer = itemContainer.closest('.mb-4');
+                    const remainingItems = restaurantContainer.querySelectorAll('.cart-item');
+                    
+                    if (remainingItems.length === 0) {
+                        restaurantContainer.style.transition = 'all 0.3s ease';
+                        restaurantContainer.style.opacity = '0';
+                        restaurantContainer.style.transform = 'translateX(-100%)';
+                        
+                        setTimeout(() => {
+                            restaurantContainer.remove();
+                            
+                            // Check if cart is empty
+                            const allItems = document.querySelectorAll('.cart-item');
+                            if (allItems.length === 0) {
+                                location.reload(); // Reload only if cart is completely empty
+                            }
+                        }, 300);
+                    } else {
+                        // Update restaurant total
+                        updateRestaurantTotal(data.restaurant_total);
+                    }
+                    
+                    // Update cart total
+                    updateCartTotal(data.cart_total);
+                    
+                    // Update cart count
+                    updateCartCount(data.cart_count);
+                }, 300);
+            }
         }
+    })
+    .catch(error => {
+        console.error('Error removing item:', error);
+    })
+    .finally(() => {
+        // Restore button
+        button.innerHTML = originalContent;
+        button.disabled = false;
     });
 }
 
 function clearCart() {
     if (!confirm('Are you sure you want to clear your cart?')) return;
+    
+    // Show loading state
+    const button = event.target;
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...';
+    button.disabled = true;
     
     fetch('{{ route("cart.clear") }}', {
         method: 'POST',
@@ -279,8 +372,56 @@ function clearCart() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Fade out all cart items
+            const cartItems = document.querySelectorAll('.cart-item');
+            cartItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(-100%)';
+                }, index * 50);
+            });
+            
+            // Reload after animation
+            setTimeout(() => {
+                location.reload();
+            }, cartItems.length * 50 + 300);
         }
+    })
+    .catch(error => {
+        console.error('Error clearing cart:', error);
+    })
+    .finally(() => {
+        // Restore button
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
+}
+
+// Helper functions for updating totals
+function updateRestaurantTotal(newTotal) {
+    const restaurantTotals = document.querySelectorAll('.font-bold.text-orange-600');
+    restaurantTotals.forEach(total => {
+        if (total.textContent.includes('Restaurant Total:')) {
+            total.textContent = '{{ $cartItems[0]["restaurant"]->currency ?? "₦" }}' + newTotal;
+        }
+    });
+}
+
+function updateCartTotal(newTotal) {
+    const cartTotals = document.querySelectorAll('.text-base.font-bold.text-orange-600');
+    cartTotals.forEach(total => {
+        if (total.textContent.includes('Total:')) {
+            total.textContent = '{{ $cartItems[0]["restaurant"]->currency ?? "₦" }}' + newTotal;
+        }
+    });
+}
+
+function updateCartCount(newCount) {
+    // Update cart count in header if exists
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    cartCountElements.forEach(element => {
+        element.textContent = newCount;
     });
 }
 

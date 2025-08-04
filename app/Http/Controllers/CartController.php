@@ -108,9 +108,17 @@ class CartController extends Controller
 
         Session::put('cart', $cart);
 
+        // Calculate updated totals
+        $itemTotal = $request->quantity > 0 ? $menuItem->price * $request->quantity : 0;
+        $restaurantTotal = $this->getRestaurantTotal($menuItem->restaurant_id);
+        $cartTotal = $this->getCartTotal();
+
         return response()->json([
             'success' => true,
             'message' => 'Cart updated',
+            'item_total' => number_format($itemTotal),
+            'restaurant_total' => number_format($restaurantTotal),
+            'cart_total' => number_format($cartTotal),
             'cart_count' => $this->getCartCount()
         ]);
     }
@@ -131,9 +139,15 @@ class CartController extends Controller
 
         Session::put('cart', $cart);
 
+        // Calculate updated totals
+        $restaurantTotal = $this->getRestaurantTotal($menuItem->restaurant_id);
+        $cartTotal = $this->getCartTotal();
+
         return response()->json([
             'success' => true,
             'message' => 'Item removed from cart',
+            'restaurant_total' => number_format($restaurantTotal),
+            'cart_total' => number_format($cartTotal),
             'cart_count' => $this->getCartCount()
         ]);
     }
@@ -161,6 +175,40 @@ class CartController extends Controller
         }
 
         return $count;
+    }
+
+    private function getRestaurantTotal($restaurantId)
+    {
+        $cart = Session::get('cart', []);
+        $total = 0;
+
+        if (isset($cart[$restaurantId])) {
+            foreach ($cart[$restaurantId] as $itemId => $quantity) {
+                $menuItem = MenuItem::find($itemId);
+                if ($menuItem) {
+                    $total += $menuItem->price * $quantity;
+                }
+            }
+        }
+
+        return $total;
+    }
+
+    private function getCartTotal()
+    {
+        $cart = Session::get('cart', []);
+        $total = 0;
+
+        foreach ($cart as $restaurantId => $items) {
+            foreach ($items as $itemId => $quantity) {
+                $menuItem = MenuItem::find($itemId);
+                if ($menuItem) {
+                    $total += $menuItem->price * $quantity;
+                }
+            }
+        }
+
+        return $total;
     }
 
     public function count()
