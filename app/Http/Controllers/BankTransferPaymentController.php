@@ -428,6 +428,100 @@ class BankTransferPaymentController extends Controller
     }
 
     /**
+     * Generate new account for an order (when current account expires)
+     */
+    public function generateNewAccountForOrder(Request $request, $orderId)
+    {
+        $order = Order::findOrFail($orderId);
+        
+        // Check if user can access this order using the new created_by field
+        $canAccess = false;
+        
+        if (Auth::check()) {
+            if ($order->created_by === Auth::id()) {
+                // User created this order - they can access it
+                $canAccess = true;
+            } elseif ($order->created_by === null) {
+                // Guest order - anyone can access it
+                $canAccess = true;
+            } elseif (Auth::user()->isAdmin()) {
+                // Admin can access any order
+                $canAccess = true;
+            }
+        } else {
+            // Guest users can only access guest orders
+            $canAccess = ($order->created_by === null);
+        }
+        
+        if (!$canAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to this order'
+            ], 403);
+        }
+
+        // Find the existing payment for this order
+        $existingPayment = BankTransferPayment::where('order_id', $orderId)
+            ->whereIn('status', ['pending', 'partial'])
+            ->first();
+
+        if (!$existingPayment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending payment found for this order'
+            ], 404);
+        }
+
+        // Check if the existing payment is expired
+        if (!$existingPayment->isExpired()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current payment account is still active'
+            ], 400);
+        }
+
+        // Generate new payment reference
+        $newReference = BankTransferPayment::generatePaymentReference();
+
+        // Generate new virtual account
+        $payVibeResponse = $this->payVibeService->generateVirtualAccount([
+            'reference' => $newReference
+        ]);
+
+        if (!$payVibeResponse['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate new virtual account'
+            ], 500);
+        }
+
+        // Update the existing payment with new account details
+        $existingPayment->update([
+            'payment_reference' => $newReference,
+            'virtual_account_number' => $payVibeResponse['account_number'],
+            'bank_name' => $payVibeResponse['bank_name'],
+            'account_name' => $payVibeResponse['account_name'],
+            'status' => 'pending',
+            'expires_at' => now()->addHours(24),
+            'payment_instructions' => "Please pay ₦{$existingPayment->amount} to complete your order. This is a new payment account generated after the previous one expired."
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'New virtual account generated successfully',
+            'data' => [
+                'payment_id' => $existingPayment->id,
+                'payment_reference' => $existingPayment->payment_reference,
+                'amount' => $existingPayment->amount,
+                'virtual_account_number' => $existingPayment->virtual_account_number,
+                'bank_name' => $existingPayment->bank_name,
+                'account_name' => $existingPayment->account_name,
+                'expires_at' => $existingPayment->expires_at->toISOString()
+            ]
+        ]);
+    }
+
+    /**
      * Get user's bank transfer payments
      */
     public function userPayments()

@@ -324,6 +324,81 @@
                 </div>
             </div>
             @endif
+
+            @if($order->payment_method === 'transfer' && $order->payment_status === 'pending' && $order->bankTransferPayment)
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-university text-blue-500 mr-2"></i>
+                        <span class="text-sm font-semibold text-blue-700 dark:text-blue-300">Bank Transfer Details</span>
+                    </div>
+                    @if($order->bankTransferPayment->isExpired())
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300">
+                            Expired
+                        </span>
+                    @else
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                            Active
+                        </span>
+                    @endif
+                </div>
+                
+                @if(!$order->bankTransferPayment->isExpired())
+                    <div class="space-y-3">
+                        <div class="bg-white dark:bg-gray-700 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">Account Number:</span>
+                                <button onclick="copyAccountNumber()" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm">
+                                    <i class="fas fa-copy mr-1"></i>Copy
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold font-mono text-gray-900 dark:text-white" id="accountNumber">{{ $order->bankTransferPayment->virtual_account_number }}</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $order->bankTransferPayment->bank_name }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                                <span class="text-xs text-gray-600 dark:text-gray-400">Amount to Pay:</span>
+                                <div class="text-lg font-bold text-gray-900 dark:text-white">₦{{ number_format($order->bankTransferPayment->amount) }}</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                                <span class="text-xs text-gray-600 dark:text-gray-400">Expires in:</span>
+                                <div class="text-sm font-semibold text-orange-600 dark:text-orange-400" id="countdown">
+                                    {{ $order->bankTransferPayment->time_remaining }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-yellow-500 mr-2 mt-0.5"></i>
+                                <div class="text-xs text-yellow-700 dark:text-yellow-300">
+                                    <p class="mb-1"><strong>Important:</strong> Use the account number above to make your payment.</p>
+                                    <p class="mb-1">• Transfer exactly ₦{{ number_format($order->bankTransferPayment->amount) }}</p>
+                                    <p class="mb-1">• Payment will be confirmed automatically</p>
+                                    <p>• Account expires in {{ $order->bankTransferPayment->time_remaining }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-clock text-red-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Account Expired</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">The payment account has expired. Generate a new one to continue.</p>
+                        <button onclick="regenerateAccount()" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Generate New Account
+                        </button>
+                    </div>
+                @endif
+            </div>
+            @endif
         </div>
     </div>
 
@@ -724,6 +799,80 @@
                 console.error('Could not copy text: ', err);
             });
         }
+
+        // Copy account number function
+        function copyAccountNumber() {
+            const accountNumber = document.getElementById('accountNumber').textContent;
+            if (!accountNumber) return;
+            
+            navigator.clipboard.writeText(accountNumber).then(function() {
+                // Show success message
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                button.classList.add('text-green-600', 'dark:text-green-400');
+                button.classList.remove('text-blue-600', 'dark:text-blue-400');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('text-green-600', 'dark:text-green-400');
+                    button.classList.add('text-blue-600', 'dark:text-blue-400');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        // Regenerate account function
+        function regenerateAccount() {
+            const orderId = '{{ $order->id }}';
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+            button.disabled = true;
+            
+            fetch(`/bank-transfer/generate-new-account-for-order/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the page to show new account details
+                    location.reload();
+                } else {
+                    showNotification(data.message || 'Failed to generate new account');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to generate new account. Please try again.');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        // Update countdown timer
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            if (!countdownElement) return;
+            
+            const timeRemaining = countdownElement.textContent;
+            if (timeRemaining.includes('expired') || timeRemaining.includes('0')) {
+                // Reload page to show expired state
+                location.reload();
+            }
+        }
+
+        // Update countdown every minute
+        setInterval(updateCountdown, 60000);
     </script>
 </div>
 @endsection

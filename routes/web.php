@@ -651,6 +651,7 @@ Route::prefix('bank-transfer')->name('bank-transfer.')->group(function () {
     Route::post('/initialize', [BankTransferPaymentController::class, 'initialize'])->name('initialize');
     Route::get('/status/{paymentId}', [BankTransferPaymentController::class, 'status'])->name('status');
     Route::post('/generate-new-account/{paymentId}', [BankTransferPaymentController::class, 'generateNewAccount'])->name('generate-new-account');
+    Route::post('/generate-new-account-for-order/{orderId}', [BankTransferPaymentController::class, 'generateNewAccountForOrder'])->name('generate-new-account-for-order');
     Route::get('/user-payments', [BankTransferPaymentController::class, 'userPayments'])->name('user-payments');
 });
 

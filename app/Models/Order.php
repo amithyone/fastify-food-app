@@ -91,6 +91,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'status_updated_by');
     }
 
+    public function bankTransferPayment()
+    {
+        return $this->hasOne(BankTransferPayment::class);
+    }
+
     public function getFormattedTotalAttribute()
     {
         return '₦' . number_format($this->total_amount, 0);
