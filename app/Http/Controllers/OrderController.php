@@ -482,16 +482,20 @@ class OrderController extends Controller
             'route_name' => request()->route()->getName()
         ]);
         
-        // Check if user can view this order using the new created_by field
+        // Check if user can view this order
+        // Support both old system (user_id) and new system (created_by)
         $canAccess = false;
         
         if ($user && $user->isAdmin()) {
             // Admin can view any order
             $canAccess = true;
-        } elseif ($order->created_by === Auth::id()) {
-            // User created this order - they can view it
+        } elseif ($order->user_id === Auth::id()) {
+            // User owns this order (old system)
             $canAccess = true;
-        } elseif ($order->created_by === null) {
+        } elseif (Schema::hasColumn('orders', 'created_by') && $order->created_by === Auth::id()) {
+            // User created this order (new system) - only if column exists
+            $canAccess = true;
+        } elseif ($order->user_id === null) {
             // Guest order - anyone can view it
             $canAccess = true;
         } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
@@ -672,24 +676,28 @@ class OrderController extends Controller
             'user_is_admin' => $user->isAdmin()
         ]);
         
-        // Check if user can access this order using the new created_by field
-        // Simple logic: If you created the order, you can view it
-        // For guest orders (created_by = null), anyone can view them
-        // Restaurant managers can view orders from their managed restaurants
-        // Admins can view any order
+        // Check if user can access this order
+        // Support both old system (user_id) and new system (created_by)
         $canAccess = false;
         
-        if ($order->created_by === Auth::id()) {
-            // User created this order - they can view it
+        // Check if user owns the order (old system)
+        if ($order->user_id === Auth::id()) {
             $canAccess = true;
-        } elseif ($order->created_by === null) {
-            // Guest order - anyone can view it
+        }
+        // Check if user created the order (new system) - only if column exists
+        elseif (Schema::hasColumn('orders', 'created_by') && $order->created_by === Auth::id()) {
             $canAccess = true;
-        } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
-            // Restaurant manager viewing orders from their managed restaurant
+        }
+        // Check if it's a guest order (anyone can access)
+        elseif ($order->user_id === null) {
             $canAccess = true;
-        } elseif ($user->isAdmin()) {
-            // Admin can view any order
+        }
+        // Check if user is restaurant manager
+        elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+            $canAccess = true;
+        }
+        // Check if user is admin
+        elseif ($user->isAdmin()) {
             $canAccess = true;
         }
         
@@ -697,11 +705,12 @@ class OrderController extends Controller
             \Log::warning('Unauthorized order access attempt', [
                 'user_id' => $user->id,
                 'order_id' => $order->id,
-                'order_created_by' => $order->created_by,
+                'order_user_id' => $order->user_id,
+                'order_created_by' => $order->created_by ?? 'N/A',
                 'auth_id' => Auth::id(),
                 'can_access' => $canAccess
             ]);
-            abort(403, 'Unauthorized access to this order. Order created by: ' . ($order->created_by ?? 'Guest') . ', Your ID: ' . Auth::id());
+            abort(403, 'Unauthorized access to this order. Order user_id: ' . ($order->user_id ?? 'null') . ', Your ID: ' . Auth::id());
         }
         
         return view('orders.user-show', compact('order'));

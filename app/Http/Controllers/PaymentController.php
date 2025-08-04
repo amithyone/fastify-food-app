@@ -30,42 +30,48 @@ class PaymentController extends Controller
         try {
             $order = Order::findOrFail($request->order_id);
             
-            // Check if user can access this order using the new created_by field
-            // Simple logic: If you created the order, you can pay for it
-            // For guest orders (created_by = null), anyone can pay for them
-            // Restaurant managers can access orders from their managed restaurants
-            // Admins can access any order
+            // Check if user can access this order
+            // Support both old system (user_id) and new system (created_by)
             $user = Auth::user();
             $canAccess = false;
             
             if (Auth::check()) {
                 // User can access if:
-                // 1. They created the order (created_by matches)
-                // 2. They are a restaurant manager for this restaurant
-                // 3. They are an admin
-                // 4. It's a guest order (created_by = null)
-                if ($order->created_by === Auth::id()) {
-                    // User created this order - they can access it
+                // 1. They own the order (user_id matches)
+                // 2. They created the order (created_by matches) - if column exists
+                // 3. They are a restaurant manager for this restaurant
+                // 4. They are an admin
+                // 5. It's a guest order (user_id = null)
+                
+                // Check if user owns the order (old system)
+                if ($order->user_id === Auth::id()) {
                     $canAccess = true;
-                } elseif ($order->created_by === null) {
-                    // Guest order - anyone can access it
+                }
+                // Check if user created the order (new system) - only if column exists
+                elseif (Schema::hasColumn('orders', 'created_by') && $order->created_by === Auth::id()) {
                     $canAccess = true;
-                } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
-                    // Restaurant manager accessing orders from their managed restaurant
+                }
+                // Check if it's a guest order (anyone can access)
+                elseif ($order->user_id === null) {
                     $canAccess = true;
-                } elseif ($user->isAdmin()) {
-                    // Admin can access any order
+                }
+                // Check if user is restaurant manager
+                elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+                    $canAccess = true;
+                }
+                // Check if user is admin
+                elseif ($user->isAdmin()) {
                     $canAccess = true;
                 }
             } else {
                 // Guest users can only access guest orders
-                $canAccess = ($order->created_by === null);
+                $canAccess = ($order->user_id === null);
             }
             
             if (!$canAccess) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized access to this order'
+                    'message' => 'Unauthorized access to this order. Order user_id: ' . ($order->user_id ?? 'null') . ', Your ID: ' . Auth::id()
                 ], 403);
             }
             
