@@ -829,45 +829,45 @@ window.stories = @json($stories);
 @endsection
 <div id="sideMenu" class="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 shadow-2xl backdrop-blur-sm transition-transform duration-300 ease-in-out z-50" style="transform: translateX(-100%);">
     <!-- Menu Header -->
-    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
         <button id="closeMenu" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
             <i class="fas fa-times"></i>
         </button>
     </div>
     <!-- Menu Items -->
-    <div class="p-4 space-y-4">
+    <div class="p-3 space-y-3">
         <!-- Home -->
-        <a href="/menu" class="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition">
+        <a href="/menu" class="flex items-center gap-3 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition">
             <i class="fas fa-home text-lg"></i>
             <span class="font-medium">Home</span>
         </a>
 
         <!-- Quick Actions -->
-        <div class="space-y-2">
+        <div class="space-y-1">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Quick Actions</h3>
-            <a href="/cart" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+            <a href="/cart" class="flex items-center gap-3 p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <i class="fas fa-shopping-cart text-lg"></i>
                 <span>My Cart</span>
                 <span id="menuCartCount" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" style="background-color: #ef4444 !important; color: white !important;">0</span>
             </a>
-            <a href="{{ route('user.orders') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+            <a href="{{ route('user.orders') }}" class="flex items-center gap-3 p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <i class="fas fa-receipt text-lg"></i>
                 <span>My Orders</span>
             </a>
-            <a href="{{ route('login') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+            <a href="{{ route('login') }}" class="flex items-center gap-3 p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <i class="fas fa-user text-lg"></i>
                 <span>Login</span>
             </a>
         </div>
         <!-- Contact -->
-        <div class="space-y-2">
+        <div class="space-y-1">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Contact</h3>
-            <a href="https://wa.me/" target="_blank" class="flex items-center gap-3 p-3 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition">
+            <a href="https://wa.me/" target="_blank" class="flex items-center gap-3 p-2 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition">
                 <i class="fab fa-whatsapp text-lg"></i>
                 <span>WhatsApp Support</span>
             </a>
-            <a href="tel:+234" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+            <a href="tel:+234" class="flex items-center gap-3 p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                 <i class="fas fa-phone text-lg"></i>
                 <span>Call Us</span>
             </a>
