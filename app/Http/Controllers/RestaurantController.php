@@ -27,11 +27,8 @@ class RestaurantController extends Controller
                 ->with('error', 'Please log in to create a restaurant.');
         }
 
-        // Check if user already has a restaurant
-        if (Auth::user()->primaryRestaurant) {
-            return redirect()->route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug)
-                ->with('info', 'You already have a restaurant registered.');
-        }
+        // Allow users to add multiple restaurants
+        // No restriction on existing restaurants
         
         return view('restaurant.onboarding');
     }

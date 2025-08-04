@@ -480,7 +480,7 @@
         <!-- Restaurant Section -->
         @auth
             @if(Auth::user()->primaryRestaurant)
-                <!-- User has a restaurant - show dashboard link -->
+                <!-- User has a restaurant - show dashboard link and add another option -->
                 <div class="bg-gradient-to-br from-green-400 via-green-500 to-green-600 dark:from-green-500 dark:via-green-600 dark:to-green-700 rounded-xl shadow-2xl border-2 border-green-300 dark:border-green-600 overflow-hidden relative" style="padding: 3rem !important; background: linear-gradient(135deg, #4ade80, #22c55e, #16a34a) !important;">
                     <div class="text-center relative z-10">
                         <div class="mb-8">
@@ -500,6 +500,11 @@
                                class="inline-flex items-center justify-center px-12 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 text-lg border-2 border-blue-600" style="background-color: #2563eb !important; color: white !important;">
                                 <i class="fas fa-edit mr-3"></i>
                                 Edit Restaurant
+                            </a>
+                            <a href="{{ route('restaurant.onboarding') }}" 
+                               class="inline-flex items-center justify-center px-12 py-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all duration-200 text-lg border-2 border-orange-500" style="background-color: #f97316 !important; color: white !important;">
+                                <i class="fas fa-plus mr-3"></i>
+                                Add Another Restaurant
                             </a>
                         </div>
                     </div>
@@ -605,12 +610,11 @@
                         <i class="fas fa-tachometer-alt text-lg"></i>
                         <span>My Restaurant</span>
                     </a>
-                @else
-                    <a href="{{ route('restaurant.onboarding') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                        <i class="fas fa-plus-circle text-lg"></i>
-                        <span>Add Restaurant</span>
-                    </a>
                 @endif
+                <a href="{{ route('restaurant.onboarding') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i class="fas fa-plus-circle text-lg"></i>
+                    <span>{{ Auth::user()->primaryRestaurant ? 'Add Another Restaurant' : 'Add Restaurant' }}</span>
+                </a>
             @else
                 <a href="{{ route('login') }}" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                     <i class="fas fa-sign-in-alt text-lg"></i>
