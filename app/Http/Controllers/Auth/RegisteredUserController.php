@@ -33,6 +33,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone_number' => ['nullable', 'string', 'max:20'],
             'default_address' => ['nullable', 'string', 'max:1000'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'max:255'],
@@ -43,6 +44,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => strtolower($request->email),
             'password' => Hash::make($request->password),
+            'phone_number' => $request->phone_number,
             'default_address' => $request->default_address,
             'city' => $request->city,
             'state' => $request->state,
@@ -58,7 +60,7 @@ class RegisteredUserController extends Controller
                 'state' => $request->state,
                 'postal_code' => $request->postal_code,
                 'country' => 'Nigeria',
-                'phone_number' => null, // No phone number required
+                'phone_number' => $request->phone_number,
                 'is_default' => true,
             ]);
         }
