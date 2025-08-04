@@ -115,8 +115,8 @@ Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])
 // Authenticated Routes
 Route::middleware(['auth'])->group(function () {
     // Orders Routes
-    Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders', [App\Http\Controllers\OrderController::class, 'userOrders'])->name('orders.index');
+    Route::get('/orders/{order}', [App\Http\Controllers\OrderController::class, 'userOrderShow'])->name('orders.show');
     Route::post('/orders', [App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
     
     // User Profile Routes
@@ -165,9 +165,9 @@ Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout.in
 
 // Order Routes (with auth middleware)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders', [OrderController::class, 'userOrders'])->name('orders.index');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('orders.show');
     Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
 });
 Route::get('/track-order', function () {
