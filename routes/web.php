@@ -163,11 +163,13 @@ Route::get('/test-location', function (Request $request) {
 // Checkout Route
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout.index');
 
-// Order Routes
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
+// Order Routes (with auth middleware)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
+});
 Route::get('/track-order', function () {
     return view('orders.track-form');
 })->name('orders.track-form');

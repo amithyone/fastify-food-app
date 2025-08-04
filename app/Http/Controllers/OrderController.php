@@ -462,6 +462,19 @@ class OrderController extends Controller
         $order = Order::with('orderItems.menuItem')->findOrFail($id);
         $user = Auth::user();
         
+        // Debug logging
+        \Log::info('Order show access attempt', [
+            'order_id' => $order->id,
+            'order_user_id' => $order->user_id,
+            'order_restaurant_id' => $order->restaurant_id,
+            'auth_check' => Auth::check(),
+            'auth_id' => Auth::id(),
+            'user_name' => $user ? $user->name : 'Guest',
+            'user_is_manager' => $user ? $user->isRestaurantOwner() : false,
+            'user_is_admin' => $user ? $user->isAdmin() : false,
+            'route_name' => request()->route()->getName()
+        ]);
+        
         // Check if user can view this order
         if ($user && $user->isAdmin()) {
             // Admin can view any order
@@ -472,6 +485,12 @@ class OrderController extends Controller
         } elseif ($order->user_id === null) {
             // Guest orders can be viewed by anyone (no private info)
         } else {
+            \Log::warning('Unauthorized order show access', [
+                'order_id' => $order->id,
+                'user_id' => $user ? $user->id : null,
+                'order_user_id' => $order->user_id,
+                'route_name' => request()->route()->getName()
+            ]);
             abort(403, 'Unauthorized access to this order.');
         }
         
