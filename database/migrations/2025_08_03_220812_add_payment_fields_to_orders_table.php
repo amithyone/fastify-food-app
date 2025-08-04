@@ -21,7 +21,8 @@ return new class extends Migration
                 $table->string('gateway_reference')->nullable()->after('payment_reference');
             }
             if (!Schema::hasColumn('orders', 'paid_at')) {
-                $table->timestamp('paid_at')->nullable()->after('payment_status');
+                // Add paid_at without specifying 'after' to avoid conflicts
+                $table->timestamp('paid_at')->nullable();
             }
             
             // Only modify payment_status if it doesn't already have the correct enum values
