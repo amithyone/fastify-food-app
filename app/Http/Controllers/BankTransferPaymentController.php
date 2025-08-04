@@ -71,8 +71,13 @@ class BankTransferPaymentController extends Controller
             $userId = null;
             if (Auth::check()) {
                 $user = Auth::user();
-                if ($user && \App\Models\User::find($user->id)) { // Check if user exists in DB
+                if ($user) {
                     $userId = $user->id;
+                    Log::info('User authenticated for bank transfer payment', [
+                        'user_id' => $userId,
+                        'user_name' => $user->name,
+                        'user_email' => $user->email
+                    ]);
                 }
             }
 

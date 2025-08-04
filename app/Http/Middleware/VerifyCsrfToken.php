@@ -19,5 +19,7 @@ class VerifyCsrfToken extends Middleware
         'test-story-creation',
         'restaurant/*/ai/*',
         'restaurant/*/ai/correct',
+        'bank-transfer/*',
+        'webhook/*',
     ];
 } 
