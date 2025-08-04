@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BankTransferPayment;
 use App\Models\Order;
+use App\Models\User;
 use App\Models\UserReward;
 use App\Services\PayVibeService;
 use Illuminate\Http\Request;
@@ -32,8 +33,8 @@ class BankTransferPaymentController extends Controller
 
         $order = Order::findOrFail($request->order_id);
         
-        // Check if user can pay for this order
-        if (Auth::check() && $order->user_id !== Auth::id()) {
+        // Check if user can pay for this order (allow guest users)
+        if (Auth::check() && $order->user_id !== null && $order->user_id !== Auth::id()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized access to this order'
@@ -54,10 +55,19 @@ class BankTransferPaymentController extends Controller
 
         DB::beginTransaction();
         try {
+            // Get user ID safely
+            $userId = null;
+            if (Auth::check()) {
+                $user = Auth::user();
+                if ($user && \App\Models\User::find($user->id)) { // Check if user exists in DB
+                    $userId = $user->id;
+                }
+            }
+
             // Create bank transfer payment record
             $payment = BankTransferPayment::create([
                 'order_id' => $order->id,
-                'user_id' => Auth::id(),
+                'user_id' => $userId,
                 'payment_reference' => BankTransferPayment::generatePaymentReference(),
                 'amount' => $request->amount,
                 'amount_paid' => 0,
