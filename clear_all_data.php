@@ -8,7 +8,7 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-echo "🧹 Clearing all restaurant and user data...\n\n";
+echo "🧹 Clearing ALL data including restaurants...\n\n";
 
 try {
     // Start transaction
@@ -32,7 +32,7 @@ try {
     DB::table('pay_vibe_transactions')->truncate();
     echo "   ✅ PayVibe transactions cleared\n";
     
-    echo "\n2️⃣ Clearing restaurant data...\n";
+    echo "\n2️⃣ Clearing ALL restaurant data...\n";
     
     // Clear restaurant delivery settings
     DB::table('restaurant_delivery_settings')->truncate();
@@ -66,11 +66,11 @@ try {
     DB::table('featured_restaurants')->truncate();
     echo "   ✅ Featured restaurants cleared\n";
     
-    // Clear restaurants
+    // Clear ALL restaurants (including admin restaurants)
     DB::table('restaurants')->truncate();
-    echo "   ✅ Restaurants cleared\n";
+    echo "   ✅ ALL restaurants cleared\n";
     
-    echo "\n3️⃣ Clearing user data...\n";
+    echo "\n3️⃣ Clearing ALL user data...\n";
     
     // Clear user rewards
     DB::table('user_rewards')->truncate();
@@ -100,11 +100,11 @@ try {
     DB::table('managers')->truncate();
     echo "   ✅ Managers cleared\n";
     
-    // Clear users (except admin)
-    DB::table('users')->where('is_admin', false)->delete();
-    echo "   ✅ Regular users cleared (admin preserved)\n";
+    // Clear ALL users (including admin)
+    DB::table('users')->truncate();
+    echo "   ✅ ALL users cleared\n";
     
-    echo "\n4️⃣ Clearing promotion data...\n";
+    echo "\n4️⃣ Clearing promotion and payment data...\n";
     
     // Clear promotion payments
     DB::table('promotion_payments')->truncate();
@@ -121,13 +121,14 @@ try {
     // Commit transaction
     DB::commit();
     
-    echo "\n🎉 All data cleared successfully!\n";
+    echo "\n🎉 ALL data cleared successfully!\n";
     echo "\n📋 Next steps:\n";
     echo "1. Run: php artisan db:seed\n";
     echo "2. Run: php artisan migrate:fresh --seed\n";
     echo "3. Or run individual seeders:\n";
     echo "   - php artisan db:seed --class=PaymentSettingsSeeder\n";
     echo "   - php artisan db:seed --class=SampleRestaurantSeeder\n";
+    echo "   - php artisan db:seed --class=UserFactory\n";
     
 } catch (Exception $e) {
     // Rollback transaction on error

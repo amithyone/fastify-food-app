@@ -1,4 +1,4 @@
-# 🧹 Data Clearing Commands
+# 🧹 Complete Data Clearing Commands
 
 ## Option 1: Fresh Migration (Recommended)
 This will drop all tables and recreate them with fresh data:
@@ -15,8 +15,8 @@ php artisan migrate:reset
 php artisan migrate --seed
 ```
 
-## Option 3: Clear Specific Data Only
-Use the custom script to clear only restaurant and user data:
+## Option 3: Clear ALL Data (Including Restaurants)
+Use the custom script to clear ALL data including restaurants:
 
 ```bash
 php clear_all_data.php
@@ -29,11 +29,11 @@ Clear specific tables manually:
 # Clear orders and payments
 php artisan tinker --execute="DB::table('order_items')->truncate(); DB::table('orders')->truncate(); DB::table('bank_transfer_payments')->truncate();"
 
-# Clear restaurants and menus
+# Clear ALL restaurants and menus
 php artisan tinker --execute="DB::table('menu_items')->truncate(); DB::table('categories')->truncate(); DB::table('restaurants')->truncate();"
 
-# Clear users (except admin)
-php artisan tinker --execute="DB::table('users')->where('is_admin', false)->delete();"
+# Clear ALL users
+php artisan tinker --execute="DB::table('users')->truncate();"
 ```
 
 ## Option 5: Database Reset
@@ -64,15 +64,16 @@ php artisan db:seed
 ## ⚠️ Important Notes
 
 1. **Backup first** if you have important data
-2. **Admin users are preserved** in the custom script
-3. **Payment settings will be reset** to defaults
-4. **All orders and payments will be lost**
-5. **All restaurants and menus will be cleared**
+2. **ALL restaurants will be removed** (including admin restaurants)
+3. **ALL users will be removed** (including admin users)
+4. **Payment settings will be reset** to defaults
+5. **All orders and payments will be lost**
+6. **All restaurants and menus will be cleared**
 
 ## 🚀 Quick Start After Clearing
 
 ```bash
-# 1. Clear all data
+# 1. Clear ALL data
 php clear_all_data.php
 
 # 2. Seed default settings
@@ -83,4 +84,16 @@ php artisan db:seed --class=SampleRestaurantSeeder
 
 # 4. Clear caches
 php artisan optimize:clear
-``` 
+```
+
+## 📋 What Gets Cleared
+
+- ✅ **ALL restaurants** (including admin restaurants)
+- ✅ **ALL users** (including admin users)
+- ✅ All orders and payments
+- ✅ All wallet transactions
+- ✅ All addresses and phone verifications
+- ✅ All promotion data
+- ✅ All payment settings (will be reseeded)
+- ✅ All menu items and categories
+- ✅ All stories and ratings 
