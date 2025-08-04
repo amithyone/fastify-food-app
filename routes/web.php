@@ -639,6 +639,12 @@ Route::prefix('guest-session')->name('guest-session.')->group(function () {
     Route::get('/{sessionId}/orders', [GuestSessionController::class, 'orders'])->name('orders');
 });
 
+// WhatsApp Webhook Routes
+Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
+    Route::get('/webhook', [WhatsAppWebhookController::class, 'verify'])->name('verify');
+    Route::post('/webhook', [WhatsAppWebhookController::class, 'webhook'])->name('webhook');
+});
+
 // PayVibe Webhook Route (no auth required)
 Route::post('/webhook/bank-transfer', [BankTransferPaymentController::class, 'webhook'])->name('webhook.bank-transfer');
 
