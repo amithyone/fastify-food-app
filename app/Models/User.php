@@ -29,6 +29,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'state',
         'postal_code',
         'is_admin',
+        'role',
+        'business_name',
+        'business_registration_number',
+        'cac_number',
+        'business_address',
+        'business_phone',
+        'manager_verification_status',
+        'manager_verification_notes',
     ];
 
     /**
@@ -166,7 +174,63 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdmin()
     {
-        return $this->is_admin;
+        return $this->is_admin || $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is a manager.
+     */
+    public function isManager()
+    {
+        return $this->role === 'manager' || $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is a regular user.
+     */
+    public function isRegularUser()
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Check if user's manager verification is approved.
+     */
+    public function isManagerApproved()
+    {
+        return $this->isManager() && $this->manager_verification_status === 'approved';
+    }
+
+    /**
+     * Check if user's manager verification is pending.
+     */
+    public function isManagerPending()
+    {
+        return $this->isManager() && $this->manager_verification_status === 'pending';
+    }
+
+    /**
+     * Check if user's manager verification is rejected.
+     */
+    public function isManagerRejected()
+    {
+        return $this->isManager() && $this->manager_verification_status === 'rejected';
+    }
+
+    /**
+     * Upgrade user to manager role.
+     */
+    public function upgradeToManager(array $managerData)
+    {
+        $this->update([
+            'role' => 'manager',
+            'business_name' => $managerData['business_name'],
+            'business_registration_number' => $managerData['business_registration_number'],
+            'cac_number' => $managerData['cac_number'],
+            'business_address' => $managerData['business_address'],
+            'business_phone' => $managerData['business_phone'],
+            'manager_verification_status' => 'pending',
+        ]);
     }
 
     /**

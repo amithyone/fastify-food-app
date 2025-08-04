@@ -645,6 +645,24 @@ Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
     Route::post('/webhook', [WhatsAppWebhookController::class, 'webhook'])->name('webhook');
 });
 
+// Manager Registration Routes
+Route::get('/register/manager', [App\Http\Controllers\Auth\ManagerRegistrationController::class, 'showRegistrationForm'])->name('manager.register');
+Route::post('/register/manager', [App\Http\Controllers\Auth\ManagerRegistrationController::class, 'register']);
+
+// User Upgrade Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/upgrade-to-manager', [App\Http\Controllers\Auth\UserUpgradeController::class, 'showUpgradeForm'])->name('user.upgrade.form');
+    Route::post('/upgrade-to-manager', [App\Http\Controllers\Auth\UserUpgradeController::class, 'upgrade'])->name('user.upgrade');
+});
+
+// Manager Dashboard Routes
+Route::middleware(['auth'])->prefix('manager')->name('manager.')->group(function () {
+    Route::get('/dashboard', [ManagerDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/verification-status', [ManagerDashboardController::class, 'verificationStatus'])->name('verification-status');
+    Route::get('/create-restaurant', [ManagerDashboardController::class, 'createRestaurant'])->name('create-restaurant');
+    Route::post('/create-restaurant', [ManagerDashboardController::class, 'storeRestaurant'])->name('store-restaurant');
+});
+
 // PayVibe Webhook Route (no auth required)
 Route::post('/webhook/bank-transfer', [BankTransferPaymentController::class, 'webhook'])->name('webhook.bank-transfer');
 
