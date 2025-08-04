@@ -633,6 +633,12 @@ Route::prefix('bank-transfer')->name('bank-transfer.')->group(function () {
     Route::get('/user-payments', [BankTransferPaymentController::class, 'userPayments'])->name('user-payments');
 });
 
+// Guest Session Routes (allow guest users)
+Route::prefix('guest-session')->name('guest-session.')->group(function () {
+    Route::get('/{sessionId}', [GuestSessionController::class, 'show'])->name('show');
+    Route::get('/{sessionId}/orders', [GuestSessionController::class, 'orders'])->name('orders');
+});
+
 // PayVibe Webhook Route (no auth required)
 Route::post('/webhook/bank-transfer', [BankTransferPaymentController::class, 'webhook'])->name('webhook.bank-transfer');
 

@@ -285,10 +285,17 @@ class OrderController extends Controller
                 'status' => $request->payment_method === 'transfer' ? 'pending_payment' : 'pending'
             ]);
 
+            // Get session ID for guest users
+            $sessionId = null;
+            if (!Auth::check() && $request->has('session_id')) {
+                $sessionId = $request->session_id;
+            }
+
             // Create order with calculated charges
             $order = Order::create([
                 'restaurant_id' => $restaurantId,
                 'user_id' => $userId, // Will be null for guest users
+                'session_id' => $sessionId, // For guest session tracking
                 'order_number' => (new Order())->generateOrderNumber(),
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
