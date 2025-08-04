@@ -21,8 +21,14 @@ class RestaurantController extends Controller
             'url' => request()->url()
         ]);
 
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')
+                ->with('error', 'Please log in to create a restaurant.');
+        }
+
         // Check if user already has a restaurant
-        if (Auth::check() && Auth::user()->primaryRestaurant) {
+        if (Auth::user()->primaryRestaurant) {
             return redirect()->route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug)
                 ->with('info', 'You already have a restaurant registered.');
         }
@@ -40,6 +46,12 @@ class RestaurantController extends Controller
             'user_email' => Auth::user()->email ?? 'not authenticated',
             'request_data' => $request->all()
         ]);
+
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')
+                ->with('error', 'Please log in to create a restaurant.');
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',

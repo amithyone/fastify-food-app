@@ -58,6 +58,15 @@
 
             <!-- Onboarding Form -->
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+                @if(session('error'))
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                            <span class="text-red-700 dark:text-red-300">{{ session('error') }}</span>
+                        </div>
+                    </div>
+                @endif
+                
                 <form action="{{ route('restaurant.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     
