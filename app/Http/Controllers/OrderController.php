@@ -910,8 +910,8 @@ class OrderController extends Controller
             'qr_table_qr_id' => $tableQR->id
         ]);
 
-        // Redirect to the main restaurant menu
-        return redirect()->route('menu.index', $restaurant->slug);
+        // Redirect to the specific restaurant menu
+        return redirect()->route('menu.restaurant', $restaurant->slug);
     }
 
     public function qrImage($code)
