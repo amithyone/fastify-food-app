@@ -12,6 +12,7 @@ class Order extends Model
     protected $fillable = [
         'restaurant_id',
         'user_id',
+        'created_by',
         'session_id',
         'order_number',
         'customer_name',
@@ -73,6 +74,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function guestSession()

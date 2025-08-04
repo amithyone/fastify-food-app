@@ -30,21 +30,25 @@ class PaymentController extends Controller
         try {
             $order = Order::findOrFail($request->order_id);
             
-            // Check if user can access this order
-            // Allow guest orders (user_id = null) to be paid by anyone
-            // Allow authenticated users to pay for their own orders (regardless of restaurant)
-            // Allow restaurant managers to access orders from their managed restaurants
-            // Allow admins to access any order
+            // Check if user can access this order using the new created_by field
+            // Simple logic: If you created the order, you can pay for it
+            // For guest orders (created_by = null), anyone can pay for them
+            // Restaurant managers can access orders from their managed restaurants
+            // Admins can access any order
             $user = Auth::user();
             $canAccess = false;
             
             if (Auth::check()) {
                 // User can access if:
-                // 1. They own the order (user_id matches) - REGARDLESS of restaurant
+                // 1. They created the order (created_by matches)
                 // 2. They are a restaurant manager for this restaurant
                 // 3. They are an admin
-                if ($order->user_id === Auth::id()) {
-                    // User owns this order - they can access it regardless of which restaurant it's from
+                // 4. It's a guest order (created_by = null)
+                if ($order->created_by === Auth::id()) {
+                    // User created this order - they can access it
+                    $canAccess = true;
+                } elseif ($order->created_by === null) {
+                    // Guest order - anyone can access it
                     $canAccess = true;
                 } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
                     // Restaurant manager accessing orders from their managed restaurant
@@ -52,13 +56,10 @@ class PaymentController extends Controller
                 } elseif ($user->isAdmin()) {
                     // Admin can access any order
                     $canAccess = true;
-                } elseif ($order->user_id === null) {
-                    // Guest orders can be accessed by anyone
-                    $canAccess = true;
                 }
             } else {
                 // Guest users can only access guest orders
-                $canAccess = ($order->user_id === null);
+                $canAccess = ($order->created_by === null);
             }
             
             if (!$canAccess) {

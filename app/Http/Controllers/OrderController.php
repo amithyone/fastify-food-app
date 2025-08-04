@@ -302,6 +302,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'restaurant_id' => $restaurantId,
                 'user_id' => $userId, // Will be null for guest users
+                'created_by' => Auth::id(), // Track who created the order
                 'session_id' => $sessionId, // For guest session tracking
                 'order_number' => (new Order())->generateOrderNumber(),
                 'customer_name' => $customerName,
@@ -475,23 +476,31 @@ class OrderController extends Controller
             'route_name' => request()->route()->getName()
         ]);
         
-        // Check if user can view this order
+        // Check if user can view this order using the new created_by field
+        $canAccess = false;
+        
         if ($user && $user->isAdmin()) {
             // Admin can view any order
+            $canAccess = true;
+        } elseif ($order->created_by === Auth::id()) {
+            // User created this order - they can view it
+            $canAccess = true;
+        } elseif ($order->created_by === null) {
+            // Guest order - anyone can view it
+            $canAccess = true;
         } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
             // Restaurant owner can view their own restaurant's orders
-        } elseif (Auth::check() && $order->user_id === Auth::id()) {
-            // User can view their own orders
-        } elseif ($order->user_id === null) {
-            // Guest orders can be viewed by anyone (no private info)
-        } else {
+            $canAccess = true;
+        }
+        
+        if (!$canAccess) {
             \Log::warning('Unauthorized order show access', [
                 'order_id' => $order->id,
                 'user_id' => $user ? $user->id : null,
-                'order_user_id' => $order->user_id,
+                'order_created_by' => $order->created_by,
                 'route_name' => request()->route()->getName()
             ]);
-            abort(403, 'Unauthorized access to this order.');
+            abort(403, 'Unauthorized access to this order. Order created by: ' . ($order->created_by ?? 'Guest') . ', Your ID: ' . Auth::id());
         }
         
         return view('orders.show', compact('order'));
@@ -657,14 +666,18 @@ class OrderController extends Controller
             'user_is_admin' => $user->isAdmin()
         ]);
         
-        // Check if user can access this order
-        // Allow users to view their own orders regardless of restaurant
-        // Allow restaurant managers to view orders from their managed restaurants
-        // Allow admins to view any order
+        // Check if user can access this order using the new created_by field
+        // Simple logic: If you created the order, you can view it
+        // For guest orders (created_by = null), anyone can view them
+        // Restaurant managers can view orders from their managed restaurants
+        // Admins can view any order
         $canAccess = false;
         
-        if ($order->user_id === Auth::id()) {
-            // User owns this order - they can view it regardless of which restaurant it's from
+        if ($order->created_by === Auth::id()) {
+            // User created this order - they can view it
+            $canAccess = true;
+        } elseif ($order->created_by === null) {
+            // Guest order - anyone can view it
             $canAccess = true;
         } elseif ($user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
             // Restaurant manager viewing orders from their managed restaurant
@@ -678,11 +691,11 @@ class OrderController extends Controller
             \Log::warning('Unauthorized order access attempt', [
                 'user_id' => $user->id,
                 'order_id' => $order->id,
-                'order_user_id' => $order->user_id,
+                'order_created_by' => $order->created_by,
                 'auth_id' => Auth::id(),
                 'can_access' => $canAccess
             ]);
-            abort(403, 'Unauthorized access to this order. Order user ID: ' . $order->user_id . ', Your ID: ' . Auth::id());
+            abort(403, 'Unauthorized access to this order. Order created by: ' . ($order->created_by ?? 'Guest') . ', Your ID: ' . Auth::id());
         }
         
         return view('orders.user-show', compact('order'));
