@@ -519,10 +519,8 @@ class OrderController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
         } else {
-            // For guests, show all orders (admin view)
-        $orders = Order::with('orderItems.menuItem')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            // For guests, redirect to login
+            return redirect()->route('login')->with('error', 'Please log in to view your orders.');
         }
         
         return view('orders.index', compact('orders'));
