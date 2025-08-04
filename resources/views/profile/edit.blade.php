@@ -38,6 +38,15 @@
                 <i class="fas fa-store text-lg"></i>
                 <span>Add Your Restaurant</span>
             </a>
+            
+            <!-- Logout Button -->
+            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg" onclick="return confirm('Are you sure you want to logout?')">
+                    <i class="fas fa-sign-out-alt text-lg"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
         </div>
     </div>
 
