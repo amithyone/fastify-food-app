@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\PWAController;
 use App\Http\Controllers\Auth\PhoneAuthController;
+use App\Http\Controllers\Auth\PhoneVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\RestaurantController;
@@ -49,6 +50,22 @@ Route::middleware(['custom.domain'])->group(function () {
 
 // Include Auth Routes
 require __DIR__.'/auth.php';
+
+// Phone Verification Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/phone/verification/notice', function () {
+        return view('auth.phone-verification-notice');
+    })->name('phone.verification.notice');
+    
+    Route::get('/phone/verification', [PhoneVerificationController::class, 'show'])
+        ->name('phone.verification.show');
+    Route::post('/phone/verification/send', [PhoneVerificationController::class, 'sendCode'])
+        ->name('phone.verification.send');
+    Route::post('/phone/verification/verify', [PhoneVerificationController::class, 'verify'])
+        ->name('phone.verification.verify');
+    Route::post('/phone/verification/resend', [PhoneVerificationController::class, 'resend'])
+        ->name('phone.verification.resend');
+});
 
 /*
 |--------------------------------------------------------------------------

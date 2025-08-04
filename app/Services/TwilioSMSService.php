@@ -11,55 +11,48 @@ class TwilioSMSService
     protected $accountSid;
     protected $authToken;
     protected $fromNumber;
+    protected $verifyServiceSid;
 
     public function __construct()
     {
         $this->accountSid = config('services.twilio.account_sid');
         $this->authToken = config('services.twilio.auth_token');
         $this->fromNumber = config('services.twilio.from_number');
+        $this->verifyServiceSid = config('services.twilio.verify_service_sid');
     }
 
     /**
-     * Send SMS verification code
+     * Send verification code using Twilio Verify
      */
     public function sendVerificationCode(string $phoneNumber): array
     {
         try {
-            // Generate 6-digit verification code
-            $verificationCode = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-            
             // Format phone number (add +234 if not present)
             $formattedPhone = $this->formatPhoneNumber($phoneNumber);
             
-            // Store verification code in cache for 10 minutes
-            $cacheKey = "sms_verification_{$formattedPhone}";
-            Cache::put($cacheKey, $verificationCode, 600); // 10 minutes
-            
-            // Prepare message
-            $message = "Your Fastify verification code is: {$verificationCode}. Valid for 10 minutes. Do not share this code with anyone.";
-            
-            // Send SMS via Twilio
+            // Send verification via Twilio Verify
             $response = Http::withBasicAuth($this->accountSid, $this->authToken)
-                ->post("https://api.twilio.com/2010-04-01/Accounts/{$this->accountSid}/Messages.json", [
-                    'From' => $this->fromNumber,
+                ->post("https://verify.twilio.com/v2/Services/{$this->verifyServiceSid}/Verifications", [
                     'To' => $formattedPhone,
-                    'Body' => $message
+                    'Channel' => 'sms'
                 ]);
             
             if ($response->successful()) {
                 $result = $response->json();
-                Log::info('SMS verification code sent successfully', [
+                Log::info('Twilio Verify code sent successfully', [
                     'to' => $formattedPhone,
-                    'message_sid' => $result['sid'] ?? null
+                    'verification_sid' => $result['sid'] ?? null,
+                    'status' => $result['status'] ?? null
                 ]);
                 
                 return [
                     'success' => true,
                     'message' => 'Verification code sent successfully',
-                    'message_sid' => $result['sid'] ?? null
+                    'verification_sid' => $result['sid'] ?? null,
+                    'status' => $result['status'] ?? null
                 ];
             } else {
-                Log::error('SMS verification failed', [
+                Log::error('Twilio Verify failed', [
                     'to' => $formattedPhone,
                     'response' => $response->json(),
                     'status' => $response->status()
@@ -71,63 +64,75 @@ class TwilioSMSService
                 ];
             }
         } catch (\Exception $e) {
-            Log::error('SMS service error', [
+            Log::error('Twilio Verify service error', [
                 'error' => $e->getMessage(),
                 'phone' => $phoneNumber
             ]);
             
             return [
                 'success' => false,
-                'error' => 'SMS service temporarily unavailable'
+                'error' => 'Verification service temporarily unavailable'
             ];
         }
     }
 
     /**
-     * Verify SMS code
+     * Verify SMS code using Twilio Verify
      */
     public function verifyCode(string $phoneNumber, string $code): array
     {
         try {
             $formattedPhone = $this->formatPhoneNumber($phoneNumber);
-            $cacheKey = "sms_verification_{$formattedPhone}";
             
-            $storedCode = Cache::get($cacheKey);
+            // Verify the code via Twilio Verify
+            $response = Http::withBasicAuth($this->accountSid, $this->authToken)
+                ->post("https://verify.twilio.com/v2/Services/{$this->verifyServiceSid}/VerificationChecks", [
+                    'To' => $formattedPhone,
+                    'Code' => $code
+                ]);
             
-            if (!$storedCode) {
-                return [
-                    'success' => false,
-                    'error' => 'Verification code expired or not found'
-                ];
-            }
-            
-            if ($storedCode === $code) {
-                // Remove the code from cache after successful verification
-                Cache::forget($cacheKey);
+            if ($response->successful()) {
+                $result = $response->json();
                 
-                Log::info('SMS verification successful', [
-                    'phone' => $formattedPhone
+                Log::info('Twilio Verify check result', [
+                    'phone' => $formattedPhone,
+                    'status' => $result['status'] ?? null,
+                    'valid' => $result['valid'] ?? null
+                ]);
+                
+                if (($result['status'] ?? '') === 'approved' && ($result['valid'] ?? false) === true) {
+                    return [
+                        'success' => true,
+                        'message' => 'Phone number verified successfully',
+                        'verification_sid' => $result['sid'] ?? null
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'error' => 'Invalid verification code'
+                    ];
+                }
+            } else {
+                Log::error('Twilio Verify check failed', [
+                    'phone' => $formattedPhone,
+                    'response' => $response->json(),
+                    'status' => $response->status()
                 ]);
                 
                 return [
-                    'success' => true,
-                    'message' => 'Phone number verified successfully'
-                ];
-            } else {
-                return [
                     'success' => false,
-                    'error' => 'Invalid verification code'
+                    'error' => $response->json()['message'] ?? 'Verification failed'
                 ];
             }
         } catch (\Exception $e) {
-            Log::error('SMS verification error', [
+            Log::error('Twilio Verify check error', [
                 'error' => $e->getMessage(),
                 'phone' => $phoneNumber
             ]);
             
             return [
                 'success' => false,
-                'error' => 'Verification failed'
+                'error' => 'Verification service temporarily unavailable'
             ];
         }
     }
