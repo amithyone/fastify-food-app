@@ -62,32 +62,6 @@
                 @enderror
             </div>
 
-            <!-- Phone Number -->
-            <div>
-                <label for="phone_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Phone Number (Optional)
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 dark:text-gray-400 text-sm">+234</span>
-                    </div>
-                    <input id="phone_number" 
-                           type="tel" 
-                           name="phone_number" 
-                           value="{{ old('phone_number') }}" 
-                           autocomplete="tel"
-                           class="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                           placeholder="8012345678"
-                           maxlength="11">
-                </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Enter your Nigerian phone number (e.g., 08012345678)
-                </p>
-                @error('phone_number')
-                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-        </div>
-
         <!-- Password -->
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -199,24 +173,8 @@
             </button>
         </form>
 
-        <!-- Divider -->
-        <div class="my-6 flex items-center">
-            <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-            <span class="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
-            <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-        </div>
-
-        <!-- Phone Registration Option -->
-        <div class="text-center mb-4">
-            <a href="{{ route('phone.register') }}" 
-               class="inline-flex items-center justify-center w-full bg-green-500 hover:bg-green-600 text-gray-900 dark:text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
-                <i class="fab fa-whatsapp mr-2"></i>
-                Register with Phone Number
-            </a>
-        </div>
-
         <!-- Login Link -->
-        <div class="text-center">
+        <div class="text-center mt-6">
             <p class="text-sm text-gray-600 dark:text-gray-400">
                 Already have an account? 
                 <a href="{{ route('login') }}" class="font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300">
@@ -283,16 +241,6 @@
             darkModeToggle.innerHTML = isDark 
                 ? '<i class="fas fa-moon text-yellow-400"></i>' 
                 : '<i class="fas fa-sun text-gray-600"></i>';
-        }
-
-        // Format phone number input
-        const phoneInput = document.getElementById('phone_number');
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.slice(0, 11);
-                e.target.value = value;
-            });
         }
     </script>
 </div>

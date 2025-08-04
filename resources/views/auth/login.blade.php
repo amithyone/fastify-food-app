@@ -17,129 +17,14 @@
             </button>
         </div>
         <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-phone text-3xl text-gray-900 dark:text-white"></i>
+            <i class="fas fa-user text-3xl text-gray-900 dark:text-white"></i>
         </div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
         <p class="text-gray-600 dark:text-gray-400">Sign in to your account to continue</p>
     </div>
 
-    <!-- Primary Login Method: Phone Number -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 mb-6">
-        <div class="text-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Login with Phone Number</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Quick and secure login via WhatsApp</p>
-        </div>
-
-        <form id="phoneLoginForm" class="space-y-4">
-            <!-- Phone Number Input -->
-            <div>
-                <label for="phone_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Phone Number
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 dark:text-gray-400 text-sm">+234</span>
-                    </div>
-                    <input 
-                        type="tel" 
-                        id="phone_number" 
-                        name="phone_number"
-                        class="block w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                        placeholder="8012345678"
-                        maxlength="11"
-                        required
-                        autofocus
-                    >
-                </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Enter your Nigerian phone number (e.g., 08012345678)
-                </p>
-            </div>
-
-            <!-- Send Code Button -->
-            <button 
-                type="button" 
-                id="sendCodeBtn"
-                class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2"
-                style="background-color: #f97316 !important; color: white !important;"
-            >
-                <i class="fab fa-whatsapp text-lg"></i>
-                Send Verification Code
-            </button>
-
-            <!-- Verification Code Section (Hidden initially) -->
-            <div id="verificationSection" class="hidden space-y-4">
-                <div class="text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        Enter the 6-digit code sent to your WhatsApp
-                    </p>
-                    <div id="countdown" class="text-xs text-orange-600 dark:text-orange-400 font-medium"></div>
-                </div>
-
-                <!-- Verification Code Input -->
-                <div>
-                    <label for="verification_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Verification Code
-                    </label>
-                    <input 
-                        type="text" 
-                        id="verification_code" 
-                        name="verification_code"
-                        class="block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white text-center text-lg font-mono tracking-widest"
-                        placeholder="000000"
-                        maxlength="6"
-                        pattern="[0-9]{6}"
-                    >
-                </div>
-
-                <!-- Verify Button -->
-                <button 
-                    type="button" 
-                    id="verifyBtn"
-                    class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2"
-                >
-                    <i class="fas fa-check text-lg"></i>
-                    Verify & Login
-                </button>
-
-                <!-- Resend Code Button -->
-                <button 
-                    type="button" 
-                    id="resendBtn"
-                    class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm transition duration-200"
-                    disabled
-                >
-                    Resend Code (60s)
-                </button>
-            </div>
-        </form>
-
-        <!-- Loading Spinner -->
-        <div id="loadingSpinner" class="hidden text-center py-4">
-            <div class="inline-flex items-center gap-2">
-                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500"></div>
-                <span class="text-gray-600 dark:text-gray-400">Processing...</span>
-            </div>
-        </div>
-
-        <!-- Error/Success Messages -->
-        <div id="messageContainer" class="mt-4"></div>
-    </div>
-
-    <!-- Divider -->
-    <div class="my-6 flex items-center">
-        <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-        <span class="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
-        <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-    </div>
-
-    <!-- Alternative Login Method: Email -->
+    <!-- Login Form -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-        <div class="text-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Login with Email</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Traditional email and password login</p>
-        </div>
-
         <!-- Session Status -->
         @if (session('status'))
             <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-300 rounded-lg">
@@ -161,6 +46,7 @@
                        value="{{ old('email') }}" 
                        required 
                        autocomplete="username"
+                       autofocus
                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                        placeholder="Enter your email">
                 @error('email')
@@ -205,29 +91,20 @@
 
             <!-- Login Button -->
             <button type="submit" 
-                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                Sign In with Email
+                    class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                Sign In
             </button>
         </form>
-    </div>
 
-    <!-- Sign Up with Phone Button -->
-    <div class="mt-4">
-        <a href="{{ route('phone.register') }}" 
-           class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 flex items-center justify-center gap-2">
-            <i class="fas fa-phone text-lg"></i>
-            Sign Up with Phone Number
-        </a>
-    </div>
-
-    <!-- Register Link -->
-    <div class="mt-6 mb-24 text-center">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account? 
-            <a href="{{ route('register') }}" class="font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300">
-                Sign up here
-            </a>
-        </p>
+        <!-- Register Link -->
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Don't have an account? 
+                <a href="{{ route('register') }}" class="font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300">
+                    Sign up here
+                </a>
+            </p>
+        </div>
     </div>
 
     <!-- Bottom Navigation -->
@@ -265,237 +142,6 @@
             <span class="text-xs mt-0.5">Login</span>
         </a>
     </nav>
-
-    <!-- Phone Login JavaScript -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const phoneInput = document.getElementById('phone_number');
-        const sendCodeBtn = document.getElementById('sendCodeBtn');
-        const verificationSection = document.getElementById('verificationSection');
-        const verifyBtn = document.getElementById('verifyBtn');
-        const resendBtn = document.getElementById('resendBtn');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const messageContainer = document.getElementById('messageContainer');
-        const countdownElement = document.getElementById('countdown');
-
-        let countdownInterval;
-        let resendCountdown = 60;
-
-        // Format phone number input
-        phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 11) value = value.slice(0, 11);
-            e.target.value = value;
-        });
-
-        // Send verification code
-        sendCodeBtn.addEventListener('click', async function() {
-            const phoneNumber = phoneInput.value.trim();
-            
-            if (!phoneNumber || phoneNumber.length < 10) {
-                showMessage('Please enter a valid phone number', 'error');
-                return;
-            }
-
-            setLoading(true);
-            
-            try {
-                const response = await fetch('/api/phone/send-code', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        phone_number: phoneNumber,
-                        is_login: true
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage(data.message, 'success');
-                    
-                    // In development, show the debug code
-                    if (data.debug_code) {
-                        showMessage(`Debug Code: ${data.debug_code}`, 'info');
-                    }
-                    
-                    verificationSection.classList.remove('hidden');
-                    startCountdown(data.expires_in || 5);
-                    startResendCountdown();
-                } else {
-                    showMessage(data.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
-            } finally {
-                setLoading(false);
-            }
-        });
-
-        // Verify code
-        verifyBtn.addEventListener('click', async function() {
-            const phoneNumber = phoneInput.value.trim();
-            const verificationCode = document.getElementById('verification_code').value.trim();
-
-            if (!verificationCode || verificationCode.length !== 6) {
-                showMessage('Please enter the 6-digit verification code', 'error');
-                return;
-            }
-
-            setLoading(true);
-
-            try {
-                const response = await fetch('/api/phone/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        phone_number: phoneNumber,
-                        verification_code: verificationCode,
-                        is_registration: false
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage(data.message, 'success');
-                    setTimeout(() => {
-                        window.location.href = data.redirect || '/menu';
-                    }, 1000);
-                } else {
-                    showMessage(data.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
-            } finally {
-                setLoading(false);
-            }
-        });
-
-        // Resend code
-        resendBtn.addEventListener('click', async function() {
-            const phoneNumber = phoneInput.value.trim();
-            
-            setLoading(true);
-
-            try {
-                const response = await fetch('/api/phone/resend', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        phone_number: phoneNumber
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage(data.message, 'success');
-                    startCountdown(data.expires_in || 5);
-                    startResendCountdown();
-                } else {
-                    showMessage(data.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
-            } finally {
-                setLoading(false);
-            }
-        });
-
-        function startCountdown(minutes) {
-            let timeLeft = minutes * 60;
-            
-            if (countdownInterval) clearInterval(countdownInterval);
-            
-            countdownInterval = setInterval(() => {
-                const mins = Math.floor(timeLeft / 60);
-                const secs = timeLeft % 60;
-                
-                countdownElement.textContent = `Code expires in ${mins}:${secs.toString().padStart(2, '0')}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    countdownElement.textContent = 'Code expired. Please request a new one.';
-                    countdownElement.classList.add('text-red-600', 'dark:text-red-400');
-                }
-                
-                timeLeft--;
-            }, 1000);
-        }
-
-        function startResendCountdown() {
-            resendCountdown = 60;
-            resendBtn.disabled = true;
-            resendBtn.textContent = `Resend Code (${resendCountdown}s)`;
-            
-            const resendInterval = setInterval(() => {
-                resendCountdown--;
-                resendBtn.textContent = `Resend Code (${resendCountdown}s)`;
-                
-                if (resendCountdown <= 0) {
-                    clearInterval(resendInterval);
-                    resendBtn.disabled = false;
-                    resendBtn.textContent = 'Resend Code';
-                }
-            }, 1000);
-        }
-
-        function setLoading(loading) {
-            if (loading) {
-                loadingSpinner.classList.remove('hidden');
-                sendCodeBtn.disabled = true;
-                verifyBtn.disabled = true;
-            } else {
-                loadingSpinner.classList.add('hidden');
-                sendCodeBtn.disabled = false;
-                verifyBtn.disabled = false;
-            }
-        }
-
-        function showMessage(message, type) {
-            let alertClass;
-            let icon;
-            
-            switch(type) {
-                case 'success':
-                    alertClass = 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200';
-                    icon = 'fa-check-circle';
-                    break;
-                case 'info':
-                    alertClass = 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200';
-                    icon = 'fa-info-circle';
-                    break;
-                default: // error
-                    alertClass = 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200';
-                    icon = 'fa-exclamation-circle';
-                    break;
-            }
-
-            messageContainer.innerHTML = `
-                <div class="p-4 rounded-lg border ${alertClass}">
-                    <div class="flex items-center">
-                        <i class="fas ${icon} mr-2"></i>
-                        <span>${message}</span>
-                    </div>
-                </div>
-            `;
-
-            setTimeout(() => {
-                messageContainer.innerHTML = '';
-            }, 5000);
-        }
-    });
-    </script>
 
     <!-- Dark Mode Toggle Script -->
     <script>

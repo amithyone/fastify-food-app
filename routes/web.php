@@ -180,14 +180,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/wallet/info', [WalletController::class, 'info'])->name('wallet.info');
 });
 
-// Phone Authentication API Routes
-Route::post('/api/phone/send-code', [PhoneAuthController::class, 'sendVerificationCode']);
-Route::post('/api/phone/verify', [PhoneAuthController::class, 'verifyCode']);
-Route::post('/api/phone/resend', [PhoneAuthController::class, 'resendCode']);
-
-// Phone Authentication Web Routes
-Route::get('/phone/login', [PhoneAuthController::class, 'showLoginForm'])->name('phone.login');
-Route::get('/phone/register', [PhoneAuthController::class, 'showRegisterForm'])->name('phone.register');
+// Phone Authentication Routes - REMOVED
+// These routes have been removed as phone authentication is no longer supported
 
 // WhatsApp Test Route
 Route::get('/test-whatsapp', function () {
