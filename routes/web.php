@@ -625,8 +625,8 @@ Route::post('/{slug}/status/business-hours', [RestaurantStatusController::class,
 Route::get('/{slug}/status/get', [RestaurantStatusController::class, 'getStatus'])->name('restaurant.status.get');
 });
 
-// Bank Transfer Payment Routes
-Route::middleware(['auth'])->prefix('bank-transfer')->name('bank-transfer.')->group(function () {
+// Bank Transfer Payment Routes (allow guest users)
+Route::prefix('bank-transfer')->name('bank-transfer.')->group(function () {
     Route::post('/initialize', [BankTransferPaymentController::class, 'initialize'])->name('initialize');
     Route::get('/status/{paymentId}', [BankTransferPaymentController::class, 'status'])->name('status');
     Route::post('/generate-new-account/{paymentId}', [BankTransferPaymentController::class, 'generateNewAccount'])->name('generate-new-account');
