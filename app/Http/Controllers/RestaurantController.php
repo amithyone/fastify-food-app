@@ -14,6 +14,13 @@ class RestaurantController extends Controller
 {
     public function onboarding()
     {
+        // Add debugging
+        \Log::info('Restaurant onboarding accessed', [
+            'user_id' => Auth::id(),
+            'user_email' => Auth::user()->email ?? 'not authenticated',
+            'url' => request()->url()
+        ]);
+
         // Check if user already has a restaurant
         if (Auth::check() && Auth::user()->primaryRestaurant) {
             return redirect()->route('restaurant.dashboard', Auth::user()->primaryRestaurant->slug)
@@ -25,6 +32,15 @@ class RestaurantController extends Controller
 
     public function store(Request $request)
     {
+        // Add debugging
+        \Log::info('Restaurant store method called', [
+            'method' => $request->method(),
+            'url' => $request->url(),
+            'user_id' => Auth::id(),
+            'user_email' => Auth::user()->email ?? 'not authenticated',
+            'request_data' => $request->all()
+        ]);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
