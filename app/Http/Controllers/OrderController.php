@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\MenuItem;
 use App\Models\UserReward;
 use App\Models\TableQR;
+use App\Models\User;
 use App\Services\PaymentCalculationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -264,9 +265,18 @@ class OrderController extends Controller
                 }
             }
 
+            // Get user ID safely
+            $userId = null;
+            if (Auth::check()) {
+                $user = Auth::user();
+                if ($user && User::find($user->id)) {
+                    $userId = $user->id;
+                }
+            }
+            
             \Log::info('Creating order with data:', [
                 'restaurant_id' => $restaurantId,
-                'user_id' => Auth::id(),
+                'user_id' => $userId,
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
                 'delivery_address' => $deliveryAddress,
@@ -278,7 +288,7 @@ class OrderController extends Controller
             // Create order with calculated charges
             $order = Order::create([
                 'restaurant_id' => $restaurantId,
-                'user_id' => Auth::id(), // Will be null for guest users
+                'user_id' => $userId, // Will be null for guest users
                 'order_number' => (new Order())->generateOrderNumber(),
                 'customer_name' => $customerName,
                 'phone_number' => $phoneNumber,
