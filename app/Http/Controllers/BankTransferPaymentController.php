@@ -50,7 +50,8 @@ class BankTransferPaymentController extends Controller
             'auth_check' => Auth::check(),
             'auth_id' => Auth::id(),
             'customer_name' => $order->customer_name,
-            'order_number' => $order->order_number
+            'order_number' => $order->order_number,
+            'authorization_passed' => !(Auth::check() && $order->user_id !== null && $order->user_id !== Auth::id())
         ]);
 
         // Check if payment already exists
