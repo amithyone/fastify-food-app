@@ -842,34 +842,7 @@ window.stories = @json($stories);
             <i class="fas fa-home text-lg"></i>
             <span class="font-medium">Home</span>
         </a>
-        <!-- Categories -->
-        <div class="space-y-2">
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Categories</h3>
-            <a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-pizza-slice text-lg"></i>
-                <span>Pizza</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-hamburger text-lg"></i>
-                <span>Burgers</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-drumstick-bite text-lg"></i>
-                <span>Chicken</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-fish text-lg"></i>
-                <span>Seafood</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-ice-cream text-lg"></i>
-                <span>Desserts</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                <i class="fas fa-coffee text-lg"></i>
-                <span>Beverages</span>
-            </a>
-        </div>
+
         <!-- Quick Actions -->
         <div class="space-y-2">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Quick Actions</h3>
