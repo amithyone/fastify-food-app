@@ -789,9 +789,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Quick Actions - Only for authenticated users -->
+<!-- Quick Actions - Only for restaurant owners -->
 @auth
-<div class="fixed bottom-6 left-6 z-50">
+@if(Auth::user()->isRestaurantOwner())
+<div class="fixed bottom-6 right-6 z-50">
     <div class="flex space-x-3">
         <!-- Cart Link -->
         <a href="{{ route('cart.index') }}" class="w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
@@ -805,5 +806,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </a>
     </div>
 </div>
+@endif
 @endauth
 @endsection
