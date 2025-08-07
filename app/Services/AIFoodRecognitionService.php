@@ -31,49 +31,110 @@ class AIFoodRecognitionService
         try {
             // Validate image
             if (!$image || !$image->isValid()) {
-                Log::error('Invalid image uploaded for recognition');
-                return $this->getErrorResponse('Invalid image file. Please try again.');
+                Log::error('Invalid image uploaded for recognition', [
+                    'image_valid' => $image ? $image->isValid() : false,
+                    'image_name' => $image ? $image->getClientOriginalName() : 'null',
+                    'image_size' => $image ? $image->getSize() : 0,
+                    'image_mime' => $image ? $image->getMimeType() : 'null'
+                ]);
+                return $this->getErrorResponse('Invalid image file. Please try again with a valid image.');
             }
+
+            // Log image details
+            Log::info('Starting AI food recognition', [
+                'file_name' => $image->getClientOriginalName(),
+                'file_size' => $image->getSize(),
+                'file_mime' => $image->getMimeType(),
+                'file_extension' => $image->getClientOriginalExtension(),
+                'max_size_allowed' => '1MB',
+                'google_api_configured' => !empty($this->googleApiKey),
+                'azure_api_configured' => !empty($this->azureApiKey),
+                'logmeal_api_configured' => !empty($this->logmealApiKey) && $this->logmealApiKey !== 'demo'
+            ]);
 
             // Try multiple services in order of preference
             $results = [];
+            $servicesAttempted = [];
             
             // 1. Try Google Vision API (most accurate)
             if ($this->googleApiKey) {
+                $servicesAttempted[] = 'Google Vision';
                 $googleResult = $this->recognizeWithGoogleVision($image);
                 if ($googleResult['success']) {
                     $results[] = $googleResult;
+                    Log::info('Google Vision API successful', [
+                        'food_name' => $googleResult['food_name'],
+                        'confidence' => $googleResult['confidence']
+                    ]);
+                } else {
+                    Log::warning('Google Vision API failed', [
+                        'error' => $googleResult['error'] ?? 'Unknown error'
+                    ]);
                 }
+            } else {
+                Log::info('Google Vision API not configured');
             }
 
             // 2. Try Azure Computer Vision
             if ($this->azureApiKey && $this->azureEndpoint) {
+                $servicesAttempted[] = 'Azure Vision';
                 $azureResult = $this->recognizeWithAzureVision($image);
                 if ($azureResult['success']) {
                     $results[] = $azureResult;
+                    Log::info('Azure Vision API successful', [
+                        'food_name' => $azureResult['food_name'],
+                        'confidence' => $azureResult['confidence']
+                    ]);
+                } else {
+                    Log::warning('Azure Vision API failed', [
+                        'error' => $azureResult['error'] ?? 'Unknown error'
+                    ]);
                 }
+            } else {
+                Log::info('Azure Vision API not configured');
             }
 
             // 3. Try LogMeal API (specialized in food)
             if ($this->logmealApiKey && $this->logmealApiKey !== 'demo') {
+                $servicesAttempted[] = 'LogMeal';
                 $logmealResult = $this->recognizeWithLogMeal($image);
                 if ($logmealResult['success']) {
                     $results[] = $logmealResult;
+                    Log::info('LogMeal API successful', [
+                        'food_name' => $logmealResult['food_name'],
+                        'confidence' => $logmealResult['confidence']
+                    ]);
+                } else {
+                    Log::warning('LogMeal API failed', [
+                        'error' => $logmealResult['error'] ?? 'Unknown error'
+                    ]);
                 }
+            } else {
+                Log::info('LogMeal API in demo mode or not configured');
             }
 
             // 4. Fallback to local analysis
+            $servicesAttempted[] = 'Local Analysis';
             $localResult = $this->analyzeImageCharacteristics($image);
             $results[] = $localResult;
+            Log::info('Local analysis completed', [
+                'food_name' => $localResult['food_name'],
+                'confidence' => $localResult['confidence']
+            ]);
 
             // Combine and select best result
             $bestResult = $this->selectBestResult($results);
             
-            Log::info('AI food recognition successful', [
+            Log::info('AI food recognition completed', [
                 'file' => $image->getClientOriginalName(),
                 'size' => $image->getSize(),
-                'services_used' => count($results),
-                'best_result' => $bestResult
+                'services_attempted' => $servicesAttempted,
+                'services_successful' => count($results),
+                'best_result' => [
+                    'food_name' => $bestResult['food_name'],
+                    'category' => $bestResult['category'],
+                    'confidence' => $bestResult['confidence']
+                ]
             ]);
             
             return [
@@ -87,16 +148,22 @@ class AIFoodRecognitionService
                 'is_vegetarian' => $bestResult['is_vegetarian'] ?? false,
                 'is_spicy' => $bestResult['is_spicy'] ?? false,
                 'services_used' => count($results),
+                'services_attempted' => $servicesAttempted
             ];
         } catch (\Exception $e) {
-            Log::error('Food recognition error: ' . $e->getMessage(), [
+            Log::error('Food recognition error', [
                 'file' => $image ? $image->getClientOriginalName() : 'unknown',
                 'size' => $image ? $image->getSize() : 0,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'error_trace' => $e->getTraceAsString(),
+                'google_api_key_set' => !empty($this->googleApiKey),
+                'azure_api_key_set' => !empty($this->azureApiKey),
+                'logmeal_api_key_set' => !empty($this->logmealApiKey)
             ]);
             
-            return $this->getErrorResponse('Unable to recognize food from image. Please try again.');
+            return $this->getErrorResponse('Unable to recognize food from image. Please try again with a smaller image (under 1MB).');
         }
     }
 
