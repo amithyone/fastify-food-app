@@ -246,19 +246,29 @@ class Restaurant extends Model
                 return $url;
             }
             
-            \Log::warning('Restaurant model logo_url - file not found', [
+            \Log::warning('Restaurant model logo_url - file not found, using placeholder', [
                 'restaurant_id' => $this->id,
                 'logo_path' => $this->logo,
                 'exists' => $this->logo ? \Storage::disk('public')->exists($this->logo) : false
             ]);
-            return null;
+            
+            // Return placeholder logo URL
+            $placeholderUrl = \Storage::disk('public')->url('restaurants/logos/placeholder-logo.svg');
+            $placeholderUrl = \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+            
+            return $placeholderUrl;
         } catch (\Exception $e) {
             \Log::error('Error getting restaurant logo URL from model', [
                 'restaurant_id' => $this->id,
                 'logo_path' => $this->logo,
                 'error' => $e->getMessage()
             ]);
-            return null;
+            
+            // Return placeholder logo URL as fallback
+            $placeholderUrl = \Storage::disk('public')->url('restaurants/logos/placeholder-logo.svg');
+            $placeholderUrl = \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+            
+            return $placeholderUrl;
         }
     }
 
@@ -281,19 +291,29 @@ class Restaurant extends Model
                 return $url;
             }
             
-            \Log::warning('Restaurant model banner_url - file not found', [
+            \Log::warning('Restaurant model banner_url - file not found, using placeholder', [
                 'restaurant_id' => $this->id,
                 'banner_path' => $this->banner_image,
                 'exists' => $this->banner_image ? \Storage::disk('public')->exists($this->banner_image) : false
             ]);
-            return null;
+            
+            // Return placeholder banner URL
+            $placeholderUrl = \Storage::disk('public')->url('restaurants/banners/placeholder-banner.jpg');
+            $placeholderUrl = \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+            
+            return $placeholderUrl;
         } catch (\Exception $e) {
             \Log::error('Error getting restaurant banner URL', [
                 'restaurant_id' => $this->id,
                 'banner_path' => $this->banner_image,
                 'error' => $e->getMessage()
             ]);
-            return null;
+            
+            // Return placeholder banner URL as fallback
+            $placeholderUrl = \Storage::disk('public')->url('restaurants/banners/placeholder-banner.jpg');
+            $placeholderUrl = \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+            
+            return $placeholderUrl;
         }
     }
 
