@@ -243,18 +243,26 @@ document.querySelectorAll('input[name="image_source"]').forEach(radio => {
 
 // Open image selector modal
 function openImageSelector() {
-    fetch('{{ route("restaurant.images.get", $restaurant->slug) }}')
-        .then(response => response.json())
+    console.log('Opening image selector...');
+    const url = '{{ route("restaurant.images.get", $restaurant->slug) }}';
+    console.log('Fetching from:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (data.success) {
                 showImageSelectorModal(data.images);
             } else {
-                alert('Failed to load images');
+                alert('Failed to load images: ' + (data.message || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error loading images:', error);
-            alert('Failed to load images');
+            alert('Failed to load images: ' + error.message);
         });
 }
 

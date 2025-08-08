@@ -126,14 +126,28 @@ class RestaurantImageController extends Controller
      */
     public function getImages($slug)
     {
+        \Log::info('Getting images for restaurant', [
+            'slug' => $slug,
+            'user_id' => Auth::id()
+        ]);
+        
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         // Check authorization
         if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+            \Log::warning('Unauthorized access attempt to restaurant images', [
+                'user_id' => Auth::id(),
+                'restaurant_id' => $restaurant->id
+            ]);
             abort(403, 'Unauthorized access to restaurant images.');
         }
         
         $images = $restaurant->images()->unused()->orderBy('created_at', 'desc')->get();
+        
+        \Log::info('Images retrieved successfully', [
+            'restaurant_id' => $restaurant->id,
+            'images_count' => $images->count()
+        ]);
         
         return response()->json([
             'success' => true,
