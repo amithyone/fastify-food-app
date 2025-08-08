@@ -8,8 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+// Intervention Image imports are now optional and checked at runtime
 
 class RestaurantImageController extends Controller
 {
@@ -249,16 +248,29 @@ class RestaurantImageController extends Controller
                 return;
             }
             
-            // Create thumbnail using Intervention Image
-            $manager = new ImageManager(new Driver());
-            $image = $manager->read($fullPath);
-            $image->cover(300, 300);
-            $image->save($thumbnailFullPath, 80);
+            // Try to use Intervention Image if available
+            if (class_exists('Intervention\Image\ImageManager')) {
+                try {
+                    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                    $image = $manager->read($fullPath);
+                    $image->cover(300, 300);
+                    $image->save($thumbnailFullPath, 80);
+                    
+                    Log::info('Thumbnail created successfully with Intervention Image', [
+                        'original_path' => $filePath,
+                        'thumbnail_path' => $thumbnailPath
+                    ]);
+                    return;
+                } catch (\Exception $e) {
+                    Log::warning('Intervention Image failed, falling back to GD', [
+                        'file_path' => $filePath,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
             
-            Log::info('Thumbnail created successfully', [
-                'original_path' => $filePath,
-                'thumbnail_path' => $thumbnailPath
-            ]);
+            // Fallback to native GD
+            $this->createThumbnailWithGD($fullPath, $thumbnailFullPath);
             
         } catch (\Exception $e) {
             Log::warning('Failed to create thumbnail', [
@@ -266,6 +278,100 @@ class RestaurantImageController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+        }
+    }
+    
+    /**
+     * Create thumbnail using native GD functions
+     */
+    private function createThumbnailWithGD($sourcePath, $thumbnailPath)
+    {
+        try {
+            $imageInfo = getimagesize($sourcePath);
+            if (!$imageInfo) {
+                throw new \Exception('Unable to get image info');
+            }
+            
+            $width = $imageInfo[0];
+            $height = $imageInfo[1];
+            $type = $imageInfo[2];
+            
+            // Calculate new dimensions (maintain aspect ratio)
+            $maxWidth = 300;
+            $maxHeight = 300;
+            
+            if ($width > $height) {
+                $newWidth = $maxWidth;
+                $newHeight = floor($height * $maxWidth / $width);
+            } else {
+                $newHeight = $maxHeight;
+                $newWidth = floor($width * $maxHeight / $height);
+            }
+            
+            // Create source image resource
+            switch ($type) {
+                case IMAGETYPE_JPEG:
+                    $source = imagecreatefromjpeg($sourcePath);
+                    break;
+                case IMAGETYPE_PNG:
+                    $source = imagecreatefrompng($sourcePath);
+                    break;
+                case IMAGETYPE_GIF:
+                    $source = imagecreatefromgif($sourcePath);
+                    break;
+                default:
+                    throw new \Exception('Unsupported image type');
+            }
+            
+            if (!$source) {
+                throw new \Exception('Failed to create source image resource');
+            }
+            
+            // Create thumbnail resource
+            $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
+            
+            // Preserve transparency for PNG and GIF
+            if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_GIF) {
+                imagealphablending($thumbnail, false);
+                imagesavealpha($thumbnail, true);
+                $transparent = imagecolorallocatealpha($thumbnail, 255, 255, 255, 127);
+                imagefill($thumbnail, 0, 0, $transparent);
+            }
+            
+            // Resize the image
+            imagecopyresampled($thumbnail, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            
+            // Save the thumbnail
+            switch ($type) {
+                case IMAGETYPE_JPEG:
+                    imagejpeg($thumbnail, $thumbnailPath, 80);
+                    break;
+                case IMAGETYPE_PNG:
+                    imagepng($thumbnail, $thumbnailPath, 8);
+                    break;
+                case IMAGETYPE_GIF:
+                    imagegif($thumbnail, $thumbnailPath);
+                    break;
+            }
+            
+            // Clean up
+            imagedestroy($source);
+            imagedestroy($thumbnail);
+            
+            Log::info('Thumbnail created successfully with GD', [
+                'original_path' => $sourcePath,
+                'thumbnail_path' => $thumbnailPath,
+                'original_size' => "{$width}x{$height}",
+                'thumbnail_size' => "{$newWidth}x{$newHeight}"
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to create thumbnail with GD', [
+                'source_path' => $sourcePath,
+                'thumbnail_path' => $thumbnailPath,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
         }
     }
 }

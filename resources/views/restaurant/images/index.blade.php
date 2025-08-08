@@ -222,8 +222,27 @@ document.getElementById('bulkUploadForm').addEventListener('submit', function(e)
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response.text().then(text => {
+            console.log('Response text:', text);
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                console.error('Response was:', text);
+                throw new Error('Server returned invalid JSON: ' + text.substring(0, 200));
+            }
+        });
+    })
     .then(data => {
+        console.log('Parsed data:', data);
         if (data.success) {
             uploadStatus.innerHTML = `<span class="text-green-600">${data.message}</span>`;
             progressBar.style.width = '100%';
@@ -242,6 +261,7 @@ document.getElementById('bulkUploadForm').addEventListener('submit', function(e)
         }
     })
     .catch(error => {
+        console.error('Upload error:', error);
         uploadStatus.innerHTML = `<span class="text-red-600">Upload failed: ${error.message}</span>`;
     })
     .finally(() => {

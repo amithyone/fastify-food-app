@@ -3,5 +3,4 @@
 return [
     App\Providers\AppServiceProvider::class,
     App\Providers\AuthServiceProvider::class,
-    Intervention\Image\ImageServiceProviderLaravelRecent::class,
 ];
