@@ -19,6 +19,7 @@ class MenuItem extends Model
         'image',
         'is_available',
         'is_featured',
+        'is_available_for_delivery',
         'is_vegetarian',
         'is_spicy',
         'restaurant_id'
@@ -28,6 +29,7 @@ class MenuItem extends Model
         'price' => 'decimal:2',
         'is_available' => 'boolean',
         'is_featured' => 'boolean',
+        'is_available_for_delivery' => 'boolean',
         'is_vegetarian' => 'boolean',
         'is_spicy' => 'boolean',
     ];

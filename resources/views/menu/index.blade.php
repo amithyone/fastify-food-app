@@ -547,7 +547,10 @@ function renderMenuItems(items) {
                 <div class="p-3 flex-1 flex flex-col justify-between">
                     <div>
                         <h3 class="text-base font-semibold text-gray-800 dark:text-white leading-tight">${item.name}</h3>
-                        <span class="text-xs text-gray-500 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">${item.category.name}</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-gray-500 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">${item.category.name}</span>
+                            ${!item.is_available_for_delivery ? '<span class="text-xs text-red-500 bg-red-100 dark:bg-red-900 px-2 py-1 rounded">No Delivery</span>' : ''}
+                        </div>
                     </div>
                     <div class="flex items-center justify-between mt-2">
                         <span class="text-sm font-bold text-orange-500 dark:text-orange-300">₦${item.price.toLocaleString()}</span>

@@ -117,7 +117,7 @@
                     </div>
 
                     <!-- Options -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div class="flex items-center">
                             <input type="checkbox" id="is_available" name="is_available" value="1" 
                                    {{ old('is_available', true) ? 'checked' : '' }}
@@ -133,6 +133,15 @@
                                    class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
                             <label for="is_featured" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                 Featured
+                            </label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" id="is_available_for_delivery" name="is_available_for_delivery" value="1" 
+                                   {{ old('is_available_for_delivery', true) ? 'checked' : '' }}
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="is_available_for_delivery" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                Available for Delivery
                             </label>
                         </div>
 

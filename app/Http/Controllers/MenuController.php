@@ -183,6 +183,7 @@ class MenuController extends Controller
                 'category_id' => $request->input('category_id'),
                 'is_available' => $request->has('is_available'),
                 'is_featured' => $request->has('is_featured'),
+                'is_available_for_delivery' => $request->has('is_available_for_delivery'),
                 'is_vegetarian' => $request->has('is_vegetarian'),
                 'is_spicy' => $request->has('is_spicy'),
                 'ingredients' => $request->input('ingredients'),
@@ -216,6 +217,7 @@ class MenuController extends Controller
                 'category_id' => 'nullable|exists:categories,id',
                 'is_available' => 'nullable',
                 'is_featured' => 'nullable',
+                'is_available_for_delivery' => 'nullable',
                 'is_vegetarian' => 'nullable',
                 'is_spicy' => 'nullable',
                 'ingredients' => 'nullable|string|max:500',
@@ -238,6 +240,7 @@ class MenuController extends Controller
             // Set default values for boolean fields
             $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';
             $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
+            $validated['is_available_for_delivery'] = $request->has('is_available_for_delivery') || $request->input('is_available_for_delivery') === 'on';
             $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
@@ -277,6 +280,7 @@ class MenuController extends Controller
                 'menu_item_category' => $menuItem->category->name ?? 'No category',
                 'menu_item_available' => $menuItem->is_available,
                 'menu_item_featured' => $menuItem->is_featured,
+                'menu_item_available_for_delivery' => $menuItem->is_available_for_delivery,
                 'menu_item_vegetarian' => $menuItem->is_vegetarian,
                 'menu_item_spicy' => $menuItem->is_spicy,
                 'menu_item_ingredients' => $menuItem->ingredients,

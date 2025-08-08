@@ -25,10 +25,23 @@
                 // Get the first restaurant's delivery settings (assuming single restaurant orders)
                 $deliverySetting = $cartItems[0]['delivery_setting'] ?? null;
                 $deliveryFee = $deliverySetting ? $deliverySetting->delivery_fee : 500;
+                
+                // Check if all items are available for delivery
+                $allItemsAvailableForDelivery = true;
+                if (!empty($cartItems)) {
+                    foreach ($cartItems as $cartItem) {
+                        foreach ($cartItem['items'] as $item) {
+                            if (!$item['is_available_for_delivery']) {
+                                $allItemsAvailableForDelivery = false;
+                                break 2;
+                            }
+                        }
+                    }
+                }
             @endphp
             
             <!-- Delivery Option -->
-            @if(!$deliverySetting || $deliverySetting->delivery_enabled)
+            @if((!$deliverySetting || $deliverySetting->delivery_enabled) && $allItemsAvailableForDelivery)
             <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="deliveryOption">
                 <input type="radio" name="orderType" value="delivery" id="deliveryRadio" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
                 <div class="flex items-center flex-1">
@@ -42,6 +55,19 @@
                 </div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">₦{{ number_format($deliveryFee, 0) }}</div>
             </label>
+            @elseif(!$allItemsAvailableForDelivery)
+            <div class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 opacity-50 cursor-not-allowed" id="deliveryOption">
+                <div class="flex items-center flex-1">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-motorcycle text-gray-400 text-xl mr-3"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-500 dark:text-gray-400">Delivery</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Some items not available for delivery</div>
+                    </div>
+                </div>
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">₦{{ number_format($deliveryFee, 0) }}</div>
+            </div>
             @endif
             
             <!-- Pickup Option -->
@@ -76,6 +102,18 @@
                 </div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">₦0</div>
             </label>
+            @endif
+            
+            @if(!$allItemsAvailableForDelivery)
+            <div class="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-yellow-800 dark:text-yellow-200">
+                        <strong>Note:</strong> Some items in your cart are not available for delivery. 
+                        You can only choose pickup or dine-in options.
+                    </div>
+                </div>
+            </div>
             @endif
         </div>
     </div>

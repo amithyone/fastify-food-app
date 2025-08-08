@@ -52,7 +52,8 @@ class OrderController extends Controller
                             'price' => $menuItem->price,
                             'quantity' => $quantity,
                             'total' => $itemTotal,
-                            'image' => $menuItem->image
+                            'image' => $menuItem->image,
+                            'is_available_for_delivery' => $menuItem->is_available_for_delivery
                         ];
                         $restaurantTotal += $itemTotal;
                     }
