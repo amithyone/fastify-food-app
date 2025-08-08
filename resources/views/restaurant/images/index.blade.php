@@ -256,7 +256,7 @@ function deleteImage(imageId) {
         return;
     }
     
-    fetch(`{{ route('restaurant.images.destroy', $restaurant->slug) }}/${imageId}`, {
+    fetch(`/restaurant/{{ $restaurant->slug }}/images/${imageId}`, {
         method: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
