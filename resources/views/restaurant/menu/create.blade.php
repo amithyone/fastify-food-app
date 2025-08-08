@@ -85,14 +85,55 @@
 
                     <!-- Image -->
                     <div>
-                        <label for="image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Item Image
                         </label>
-                        <input type="file" id="image" name="image" accept="image/*"
-                               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                        @error('image')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                        
+                        <!-- Image Selection Options -->
+                        <div class="space-y-4">
+                            <!-- Upload New Image -->
+                            <div>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="image_source" value="upload" checked class="text-orange-600 focus:ring-orange-500">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">Upload New Image</span>
+                                </label>
+                                <div id="uploadSection" class="mt-2">
+                                    <input type="file" id="image" name="image" accept="image/*"
+                                           class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                    @error('image')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <!-- Select from Existing Images -->
+                            <div>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="radio" name="image_source" value="existing" class="text-orange-600 focus:ring-orange-500">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">Select from Existing Images</span>
+                                </label>
+                                <div id="existingSection" class="mt-2 hidden">
+                                    <button type="button" onclick="openImageSelector()" 
+                                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-left">
+                                        <i class="fas fa-images mr-2"></i>
+                                        <span id="selectedImageText">Choose from uploaded images</span>
+                                    </button>
+                                    <input type="hidden" id="selectedImageId" name="selected_image_id">
+                                    <input type="hidden" id="selectedImagePath" name="selected_image_path">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Image Preview -->
+                        <div id="imagePreview" class="mt-4 hidden">
+                            <div class="relative inline-block">
+                                <img id="previewImage" src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600">
+                                <button type="button" onclick="clearSelectedImage()" 
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Dietary Information -->
@@ -180,4 +221,123 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+// Image source toggle
+document.querySelectorAll('input[name="image_source"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const uploadSection = document.getElementById('uploadSection');
+        const existingSection = document.getElementById('existingSection');
+        
+        if (this.value === 'upload') {
+            uploadSection.classList.remove('hidden');
+            existingSection.classList.add('hidden');
+        } else {
+            uploadSection.classList.add('hidden');
+            existingSection.classList.remove('hidden');
+        }
+    });
+});
+
+// Open image selector modal
+function openImageSelector() {
+    fetch('{{ route("restaurant.images.get", $restaurant->slug) }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showImageSelectorModal(data.images);
+            } else {
+                alert('Failed to load images');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading images:', error);
+            alert('Failed to load images');
+        });
+}
+
+// Show image selector modal
+function showImageSelectorModal(images) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+    modal.id = 'imageSelectorModal';
+    
+    let imagesHtml = '';
+    if (images.length > 0) {
+        images.forEach(image => {
+            imagesHtml += `
+                <div class="cursor-pointer hover:scale-105 transition-transform" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
+                    <img src="${image.thumbnail_url}" alt="${image.original_name}" class="w-full h-32 object-cover rounded-lg border-2 border-transparent hover:border-orange-500">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">${image.original_name}</p>
+                </div>
+            `;
+        });
+    } else {
+        imagesHtml = `
+            <div class="col-span-full text-center py-8">
+                <i class="fas fa-images text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">No images available</p>
+                <p class="text-sm text-gray-400">Upload some images first</p>
+            </div>
+        `;
+    }
+    
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Select Image</h3>
+                    <button onclick="closeImageSelectorModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    ${imagesHtml}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Close image selector modal
+function closeImageSelectorModal() {
+    const modal = document.getElementById('imageSelectorModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Select image from modal
+function selectImageFromModal(imageUrl, imageId, originalName) {
+    document.getElementById('selectedImageId').value = imageId;
+    document.getElementById('selectedImagePath').value = imageUrl;
+    document.getElementById('selectedImageText').textContent = originalName;
+    
+    // Show preview
+    document.getElementById('previewImage').src = imageUrl;
+    document.getElementById('imagePreview').classList.remove('hidden');
+    
+    closeImageSelectorModal();
+}
+
+// Clear selected image
+function clearSelectedImage() {
+    document.getElementById('selectedImageId').value = '';
+    document.getElementById('selectedImagePath').value = '';
+    document.getElementById('selectedImageText').textContent = 'Choose from uploaded images';
+    document.getElementById('imagePreview').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('imageSelectorModal');
+    if (modal && e.target === modal) {
+        closeImageSelectorModal();
+    }
+});
+</script>
+@endpush 

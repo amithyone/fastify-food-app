@@ -114,6 +114,11 @@ class Restaurant extends Model
         return $this->hasOne(RestaurantDeliverySetting::class);
     }
 
+    public function images()
+    {
+        return $this->hasMany(RestaurantImage::class);
+    }
+
     public function wallet()
     {
         return $this->hasOne(Wallet::class);

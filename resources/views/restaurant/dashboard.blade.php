@@ -96,6 +96,12 @@
                                     Add Dish
                                 </a>
                                 
+                                <a href="{{ route('restaurant.images.index', $restaurant->slug) }}" 
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-images mr-3 text-blue-600"></i>
+                                    Manage Images
+                                </a>
+                                
                                 <a href="{{ route('restaurant.menu', $restaurant->slug) }}" 
                                    class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                     <i class="fas fa-folder mr-3 text-blue-600"></i>

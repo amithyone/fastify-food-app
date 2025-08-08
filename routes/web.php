@@ -22,6 +22,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\ManagerDashboardController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\RestaurantImageController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -592,6 +593,12 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/categories', [MenuController::class, 'storeCategory'])->name('restaurant.categories.store');
     Route::put('/{slug}/categories/{category}', [MenuController::class, 'updateCategory'])->name('restaurant.categories.update');
     Route::delete('/{slug}/categories/{category}', [MenuController::class, 'destroyCategory'])->name('restaurant.categories.destroy');
+    
+    // Restaurant Image Management
+    Route::get('/{slug}/images', [RestaurantImageController::class, 'index'])->name('restaurant.images.index');
+    Route::post('/{slug}/images/bulk-upload', [RestaurantImageController::class, 'bulkUpload'])->name('restaurant.images.bulk-upload');
+    Route::get('/{slug}/images/get', [RestaurantImageController::class, 'getImages'])->name('restaurant.images.get');
+    Route::delete('/{slug}/images/{imageId}', [RestaurantImageController::class, 'destroy'])->name('restaurant.images.destroy');
     
     // Restaurant Order Management
     Route::get('/{slug}/orders', [OrderController::class, 'restaurantOrders'])->name('restaurant.orders');
