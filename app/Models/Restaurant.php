@@ -134,6 +134,16 @@ class Restaurant extends Model
         return $this->hasMany(FeaturedRestaurant::class);
     }
 
+    public function socialMediaCampaigns()
+    {
+        return $this->hasMany(SocialMediaCampaign::class);
+    }
+
+    public function videoPackages()
+    {
+        return $this->hasMany(VideoPackage::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

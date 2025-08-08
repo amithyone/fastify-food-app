@@ -23,6 +23,8 @@ use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\ManagerDashboardController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\RestaurantImageController;
+use App\Http\Controllers\SocialMediaCampaignController;
+use App\Http\Controllers\VideoPackageController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -638,6 +640,27 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/payvibe/callback', [PayVibeController::class, 'callback'])->name('payvibe.callback');
     Route::get('/payvibe/verify/{reference}', [PayVibeController::class, 'verifyPayment'])->name('payvibe.verify');
     Route::get('/{slug}/promotions/analytics', [PromotionController::class, 'analytics'])->name('restaurant.promotions.analytics');
+    
+    // Social Media Campaign Routes
+    Route::get('/{slug}/social-media', [SocialMediaCampaignController::class, 'index'])->name('restaurant.social-media.index');
+    Route::get('/{slug}/social-media/create', [SocialMediaCampaignController::class, 'create'])->name('restaurant.social-media.create');
+    Route::post('/{slug}/social-media', [SocialMediaCampaignController::class, 'store'])->name('restaurant.social-media.store');
+    Route::get('/{slug}/social-media/{id}', [SocialMediaCampaignController::class, 'show'])->name('restaurant.social-media.show');
+    Route::get('/{slug}/social-media/{id}/edit', [SocialMediaCampaignController::class, 'edit'])->name('restaurant.social-media.edit');
+    Route::put('/{slug}/social-media/{id}', [SocialMediaCampaignController::class, 'update'])->name('restaurant.social-media.update');
+    Route::delete('/{slug}/social-media/{id}', [SocialMediaCampaignController::class, 'destroy'])->name('restaurant.social-media.destroy');
+    Route::put('/{slug}/social-media/{id}/analytics', [SocialMediaCampaignController::class, 'updateAnalytics'])->name('restaurant.social-media.analytics');
+    
+    // Video Package Routes
+    Route::get('/{slug}/video-packages', [VideoPackageController::class, 'index'])->name('restaurant.video-packages.index');
+    Route::get('/{slug}/video-packages/create', [VideoPackageController::class, 'create'])->name('restaurant.video-packages.create');
+    Route::post('/{slug}/video-packages', [VideoPackageController::class, 'store'])->name('restaurant.video-packages.store');
+    Route::get('/{slug}/video-packages/{id}', [VideoPackageController::class, 'show'])->name('restaurant.video-packages.show');
+    Route::get('/{slug}/video-packages/{id}/edit', [VideoPackageController::class, 'edit'])->name('restaurant.video-packages.edit');
+    Route::put('/{slug}/video-packages/{id}', [VideoPackageController::class, 'update'])->name('restaurant.video-packages.update');
+    Route::delete('/{slug}/video-packages/{id}', [VideoPackageController::class, 'destroy'])->name('restaurant.video-packages.destroy');
+    Route::post('/{slug}/video-packages/{id}/upload-video', [VideoPackageController::class, 'uploadVideo'])->name('restaurant.video-packages.upload-video');
+    Route::put('/{slug}/video-packages/{id}/analytics', [VideoPackageController::class, 'updateAnalytics'])->name('restaurant.video-packages.analytics');
     
     // Restaurant Delivery Settings Routes
 Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');

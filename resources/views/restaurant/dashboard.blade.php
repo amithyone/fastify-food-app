@@ -108,6 +108,18 @@
                                     Add Category
                                 </a>
                                 
+                                <a href="{{ route('restaurant.social-media.create', $restaurant->slug) }}" 
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fab fa-instagram mr-3 text-pink-600"></i>
+                                    Social Media Campaign
+                                </a>
+                                
+                                <a href="{{ route('restaurant.video-packages.create', $restaurant->slug) }}" 
+                                   class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-video mr-3 text-purple-600"></i>
+                                    Video Package
+                                </a>
+                                
                                 <a href="#" 
                                    class="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                     <i class="fas fa-toggle-on mr-3 text-purple-600"></i>
@@ -463,11 +475,25 @@
                             </div>
                         </div>
                         
-                        <button onclick="createPromotion()" 
-                                class="inline-flex items-center px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
-                            <i class="fas fa-plus mr-2"></i>
-                            Create Promotion
-                        </button>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="createPromotion()" 
+                                    class="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                                <i class="fas fa-star mr-2"></i>
+                                Create Promotion
+                            </button>
+                            
+                            <a href="{{ route('restaurant.social-media.index', $restaurant->slug) }}" 
+                               class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                                <i class="fab fa-instagram mr-2"></i>
+                                Social Media
+                            </a>
+                            
+                            <a href="{{ route('restaurant.video-packages.index', $restaurant->slug) }}" 
+                               class="inline-flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                                <i class="fas fa-video mr-2"></i>
+                                Video Packages
+                            </a>
+                        </div>
                     </div>
                 @endif
             </div>
