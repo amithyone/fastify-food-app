@@ -114,12 +114,20 @@
                                 </label>
                                 <div id="existingSection" class="mt-2 hidden">
                                     <button type="button" onclick="openImageSelector()" 
-                                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-left">
+                                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                         <i class="fas fa-images mr-2"></i>
                                         <span id="selectedImageText">Choose from uploaded images</span>
                                     </button>
                                     <input type="hidden" id="selectedImageId" name="selected_image_id">
                                     <input type="hidden" id="selectedImagePath" name="selected_image_path">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Click to browse your uploaded images
+                                    </p>
+                                    <button type="button" onclick="testImageSelector()" 
+                                            class="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        Test Image Selector
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -225,9 +233,17 @@
 
 @push('scripts')
 <script>
+// Test function for debugging
+function testImageSelector() {
+    console.log('Test button clicked');
+    alert('Test function works! Now trying to open image selector...');
+    openImageSelector();
+}
+
 // Image source toggle
 document.querySelectorAll('input[name="image_source"]').forEach(radio => {
     radio.addEventListener('change', function() {
+        console.log('Radio button changed to:', this.value);
         const uploadSection = document.getElementById('uploadSection');
         const existingSection = document.getElementById('existingSection');
         
@@ -244,8 +260,11 @@ document.querySelectorAll('input[name="image_source"]').forEach(radio => {
 // Open image selector modal
 function openImageSelector() {
     console.log('Opening image selector...');
+    console.log('Function called successfully');
+    
     const url = '{{ route("restaurant.images.get", $restaurant->slug) }}';
     console.log('Fetching from:', url);
+    console.log('Restaurant slug:', '{{ $restaurant->slug }}');
     
     // Show loading state
     const modal = document.createElement('div');

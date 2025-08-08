@@ -99,19 +99,23 @@
                 @if($unusedImages->count() > 0)
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         @foreach($unusedImages as $image)
-                            <div class="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                            <div class="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer" 
+                                 onclick="previewImage('{{ $image->url }}', '{{ $image->original_name }}', {{ $image->id }})">
                                 <img src="{{ $image->thumbnail_url }}" 
                                      alt="{{ $image->alt_text ?: $image->original_name }}"
-                                     class="w-full h-32 object-cover">
+                                     class="w-full h-32 object-cover"
+                                     onerror="this.src='/images/placeholder-image.svg'"
+                                     data-original-url="{{ $image->url }}"
+                                     data-thumbnail-url="{{ $image->thumbnail_url }}">
                                 
                                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
                                     <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 space-x-2">
-                                        <button onclick="selectImage({{ $image->id }}, '{{ $image->url }}')" 
+                                        <button onclick="event.stopPropagation(); selectImage({{ $image->id }}, '{{ $image->url }}')" 
                                                 class="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
                                                 title="Use this image">
                                             <i class="fas fa-check text-sm"></i>
                                         </button>
-                                        <button onclick="deleteImage({{ $image->id }})" 
+                                        <button onclick="event.stopPropagation(); deleteImage({{ $image->id }})" 
                                                 class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
                                                 title="Delete image">
                                             <i class="fas fa-trash text-sm"></i>
@@ -298,11 +302,66 @@ function deleteImage(imageId) {
     });
 }
 
+// Preview Image Modal
+function previewImage(imageUrl, imageName, imageId) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4';
+    modal.id = 'imagePreviewModal';
+    
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Image Preview</h3>
+                    <button onclick="closePreviewModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <img src="${imageUrl}" alt="${imageName}" 
+                         class="max-w-full max-h-96 object-contain rounded-lg shadow-lg mx-auto"
+                         onerror="this.src='/images/placeholder-image.svg'">
+                </div>
+                
+                <div class="text-center">
+                    <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">${imageName}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Image ID: ${imageId}</p>
+                    
+                    <div class="flex justify-center space-x-3">
+                        <button onclick="selectImage(${imageId}, '${imageUrl}')" 
+                                class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-check mr-2"></i>Use This Image
+                        </button>
+                        <button onclick="deleteImage(${imageId})" 
+                                class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Delete Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Close preview modal
+function closePreviewModal() {
+    const modal = document.getElementById('imagePreviewModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
 // Select Image (for use in menu creation)
 function selectImage(imageId, imageUrl) {
     // Store selected image info in localStorage for menu creation form
     localStorage.setItem('selectedImageId', imageId);
     localStorage.setItem('selectedImageUrl', imageUrl);
+    
+    // Close preview modal if open
+    closePreviewModal();
     
     // Show success message
     alert('Image selected! You can now use it when creating menu items.');
@@ -333,6 +392,20 @@ dropZone.addEventListener('drop', (e) => {
     const label = dropZone.querySelector('label span');
     if (files.length > 0) {
         label.textContent = `${files.length} file(s) selected`;
+    }
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    const imageSelectorModal = document.getElementById('imageSelectorModal');
+    const imagePreviewModal = document.getElementById('imagePreviewModal');
+    
+    if (imageSelectorModal && e.target === imageSelectorModal) {
+        closeImageSelectorModal();
+    }
+    
+    if (imagePreviewModal && e.target === imagePreviewModal) {
+        closePreviewModal();
     }
 });
 </script>
