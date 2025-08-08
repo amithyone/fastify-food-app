@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class RestaurantImageController extends Controller
 {
@@ -116,7 +117,12 @@ class RestaurantImageController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload images: ' . $e->getMessage()
+                'message' => 'Failed to upload images: ' . $e->getMessage(),
+                'debug_info' => [
+                    'gd_extension' => extension_loaded('gd'),
+                    'storage_writable' => is_writable(storage_path('app/public')),
+                    'restaurant_images_dir' => is_writable(storage_path('app/public/restaurant-images'))
+                ]
             ], 500);
         }
     }
@@ -235,11 +241,18 @@ class RestaurantImageController extends Controller
                 mkdir($thumbnailDir, 0755, true);
             }
             
+            // Check if GD extension is available
+            if (!extension_loaded('gd')) {
+                Log::warning('GD extension not available, skipping thumbnail creation', [
+                    'file_path' => $filePath
+                ]);
+                return;
+            }
+            
             // Create thumbnail using Intervention Image
-            $image = Image::make($fullPath);
-            $image->fit(300, 300, function ($constraint) {
-                $constraint->upsize();
-            });
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($fullPath);
+            $image->cover(300, 300);
             $image->save($thumbnailFullPath, 80);
             
             Log::info('Thumbnail created successfully', [
@@ -250,7 +263,8 @@ class RestaurantImageController extends Controller
         } catch (\Exception $e) {
             Log::warning('Failed to create thumbnail', [
                 'file_path' => $filePath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
