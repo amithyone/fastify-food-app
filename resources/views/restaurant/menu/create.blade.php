@@ -247,21 +247,46 @@ function openImageSelector() {
     const url = '{{ route("restaurant.images.get", $restaurant->slug) }}';
     console.log('Fetching from:', url);
     
+    // Show loading state
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+    modal.id = 'imageSelectorModal';
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-orange-500 mb-4"></i>
+            <p class="text-gray-600 dark:text-gray-400">Loading images...</p>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
     fetch(url)
         .then(response => {
             console.log('Response status:', response.status);
-            return response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.text().then(text => {
+                console.log('Response text:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', e);
+                    throw new Error('Server returned invalid JSON: ' + text.substring(0, 200));
+                }
+            });
         })
         .then(data => {
             console.log('Response data:', data);
             if (data.success) {
                 showImageSelectorModal(data.images);
             } else {
+                closeImageSelectorModal();
                 alert('Failed to load images: ' + (data.message || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error loading images:', error);
+            closeImageSelectorModal();
             alert('Failed to load images: ' + error.message);
         });
 }
@@ -276,9 +301,16 @@ function showImageSelectorModal(images) {
     if (images.length > 0) {
         images.forEach(image => {
             imagesHtml += `
-                <div class="cursor-pointer hover:scale-105 transition-transform" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
-                    <img src="${image.thumbnail_url}" alt="${image.original_name}" class="w-full h-32 object-cover rounded-lg border-2 border-transparent hover:border-orange-500">
-                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">${image.original_name}</p>
+                <div class="cursor-pointer hover:scale-105 transition-transform p-2" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
+                    <div class="relative">
+                        <img src="${image.thumbnail_url}" alt="${image.original_name}" 
+                             class="w-full h-20 object-cover rounded-lg border-2 border-transparent hover:border-orange-500 shadow-sm"
+                             onerror="this.src='/images/placeholder-image.svg'">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check text-white opacity-0 hover:opacity-100 text-lg"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate text-center">${image.original_name}</p>
                 </div>
             `;
         });
@@ -288,21 +320,28 @@ function showImageSelectorModal(images) {
                 <i class="fas fa-images text-4xl text-gray-400 mb-4"></i>
                 <p class="text-gray-500">No images available</p>
                 <p class="text-sm text-gray-400">Upload some images first</p>
+                <a href="{{ route('restaurant.images.index', $restaurant->slug) }}" class="inline-block mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    <i class="fas fa-upload mr-2"></i>Upload Images
+                </a>
             </div>
         `;
     }
     
     modal.innerHTML = `
-        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full max-h-[80vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Select Image</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Select Image for Menu Item</h3>
                     <button onclick="closeImageSelectorModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                     ${imagesHtml}
+                </div>
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Click on an image to select it for your menu item
                 </div>
             </div>
         </div>
