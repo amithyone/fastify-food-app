@@ -53,12 +53,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Price (in kobo) *
+                                Price (₦) *
                             </label>
-                            <input type="number" id="price" name="price" required min="0" step="1"
+                            <input type="number" id="price" name="price" required min="0" step="0.01"
                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                   value="{{ old('price') }}" placeholder="1000">
-                            <p class="text-xs text-gray-500 mt-1">Enter price in kobo (e.g., 1000 = ₦10.00)</p>
+                                   value="{{ old('price') }}" placeholder="1000.00">
+                            <p class="text-xs text-gray-500 mt-1">Enter price in Naira (e.g., 1000.00 = ₦1,000.00)</p>
                             @error('price')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror

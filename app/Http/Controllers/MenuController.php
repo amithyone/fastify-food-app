@@ -175,7 +175,20 @@ class MenuController extends Controller
         \Log::info('Menu item creation attempt', [
             'user_id' => Auth::id(),
             'restaurant_slug' => $slug,
-            'request_data' => $request->all()
+            'request_data' => $request->all(),
+            'form_fields' => [
+                'name' => $request->input('name'),
+                'description' => $request->input('description'),
+                'price' => $request->input('price'),
+                'category_id' => $request->input('category_id'),
+                'is_available' => $request->has('is_available'),
+                'is_featured' => $request->has('is_featured'),
+                'is_vegetarian' => $request->has('is_vegetarian'),
+                'is_spicy' => $request->has('is_spicy'),
+                'ingredients' => $request->input('ingredients'),
+                'allergens' => $request->input('allergens'),
+                'has_image' => $request->hasFile('image')
+            ]
         ]);
         
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
@@ -259,7 +272,16 @@ class MenuController extends Controller
             
             \Log::info('Menu item created successfully', [
                 'menu_item_id' => $menuItem->id,
-                'menu_item_name' => $menuItem->name
+                'menu_item_name' => $menuItem->name,
+                'menu_item_price' => $menuItem->price,
+                'menu_item_category' => $menuItem->category->name ?? 'No category',
+                'menu_item_available' => $menuItem->is_available,
+                'menu_item_featured' => $menuItem->is_featured,
+                'menu_item_vegetarian' => $menuItem->is_vegetarian,
+                'menu_item_spicy' => $menuItem->is_spicy,
+                'menu_item_ingredients' => $menuItem->ingredients,
+                'menu_item_allergens' => $menuItem->allergens,
+                'menu_item_image' => $menuItem->image
             ]);
             
             return response()->json([
