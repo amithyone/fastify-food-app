@@ -20,6 +20,49 @@
             </div>
         </div>
 
+        <!-- Package Information -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Package Information</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                        <div class="text-2xl font-bold text-orange-600 mb-2">Basic</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">₦50,000</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">1 video, 60 seconds</div>
+                        <div class="text-xs text-gray-500">
+                            <div>• Professional video production</div>
+                            <div>• Social media optimization</div>
+                            <div>• Basic editing & effects</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800">
+                        <div class="text-2xl font-bold text-purple-600 mb-2">Premium</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">₦100,000</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">2 videos, 90 seconds each</div>
+                        <div class="text-xs text-gray-500">
+                            <div>• Advanced video production</div>
+                            <div>• Multiple platform formats</div>
+                            <div>• Professional editing & effects</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600 mb-2">Custom</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">₦150,000+</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">Multiple videos, custom duration</div>
+                        <div class="text-xs text-gray-500">
+                            <div>• Custom video production</div>
+                            <div>• Advanced effects & animation</div>
+                            <div>• Full project management</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Video Package Form -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -225,27 +268,7 @@
                     @enderror
                 </div>
 
-                <!-- Package Information -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Package Information</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div class="text-center">
-                            <div class="text-lg font-semibold text-orange-600">Basic</div>
-                            <div class="text-gray-600 dark:text-gray-400">₦50,000</div>
-                            <div class="text-xs text-gray-500">1 video, 60 seconds</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-lg font-semibold text-purple-600">Premium</div>
-                            <div class="text-gray-600 dark:text-gray-400">₦100,000</div>
-                            <div class="text-xs text-gray-500">2 videos, 90 seconds each</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-lg font-semibold text-green-600">Custom</div>
-                            <div class="text-gray-600 dark:text-gray-400">₦150,000+</div>
-                            <div class="text-xs text-gray-500">Multiple videos, custom duration</div>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Submit Button -->
                 <div class="flex justify-end">
