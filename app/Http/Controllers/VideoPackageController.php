@@ -40,7 +40,10 @@ class VideoPackageController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        return view('restaurant.video-packages.create', compact('restaurant'));
+        // Get active video package templates
+        $templates = \App\Models\VideoPackageTemplate::active()->ordered()->get();
+
+        return view('restaurant.video-packages.create', compact('restaurant', 'templates'));
     }
 
     /**

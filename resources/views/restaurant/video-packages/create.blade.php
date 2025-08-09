@@ -27,38 +27,23 @@
             </div>
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-                        <div class="text-2xl font-bold text-orange-600 mb-2">Basic</div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">₦50,000</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">1 video, 60 seconds</div>
-                        <div class="text-xs text-gray-500">
-                            <div>• Professional video production</div>
-                            <div>• Social media optimization</div>
-                            <div>• Basic editing & effects</div>
+                    @foreach($templates as $template)
+                        <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg {{ $template->slug === 'premium' ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800' : '' }}">
+                            <div class="text-2xl font-bold {{ $template->color_classes }} mb-2">{{ $template->name }}</div>
+                            <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ $template->formatted_price }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                {{ $template->number_of_videos }} {{ Str::plural('video', $template->number_of_videos) }}, {{ $template->duration_text }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                @foreach(array_slice($template->features, 0, 3) as $feature)
+                                    <div>• {{ $feature }}</div>
+                                @endforeach
+                                @if(count($template->features) > 3)
+                                    <div class="text-gray-400">• +{{ count($template->features) - 3 }} more features</div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800">
-                        <div class="text-2xl font-bold text-purple-600 mb-2">Premium</div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">₦100,000</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">2 videos, 90 seconds each</div>
-                        <div class="text-xs text-gray-500">
-                            <div>• Advanced video production</div>
-                            <div>• Multiple platform formats</div>
-                            <div>• Professional editing & effects</div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-                        <div class="text-2xl font-bold text-green-600 mb-2">Custom</div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2">₦150,000+</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-3">Multiple videos, custom duration</div>
-                        <div class="text-xs text-gray-500">
-                            <div>• Custom video production</div>
-                            <div>• Advanced effects & animation</div>
-                            <div>• Full project management</div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -96,11 +81,17 @@
                         <select name="package_type" 
                                 id="package_type" 
                                 required
+                                onchange="updateFormFromTemplate(this.value)"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="">Select Package Type</option>
-                            <option value="basic">Basic Package</option>
-                            <option value="premium">Premium Package</option>
-                            <option value="custom">Custom Package</option>
+                            @foreach($templates as $template)
+                                <option value="{{ $template->slug }}" 
+                                        data-price="{{ $template->base_price }}"
+                                        data-duration="{{ $template->video_duration }}"
+                                        data-videos="{{ $template->number_of_videos }}">
+                                    {{ $template->name }} Package
+                                </option>
+                            @endforeach
                         </select>
                         @error('package_type')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -283,3 +274,40 @@
     </div>
 </div>
 @endsection
+
+<script>
+function updateFormFromTemplate(templateSlug) {
+    if (!templateSlug) return;
+    
+    const select = document.getElementById('package_type');
+    const selectedOption = select.querySelector(`option[value="${templateSlug}"]`);
+    
+    if (selectedOption) {
+        const price = selectedOption.dataset.price;
+        const duration = selectedOption.dataset.duration;
+        const videos = selectedOption.dataset.videos;
+        
+        // Update form fields
+        if (price) document.getElementById('price').value = price;
+        if (duration) document.getElementById('video_duration').value = duration;
+        if (videos) document.getElementById('number_of_videos').value = videos;
+        
+        // Update package name if empty
+        const packageName = document.getElementById('package_name');
+        if (!packageName.value) {
+            packageName.value = `${selectedOption.textContent} Request`;
+        }
+    }
+}
+
+// Initialize form with first template if available
+document.addEventListener('DOMContentLoaded', function() {
+    const templates = @json($templates);
+    if (templates.length > 0) {
+        // Set first template as default
+        const firstTemplate = templates[0];
+        document.getElementById('package_type').value = firstTemplate.slug;
+        updateFormFromTemplate(firstTemplate.slug);
+    }
+});
+</script>
