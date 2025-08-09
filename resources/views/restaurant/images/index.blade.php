@@ -24,6 +24,11 @@
                         <i class="fas fa-utensils mr-2"></i>
                         Add Menu Item
                     </a>
+                    <a href="{{ route('restaurant.promotions', $restaurant->slug) }}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200">
+                        <i class="fas fa-star mr-2"></i>
+                        Create Promotion
+                    </a>
                 </div>
             </div>
         </div>
