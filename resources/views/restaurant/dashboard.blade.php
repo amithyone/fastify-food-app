@@ -476,11 +476,11 @@
                         </div>
                         
                         <div class="flex flex-col sm:flex-row gap-3">
-                            <button onclick="createPromotion()" 
-                                    class="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                            <a href="{{ route('restaurant.promotions', $restaurant->slug) }}" 
+                               class="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
                                 <i class="fas fa-star mr-2"></i>
                                 Create Promotion
-                            </button>
+                            </a>
                             
                             <a href="{{ route('restaurant.social-media.index', $restaurant->slug) }}" 
                                class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl">
