@@ -62,33 +62,113 @@ class RestaurantSubscriptionController extends Controller
 
         $plan = SubscriptionPlan::where('slug', $request->plan_type)->firstOrFail();
         
-        // Create or update subscription
-        $subscription = $restaurant->subscription;
+        // Create subscription payment
+        $payment = \App\Models\SubscriptionPayment::createPayment(
+            $restaurant,
+            $request->plan_type,
+            $plan->monthly_price,
+            Auth::id()
+        );
+
+        return redirect()->route('restaurant.subscription.payment', [$restaurant->slug, $payment->id])
+            ->with('info', 'Please complete payment to upgrade your subscription.');
+    }
+
+    /**
+     * Show subscription payment page
+     */
+    public function payment($slug, $paymentId)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
-        if (!$subscription) {
-            $subscription = new RestaurantSubscription();
-            $subscription->restaurant_id = $restaurant->id;
+        if (!Auth::user()->canManageRestaurant($restaurant)) {
+            abort(403, 'Unauthorized access.');
         }
 
-        $subscription->plan_type = $request->plan_type;
-        $subscription->status = 'active';
-        $subscription->monthly_fee = $plan->monthly_price;
-        $subscription->menu_item_limit = $plan->menu_item_limit;
-        $subscription->custom_domain_enabled = $plan->custom_domain_enabled;
-        $subscription->unlimited_menu_items = $plan->unlimited_menu_items;
-        $subscription->priority_support = $plan->priority_support;
-        $subscription->advanced_analytics = $plan->advanced_analytics;
-        $subscription->video_packages_enabled = $plan->video_packages_enabled;
-        $subscription->social_media_promotion_enabled = $plan->social_media_promotion_enabled;
-        $subscription->features = $plan->features;
-        
-        // Set subscription end date (30 days from now)
-        $subscription->subscription_ends_at = Carbon::now()->addDays(30);
-        
-        $subscription->save();
+        $payment = \App\Models\SubscriptionPayment::where('id', $paymentId)
+            ->where('restaurant_id', $restaurant->id)
+            ->firstOrFail();
 
-        return redirect()->route('restaurant.subscription.index', $restaurant->slug)
-            ->with('success', 'Subscription upgraded successfully!');
+        return view('restaurant.subscription.payment', compact('restaurant', 'payment'));
+    }
+
+    /**
+     * Generate virtual account for subscription payment
+     */
+    public function generateVirtualAccount(Request $request, $slug, $paymentId)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (!Auth::user()->canManageRestaurant($restaurant)) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $payment = \App\Models\SubscriptionPayment::where('id', $paymentId)
+            ->where('restaurant_id', $restaurant->id)
+            ->firstOrFail();
+
+        try {
+            // Generate virtual account with PayVibe
+            $payVibeService = new \App\Services\PayVibeService();
+            $result = $payVibeService->generateVirtualAccount([
+                'reference' => $payment->payment_reference
+            ]);
+
+            if ($result['success']) {
+                // Update payment with virtual account details
+                $payment->update([
+                    'virtual_account_number' => $result['account_number'],
+                    'bank_name' => $result['bank_name'],
+                    'account_name' => $result['account_name']
+                ]);
+
+                // Create PayVibe transaction record
+                \App\Models\PayVibeTransaction::create([
+                    'payment_id' => $payment->id,
+                    'reference' => $payment->payment_reference,
+                    'amount' => $payment->amount * 100, // Convert to kobo
+                    'status' => 'pending',
+                    'authorization_url' => null,
+                    'access_code' => null,
+                    'metadata' => [
+                        'restaurant_id' => $restaurant->id,
+                        'user_id' => Auth::id(),
+                        'payment_type' => 'subscription_payment',
+                        'plan_type' => $payment->plan_type,
+                        'virtual_account' => [
+                            'account_number' => $result['account_number'],
+                            'bank_name' => $result['bank_name'],
+                            'account_name' => $result['account_name']
+                        ]
+                    ]
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'account_number' => $result['account_number'],
+                    'bank_name' => $result['bank_name'],
+                    'account_name' => $result['account_name'],
+                    'reference' => $payment->payment_reference,
+                    'amount' => $payment->formatted_amount
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Virtual account generation failed'
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Subscription payment virtual account generation error', [
+                'payment_id' => $payment->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Virtual account service temporarily unavailable'
+            ], 500);
+        }
     }
 
     /**

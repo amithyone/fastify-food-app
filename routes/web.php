@@ -670,6 +670,10 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/subscription/cancel', [RestaurantSubscriptionController::class, 'cancel'])->name('restaurant.subscription.cancel');
     Route::post('/{slug}/subscription/renew', [RestaurantSubscriptionController::class, 'renew'])->name('restaurant.subscription.renew');
     
+    // Subscription Payment Routes
+    Route::get('/{slug}/subscription/payment/{paymentId}', [RestaurantSubscriptionController::class, 'payment'])->name('restaurant.subscription.payment');
+    Route::post('/{slug}/subscription/payment/{paymentId}/virtual-account', [RestaurantSubscriptionController::class, 'generateVirtualAccount'])->name('restaurant.subscription.virtual-account');
+    
     // Restaurant Delivery Settings Routes
 Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');
 Route::put('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'update'])->name('restaurant.delivery-settings.update');
