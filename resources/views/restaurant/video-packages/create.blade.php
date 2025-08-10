@@ -48,6 +48,68 @@
             </div>
         </div>
 
+        <!-- Filming Instructions -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-blue-200 dark:border-blue-700">
+                <div class="flex items-center">
+                    <i class="fas fa-video text-blue-600 mr-3"></i>
+                    <h3 class="text-lg font-medium text-blue-900 dark:text-blue-100">Filming Preparation Instructions</h3>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-3">📋 What We Need From You:</h4>
+                        <ul class="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                                <span><strong>3-10 Signature Dishes:</strong> Prepare your best dishes for filming</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                                <span><strong>Staff Coordination:</strong> Inform all staff about our filming schedule</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                                <span><strong>Clean Environment:</strong> Ensure filming areas are clean and presentable</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                                <span><strong>Good Lighting:</strong> Natural light or well-lit areas preferred</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-3">🎬 Filming Day Checklist:</h4>
+                        <ul class="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                            <li class="flex items-start">
+                                <i class="fas fa-clock text-orange-500 mr-2 mt-0.5"></i>
+                                <span><strong>Timing:</strong> Allow 2-4 hours for filming session</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-users text-orange-500 mr-2 mt-0.5"></i>
+                                <span><strong>Staff:</strong> Have key staff available for interviews</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-utensils text-orange-500 mr-2 mt-0.5"></i>
+                                <span><strong>Dishes:</strong> Prepare dishes fresh during filming</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-camera text-orange-500 mr-2 mt-0.5"></i>
+                                <span><strong>Space:</strong> Clear filming areas of unnecessary items</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-blue-100 dark:bg-blue-800/30 rounded-lg">
+                    <p class="text-sm text-blue-800 dark:text-blue-200">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Note:</strong> Our team will contact you 24-48 hours before filming to confirm details and discuss any specific requirements for your restaurant.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Video Package Form -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -244,20 +306,69 @@
                     @enderror
                 </div>
 
-                <!-- Special Instructions -->
-                <div>
-                    <label for="special_instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Special Instructions
-                    </label>
-                    <textarea name="special_instructions" 
-                              id="special_instructions" 
-                              rows="3" 
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                              placeholder="Any specific requirements, style preferences, or special requests..."></textarea>
-                    @error('special_instructions')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                                       <!-- Filming Preparation -->
+                       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div>
+                               <label for="dishes_to_film" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                   Dishes to Film *
+                               </label>
+                               <input type="text"
+                                      name="dishes_to_film"
+                                      id="dishes_to_film"
+                                      required
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                      placeholder="e.g., Jollof Rice, Suya, Pounded Yam, Egusi Soup">
+                               <p class="mt-1 text-xs text-gray-500">List 3-10 signature dishes you want filmed</p>
+                               @error('dishes_to_film')
+                                   <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                               @enderror
+                           </div>
+
+                           <div>
+                               <label for="staff_contact" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                   Staff Contact Person
+                               </label>
+                               <input type="text"
+                                      name="staff_contact"
+                                      id="staff_contact"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                      placeholder="Name of staff member coordinating filming">
+                               <p class="mt-1 text-xs text-gray-500">Person responsible for filming coordination</p>
+                               @error('staff_contact')
+                                   <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                               @enderror
+                           </div>
+                       </div>
+
+                       <div>
+                           <label for="filming_requirements" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                               Filming Requirements & Preparation
+                           </label>
+                           <textarea name="filming_requirements"
+                                     id="filming_requirements"
+                                     rows="3"
+                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                     placeholder="Any specific filming requirements, preferred timing, special equipment needs, or preparation notes..."></textarea>
+                           <p class="mt-1 text-xs text-gray-500">Describe any special requirements or preparation needed for filming</p>
+                           @error('filming_requirements')
+                               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                           @enderror
+                       </div>
+
+                       <!-- Special Instructions -->
+                       <div>
+                           <label for="special_instructions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                               Special Instructions
+                           </label>
+                           <textarea name="special_instructions"
+                                     id="special_instructions"
+                                     rows="3"
+                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                     placeholder="Any specific requirements, style preferences, or special requests..."></textarea>
+                           @error('special_instructions')
+                               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                           @enderror
+                       </div>
 
 
 

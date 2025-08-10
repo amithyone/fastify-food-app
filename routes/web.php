@@ -25,6 +25,7 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\RestaurantImageController;
 use App\Http\Controllers\SocialMediaCampaignController;
 use App\Http\Controllers\VideoPackageController;
+use App\Http\Controllers\RestaurantSubscriptionController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -661,6 +662,13 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::delete('/{slug}/video-packages/{id}', [VideoPackageController::class, 'destroy'])->name('restaurant.video-packages.destroy');
     Route::post('/{slug}/video-packages/{id}/upload-video', [VideoPackageController::class, 'uploadVideo'])->name('restaurant.video-packages.upload-video');
     Route::put('/{slug}/video-packages/{id}/analytics', [VideoPackageController::class, 'updateAnalytics'])->name('restaurant.video-packages.analytics');
+    
+    // Restaurant Subscription Routes
+    Route::get('/{slug}/subscription', [RestaurantSubscriptionController::class, 'index'])->name('restaurant.subscription.index');
+    Route::get('/{slug}/subscription/expired', [RestaurantSubscriptionController::class, 'expired'])->name('restaurant.subscription.expired');
+    Route::post('/{slug}/subscription/upgrade', [RestaurantSubscriptionController::class, 'upgrade'])->name('restaurant.subscription.upgrade');
+    Route::post('/{slug}/subscription/cancel', [RestaurantSubscriptionController::class, 'cancel'])->name('restaurant.subscription.cancel');
+    Route::post('/{slug}/subscription/renew', [RestaurantSubscriptionController::class, 'renew'])->name('restaurant.subscription.renew');
     
     // Restaurant Delivery Settings Routes
 Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');

@@ -144,6 +144,69 @@ class Restaurant extends Model
         return $this->hasMany(VideoPackage::class);
     }
 
+    public function subscription()
+    {
+        return $this->hasOne(RestaurantSubscription::class);
+    }
+
+    public function getActiveSubscriptionAttribute()
+    {
+        return $this->subscription()->where(function($query) {
+            $query->where('status', 'active')
+                  ->orWhere(function($q) {
+                      $q->where('status', 'trial')
+                        ->where('trial_ends_at', '>', now());
+                  });
+        })->first();
+    }
+
+    public function hasActiveSubscription()
+    {
+        $subscription = $this->activeSubscription;
+        return $subscription && ($subscription->isActive() || $subscription->isTrial());
+    }
+
+    public function canAddMenuItem()
+    {
+        $subscription = $this->activeSubscription;
+        if (!$subscription) {
+            return false;
+        }
+        return $subscription->canAddMenuItem();
+    }
+
+    public function canUseCustomDomain()
+    {
+        $subscription = $this->activeSubscription;
+        return $subscription && $subscription->canUseCustomDomain();
+    }
+
+    public function canAccessVideoPackages()
+    {
+        $subscription = $this->activeSubscription;
+        return $subscription && $subscription->canAccessVideoPackages();
+    }
+
+    public function canAccessSocialMediaPromotion()
+    {
+        $subscription = $this->activeSubscription;
+        return $subscription && $subscription->canAccessSocialMediaPromotion();
+    }
+
+    public function getVisibleMenuItemsAttribute()
+    {
+        $subscription = $this->activeSubscription;
+        if (!$subscription) {
+            return $this->menuItems()->limit(5)->get();
+        }
+        
+        if ($subscription->unlimited_menu_items) {
+            return $this->menuItems;
+        }
+        
+        return $this->menuItems()->limit($subscription->menu_item_limit)->get();
+    }
+
     // Scopes
     public function scopeActive($query)
     {
