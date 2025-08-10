@@ -227,19 +227,39 @@ class PayVibeController extends Controller
             return response()->json(['error' => 'Invalid status'], 400);
         }
 
-        // Find payment transaction
-        $payment = PromotionPayment::where('payment_reference', $reference)->lockForUpdate()->first();
+        // Check if this is a subscription payment (starts with SUBREF)
+        $isSubscriptionPayment = str_starts_with($reference, 'SUBREF');
+        
+        if ($isSubscriptionPayment) {
+            // Handle subscription payment
+            $payment = \App\Models\SubscriptionPayment::where('payment_reference', $reference)->lockForUpdate()->first();
+            
+            if (!$payment) {
+                Log::error('PayVibe webhook subscription payment not found', [
+                    'reference' => $reference
+                ]);
+                return response()->json(['error' => 'Subscription payment not found'], 404);
+            }
 
-        if (!$payment) {
-            Log::error('PayVibe webhook payment not found', [
-                'reference' => $reference
-            ]);
-            return response()->json(['error' => 'Payment not found'], 404);
-        }
+            // Prevent multiple processing of successful transactions
+            if ($payment->status === 'successful' && $status === 'successful') {
+                return response()->json(['message' => 'Subscription payment already processed'], 200);
+            }
+        } else {
+            // Handle regular promotion payment
+            $payment = PromotionPayment::where('payment_reference', $reference)->lockForUpdate()->first();
+            
+            if (!$payment) {
+                Log::error('PayVibe webhook payment not found', [
+                    'reference' => $reference
+                ]);
+                return response()->json(['error' => 'Payment not found'], 404);
+            }
 
-        // Prevent multiple processing of successful transactions
-        if ($payment->status === 'paid' && $status === 'successful') {
-            return response()->json(['message' => 'Payment already processed'], 200);
+            // Prevent multiple processing of successful transactions
+            if ($payment->status === 'paid' && $status === 'successful') {
+                return response()->json(['message' => 'Payment already processed'], 200);
+            }
         }
 
         // Start database transaction
@@ -247,14 +267,79 @@ class PayVibeController extends Controller
 
         try {
             if ($status === 'successful') {
-                // Mark payment as paid
-                $payment->markAsPaid('payvibe', [
-                    'gateway_reference' => $data['gateway_ref'] ?? null,
-                    'amount_received' => $amountReceived,
-                    'webhook_data' => $data
-                ]);
+                if ($isSubscriptionPayment) {
+                    // Handle subscription payment success
+                    $subscriptionPayment = $payment;
+                    
+                    // Update subscription payment status
+                    $subscriptionPayment->update([
+                        'status' => 'successful',
+                        'amount_paid' => $amountReceived / 100, // Convert from kobo to naira
+                        'gateway_reference' => $data['gateway_ref'] ?? null,
+                        'paid_at' => now(),
+                        'metadata' => array_merge($subscriptionPayment->metadata ?? [], [
+                            'webhook_data' => $data,
+                            'processed_at' => now()->toISOString()
+                        ])
+                    ]);
 
-                // Update PayVibe transaction record
+                    // Get the plan details
+                    $plan = \App\Models\SubscriptionPlan::where('slug', $subscriptionPayment->plan_type)->first();
+                    
+                    // Create or update restaurant subscription
+                    $subscription = $subscriptionPayment->restaurant->subscription;
+                    if (!$subscription) {
+                        $subscription = new \App\Models\RestaurantSubscription();
+                        $subscription->restaurant_id = $subscriptionPayment->restaurant_id;
+                    }
+
+                    $subscription->plan_type = $subscriptionPayment->plan_type;
+                    $subscription->status = 'active';
+                    $subscription->monthly_fee = $plan ? $plan->monthly_price : $subscriptionPayment->amount;
+                    $subscription->menu_item_limit = $plan ? $plan->menu_item_limit : 5;
+                    $subscription->custom_domain_enabled = $plan ? $plan->custom_domain_enabled : false;
+                    $subscription->unlimited_menu_items = $plan ? $plan->unlimited_menu_items : false;
+                    $subscription->priority_support = $plan ? $plan->priority_support : false;
+                    $subscription->advanced_analytics = $plan ? $plan->advanced_analytics : false;
+                    $subscription->video_packages_enabled = $plan ? $plan->video_packages_enabled : false;
+                    $subscription->social_media_promotion_enabled = $plan ? $plan->social_media_promotion_enabled : false;
+                    $subscription->features = $plan ? $plan->features : [];
+                    
+                    // Set subscription end date (30 days from now)
+                    $subscription->subscription_ends_at = \Carbon\Carbon::now()->addDays(30);
+                    
+                    $subscription->save();
+
+                    Log::info('PayVibe subscription payment successful', [
+                        'payment_id' => $subscriptionPayment->id,
+                        'restaurant_id' => $subscriptionPayment->restaurant_id,
+                        'plan_type' => $subscriptionPayment->plan_type,
+                        'reference' => $reference,
+                        'amount' => $amountReceived
+                    ]);
+
+                } else {
+                    // Handle regular promotion payment success
+                    $payment->markAsPaid('payvibe', [
+                        'gateway_reference' => $data['gateway_ref'] ?? null,
+                        'amount_received' => $amountReceived,
+                        'webhook_data' => $data
+                    ]);
+
+                    // Send webhook notification (only for promotion payments, not subscriptions)
+                    $payVibeTransaction = PayVibeTransaction::where('reference', $reference)->first();
+                    if ($payVibeTransaction) {
+                        WebhookService::sendSuccessfulTransaction($payVibeTransaction, $payment->restaurant->user);
+                    }
+
+                    Log::info('PayVibe promotion payment successful', [
+                        'payment_id' => $payment->id,
+                        'reference' => $reference,
+                        'amount' => $amountReceived
+                    ]);
+                }
+
+                // Update PayVibe transaction record for successful payments
                 $payVibeTransaction = PayVibeTransaction::where('reference', $reference)->first();
                 if ($payVibeTransaction) {
                     $payVibeTransaction->update([
@@ -265,20 +350,41 @@ class PayVibeController extends Controller
                     ]);
                 }
 
-                // Send webhook notification
-                WebhookService::sendSuccessfulTransaction($payVibeTransaction, $payment->restaurant->user);
-
-                Log::info('PayVibe payment successful', [
-                    'payment_id' => $payment->id,
-                    'reference' => $reference,
-                    'amount' => $amountReceived
-                ]);
-
             } elseif ($status === 'failed' || $status === 'reversed') {
-                // Mark payment as failed
-                $payment->update(['status' => 'failed']);
+                if ($isSubscriptionPayment) {
+                    // Handle subscription payment failure
+                    $subscriptionPayment = $payment;
+                    $subscriptionPayment->update([
+                        'status' => 'failed',
+                        'metadata' => array_merge($subscriptionPayment->metadata ?? [], [
+                            'webhook_data' => $data,
+                            'failed_at' => now()->toISOString()
+                        ])
+                    ]);
 
-                // Update PayVibe transaction record
+                    Log::info('PayVibe subscription payment failed', [
+                        'payment_id' => $subscriptionPayment->id,
+                        'reference' => $reference,
+                        'status' => $status
+                    ]);
+                } else {
+                    // Handle regular promotion payment failure
+                    $payment->update(['status' => 'failed']);
+
+                    // Send webhook notification (only for promotion payments, not subscriptions)
+                    $payVibeTransaction = PayVibeTransaction::where('reference', $reference)->first();
+                    if ($payVibeTransaction) {
+                        WebhookService::sendFailedTransaction($payVibeTransaction, $payment->restaurant->user, "Payment {$status}");
+                    }
+
+                    Log::info('PayVibe promotion payment failed', [
+                        'payment_id' => $payment->id,
+                        'reference' => $reference,
+                        'status' => $status
+                    ]);
+                }
+
+                // Update PayVibe transaction record for failed payments
                 $payVibeTransaction = PayVibeTransaction::where('reference', $reference)->first();
                 if ($payVibeTransaction) {
                     $payVibeTransaction->update([
@@ -286,15 +392,6 @@ class PayVibeController extends Controller
                         'webhook_data' => $data
                     ]);
                 }
-
-                // Send webhook notification
-                WebhookService::sendFailedTransaction($payVibeTransaction, $payment->restaurant->user, "Payment {$status}");
-
-                Log::info('PayVibe payment failed', [
-                    'payment_id' => $payment->id,
-                    'reference' => $reference,
-                    'status' => $status
-                ]);
             }
 
             // Commit transaction

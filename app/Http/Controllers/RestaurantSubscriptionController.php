@@ -124,7 +124,8 @@ class RestaurantSubscriptionController extends Controller
 
                 // Create PayVibe transaction record
                 \App\Models\PayVibeTransaction::create([
-                    'payment_id' => $payment->id,
+                    'subscription_payment_id' => $payment->id,
+                    'payment_type' => 'subscription',
                     'reference' => $payment->payment_reference,
                     'amount' => $payment->amount * 100, // Convert to kobo
                     'status' => 'pending',

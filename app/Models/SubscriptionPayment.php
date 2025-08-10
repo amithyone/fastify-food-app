@@ -161,7 +161,7 @@ class SubscriptionPayment extends Model
     // Static methods
     public static function generatePaymentReference()
     {
-        return 'SUB_' . time() . '_' . strtoupper(uniqid());
+        return 'SUBREF' . time() . strtoupper(uniqid());
     }
 
     public static function createPayment($restaurant, $planType, $amount, $userId = null)

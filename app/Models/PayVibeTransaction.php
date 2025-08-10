@@ -11,6 +11,8 @@ class PayVibeTransaction extends Model
 
     protected $fillable = [
         'payment_id',
+        'subscription_payment_id',
+        'payment_type',
         'reference',
         'amount',
         'status',
@@ -35,13 +37,24 @@ class PayVibeTransaction extends Model
         return $this->belongsTo(PromotionPayment::class, 'payment_id');
     }
 
+    public function subscriptionPayment()
+    {
+        return $this->belongsTo(SubscriptionPayment::class, 'subscription_payment_id');
+    }
+
     public function restaurant()
     {
+        if ($this->payment_type === 'subscription') {
+            return $this->hasOneThrough(Restaurant::class, SubscriptionPayment::class, 'id', 'id', 'subscription_payment_id', 'restaurant_id');
+        }
         return $this->hasOneThrough(Restaurant::class, PromotionPayment::class, 'id', 'id', 'payment_id', 'restaurant_id');
     }
 
     public function user()
     {
+        if ($this->payment_type === 'subscription') {
+            return $this->hasOneThrough(User::class, Restaurant::class, 'id', 'id', 'restaurant_id', 'user_id');
+        }
         return $this->hasOneThrough(User::class, Restaurant::class, 'id', 'id', 'restaurant_id', 'user_id');
     }
 
