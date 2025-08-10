@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\PayVibeController;
 
@@ -193,3 +194,71 @@ Route::post('/featured-restaurants/{id}/click', function ($id) {
 
 // PayVibe Webhook Route
 Route::post('/webhook/payvibe', [PayVibeController::class, 'webhook'])->name('api.payvibe.webhook'); 
+
+// Restaurant API Routes
+Route::prefix('restaurant')->group(function () {
+    // Get current restaurant for authenticated user
+    Route::get('/current', function (Request $request) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Get restaurant from URL or user's primary restaurant
+        $restaurant = null;
+        
+        // Try to get from URL parameter
+        if ($request->has('slug')) {
+            $restaurant = \App\Models\Restaurant::where('slug', $request->slug)->first();
+        }
+        
+        // If not found, get user's primary restaurant
+        if (!$restaurant && $user->primaryRestaurant) {
+            $restaurant = $user->primaryRestaurant;
+        }
+        
+        if (!$restaurant) {
+            return response()->json(['error' => 'Restaurant not found'], 404);
+        }
+        
+        return response()->json([
+            'restaurant_id' => $restaurant->id,
+            'restaurant_name' => $restaurant->name,
+            'restaurant_slug' => $restaurant->slug
+        ]);
+    });
+    
+    // Get latest orders for notifications
+    Route::get('/{restaurantId}/orders/latest', function (Request $request, $restaurantId) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        $restaurant = \App\Models\Restaurant::find($restaurantId);
+        if (!$restaurant) {
+            return response()->json(['error' => 'Restaurant not found'], 404);
+        }
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $restaurant->id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        if (!$canAccess && !$isAdmin) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        // Get latest orders (last 10)
+        $orders = $restaurant->orders()
+            ->with(['orderItems.menuItem'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        return response()->json([
+            'orders' => $orders,
+            'total_orders' => $orders->count(),
+            'pending_orders' => $orders->where('status', 'pending')->count()
+        ]);
+    });
+}); 

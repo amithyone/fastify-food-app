@@ -3,7 +3,7 @@
 @section('title', $restaurant->name . ' - Orders')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900" data-restaurant-id="{{ $restaurant->id }}">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,7 +70,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Orders</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $orders->where('status', 'pending')->count() }}</p>
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white" data-order-count="pending">{{ $orders->where('status', 'pending')->count() }}</p>
                     </div>
                 </div>
             </div>
@@ -141,7 +141,7 @@
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($orders as $order)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-order-id="{{ $order->id }}">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                     #{{ $order->id }}
                                 </td>
@@ -319,4 +319,7 @@ document.getElementById('statusForm').addEventListener('submit', function(e) {
     });
 });
 </script>
+
+<!-- Order Notification System -->
+<script src="{{ asset('js/order-notifications.js') }}"></script>
 @endsection 
