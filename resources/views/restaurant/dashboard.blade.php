@@ -57,6 +57,28 @@
                     
                     <!-- Desktop: Show all buttons -->
                     <div class="hidden md:flex items-center space-x-4">
+                        <!-- Subscription Status Badge -->
+                        @if($restaurant->subscription)
+                            <a href="{{ route('restaurant.subscription.index', $restaurant->slug) }}" 
+                               class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200
+                                      @if($restaurant->subscription->isTrial())
+                                          bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800
+                                      @elseif($restaurant->subscription->isActive())
+                                          bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800
+                                      @else
+                                          bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-800
+                                      @endif">
+                                <i class="fas fa-crown mr-1"></i>
+                                @if($restaurant->subscription->isTrial())
+                                    Trial ({{ $restaurant->subscription->days_remaining }}d)
+                                @elseif($restaurant->subscription->isActive())
+                                    {{ ucfirst($restaurant->subscription->plan_type) }}
+                                @else
+                                    Expired
+                                @endif
+                            </a>
+                        @endif
+                        
                         <a href="{{ $restaurant->getMenuUrl() }}" target="_blank" 
                             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md">
                             <i class="fas fa-external-link-alt mr-2"></i>
@@ -369,6 +391,46 @@
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Restaurant Status</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Manage open/close status</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('restaurant.subscription.index', $restaurant->slug) }}" 
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow relative">
+                @if($restaurant->subscription && $restaurant->subscription->isTrial())
+                    <div class="absolute -top-2 -right-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            Trial
+                        </span>
+                    </div>
+                @elseif($restaurant->subscription && $restaurant->subscription->isExpired())
+                    <div class="absolute -top-2 -right-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                            Expired
+                        </span>
+                    </div>
+                @endif
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-crown text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Subscription</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            @if($restaurant->subscription)
+                                @if($restaurant->subscription->isTrial())
+                                    {{ ucfirst($restaurant->subscription->plan_type) }} Plan ({{ $restaurant->subscription->days_remaining }} days left)
+                                @elseif($restaurant->subscription->isActive())
+                                    {{ ucfirst($restaurant->subscription->plan_type) }} Plan - Active
+                                @else
+                                    {{ ucfirst($restaurant->subscription->plan_type) }} Plan - Expired
+                                @endif
+                            @else
+                                No active subscription
+                            @endif
+                        </p>
                     </div>
                 </div>
             </a>
