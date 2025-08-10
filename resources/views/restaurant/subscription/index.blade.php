@@ -55,31 +55,43 @@
                     <!-- Features -->
                     <div class="mt-6">
                         <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Current Features</h4>
+                        @if($subscription->isTrial())
+                            <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <p class="text-sm text-blue-800 dark:text-blue-200">
+                                    <i class="fas fa-star mr-2"></i>
+                                    <strong>Trial Benefits:</strong> You have access to ALL premium features during your trial period!
+                                </p>
+                            </div>
+                        @endif
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex items-center">
                                 <i class="fas fa-check text-green-500 mr-2"></i>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $subscription->unlimited_menu_items ? 'Unlimited' : $subscription->menu_item_limit }} menu items
+                                    @if($subscription->isTrial())
+                                        Unlimited menu items
+                                    @else
+                                        {{ $subscription->unlimited_menu_items ? 'Unlimited' : $subscription->menu_item_limit }} menu items
+                                    @endif
                                 </span>
                             </div>
                             <div class="flex items-center">
-                                <i class="{{ $subscription->custom_domain_enabled ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
+                                <i class="{{ ($subscription->isTrial() || $subscription->custom_domain_enabled) ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Custom domain</span>
                             </div>
                             <div class="flex items-center">
-                                <i class="{{ $subscription->video_packages_enabled ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
+                                <i class="{{ ($subscription->isTrial() || $subscription->video_packages_enabled) ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Video packages</span>
                             </div>
                             <div class="flex items-center">
-                                <i class="{{ $subscription->social_media_promotion_enabled ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
+                                <i class="{{ ($subscription->isTrial() || $subscription->social_media_promotion_enabled) ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Social media promotion</span>
                             </div>
                             <div class="flex items-center">
-                                <i class="{{ $subscription->priority_support ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
+                                <i class="{{ ($subscription->isTrial() || $subscription->priority_support) ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Priority support</span>
                             </div>
                             <div class="flex items-center">
-                                <i class="{{ $subscription->advanced_analytics ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
+                                <i class="{{ ($subscription->isTrial() || $subscription->advanced_analytics) ? 'fas fa-check text-green-500' : 'fas fa-times text-red-500' }} mr-2"></i>
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Advanced analytics</span>
                             </div>
                         </div>

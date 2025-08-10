@@ -70,7 +70,7 @@
                                       @endif">
                                 <i class="fas fa-crown mr-1"></i>
                                 @if($restaurant->subscription->isTrial())
-                                    Trial ({{ $restaurant->subscription->days_remaining }}d)
+                                    Premium Trial ({{ $restaurant->subscription->days_remaining }}d)
                                 @elseif($restaurant->subscription->isActive())
                                     {{ ucfirst($restaurant->subscription->plan_type) }}
                                 @else
@@ -421,7 +421,7 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400">
                             @if($restaurant->subscription)
                                 @if($restaurant->subscription->isTrial())
-                                    {{ ucfirst($restaurant->subscription->plan_type) }} Plan ({{ $restaurant->subscription->days_remaining }} days left)
+                                    Premium Trial ({{ $restaurant->subscription->days_remaining }} days left)
                                 @elseif($restaurant->subscription->isActive())
                                     {{ ucfirst($restaurant->subscription->plan_type) }} Plan - Active
                                 @else

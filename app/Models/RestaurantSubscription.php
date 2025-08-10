@@ -111,6 +111,11 @@ class RestaurantSubscription extends Model
 
     public function canAddMenuItem()
     {
+        // During trial, give unlimited access
+        if ($this->isTrial()) {
+            return true;
+        }
+        
         if ($this->unlimited_menu_items) {
             return true;
         }
@@ -121,6 +126,11 @@ class RestaurantSubscription extends Model
 
     public function getRemainingMenuSlotsAttribute()
     {
+        // During trial, give unlimited access
+        if ($this->isTrial()) {
+            return 'unlimited';
+        }
+        
         if ($this->unlimited_menu_items) {
             return 'unlimited';
         }
@@ -131,26 +141,51 @@ class RestaurantSubscription extends Model
 
     public function canUseCustomDomain()
     {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
         return $this->custom_domain_enabled && $this->isActive();
     }
 
     public function canAccessVideoPackages()
     {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
         return $this->video_packages_enabled && $this->isActive();
     }
 
     public function canAccessSocialMediaPromotion()
     {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
         return $this->social_media_promotion_enabled && $this->isActive();
     }
 
     public function hasPrioritySupport()
     {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
         return $this->priority_support && $this->isActive();
     }
 
     public function hasAdvancedAnalytics()
     {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
         return $this->advanced_analytics && $this->isActive();
     }
 

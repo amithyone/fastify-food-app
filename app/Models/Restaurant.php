@@ -200,6 +200,11 @@ class Restaurant extends Model
             return $this->menuItems()->limit(5)->get();
         }
         
+        // During trial, show all menu items
+        if ($subscription->isTrial()) {
+            return $this->menuItems;
+        }
+        
         if ($subscription->unlimited_menu_items) {
             return $this->menuItems;
         }
