@@ -106,14 +106,15 @@
                         @foreach($unusedImages as $image)
                             <div class="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer" 
                                  onclick="previewImage('{{ $image->url }}', '{{ $image->original_name }}', {{ $image->id }})">
-                                <img src="{{ $image->thumbnail_url }}" 
+                                <img src="{{ $image->thumbnail_url }}?v={{ time() }}" 
                                      alt="{{ $image->alt_text ?: $image->original_name }}"
-                                     class="w-full h-32 object-cover"
-                                     onerror="this.src='{{ $image->url }}'"
+                                     class="w-full h-32 object-cover relative z-10 bg-gray-200 dark:bg-gray-600"
+                                     onerror="this.src='{{ $image->url }}?v={{ time() }}'"
                                      data-original-url="{{ $image->url }}"
-                                     data-thumbnail-url="{{ $image->thumbnail_url }}">
+                                     data-thumbnail-url="{{ $image->thumbnail_url }}"
+                                     style="min-height: 128px;">
                                 
-                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center z-20">
                                     <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 space-x-2">
                                         <button onclick="event.stopPropagation(); selectImage({{ $image->id }}, '{{ $image->url }}')" 
                                                 class="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
@@ -157,10 +158,11 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         @foreach($usedImages as $image)
                             <div class="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                                <img src="{{ $image->thumbnail_url }}" 
+                                <img src="{{ $image->thumbnail_url }}?v={{ time() }}" 
                                      alt="{{ $image->alt_text ?: $image->original_name }}"
-                                     class="w-full h-32 object-cover"
-                                     onerror="this.src='{{ $image->url }}'">
+                                     class="w-full h-32 object-cover relative z-10 bg-gray-200 dark:bg-gray-600"
+                                     onerror="this.src='{{ $image->url }}?v={{ time() }}'"
+                                     style="min-height: 128px;">
                                 
                                 <div class="absolute top-2 right-2">
                                     <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
