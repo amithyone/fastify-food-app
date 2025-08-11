@@ -319,6 +319,21 @@ class Restaurant extends Model
         return \App\Helpers\PWAHelper::getPlaceholderImage('square');
     }
 
+    /**
+     * Check if restaurant can set custom default image (Premium or Trial only)
+     */
+    public function canSetCustomDefaultImage()
+    {
+        $subscription = $this->activeSubscription;
+        if (!$subscription) {
+            return false;
+        }
+        
+        // Allow if on trial or has premium subscription
+        return $subscription->isTrial() || 
+               ($subscription->plan_type === 'premium' && ($subscription->isActive() || $subscription->isTrial()));
+    }
+
     public function hasCustomDomain()
     {
         return !empty($this->custom_domain);

@@ -604,6 +604,11 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::delete('/{slug}/images/{imageId}', [RestaurantImageController::class, 'destroy'])->name('restaurant.images.destroy');
     Route::post('/{slug}/images/{imageId}/set-default', [RestaurantImageController::class, 'setDefault'])->name('restaurant.images.set-default');
     
+    // Restaurant Default Image Management
+    Route::get('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'index'])->name('restaurant.default-image.index');
+    Route::post('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'store'])->name('restaurant.default-image.store');
+    Route::delete('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'destroy'])->name('restaurant.default-image.destroy');
+    
     // Restaurant Order Management
     Route::get('/{slug}/orders', [OrderController::class, 'restaurantOrders'])->name('restaurant.orders');
     Route::get('/{slug}/orders/{order}', [OrderController::class, 'restaurantOrderShow'])->name('restaurant.orders.show');
