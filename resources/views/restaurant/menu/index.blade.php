@@ -585,6 +585,8 @@
                             });
                         }
                         
+                        
+                        
                         // Setup handlers when this script loads
                         document.addEventListener('DOMContentLoaded', setupImageSelectionHandlers);
                         
