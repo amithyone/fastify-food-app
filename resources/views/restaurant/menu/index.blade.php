@@ -1080,9 +1080,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Open image selector modal
     function openImageSelector() {
-        fetch(`{{ route('restaurant.images.get', ['slug' => $restaurant->slug]) }}`)
-            .then(response => response.json())
+        console.log('Opening image selector...');
+        const url = `{{ route('restaurant.images.get', ['slug' => $restaurant->slug]) }}`;
+        console.log('Fetching from URL:', url);
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Received data:', data);
                 if (data.success) {
                     showImageSelectorModal(data.images);
                 } else {
@@ -1091,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error loading images:', error);
-                alert('Error loading images. Please try again.');
+                alert('Error loading images. Please try again. Error: ' + error.message);
             });
     }
     

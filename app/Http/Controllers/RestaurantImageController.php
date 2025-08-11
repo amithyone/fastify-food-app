@@ -133,40 +133,77 @@ class RestaurantImageController extends Controller
     {
         \Log::info('Getting images for restaurant', [
             'slug' => $slug,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
+            'request_url' => request()->url(),
+            'request_method' => request()->method()
         ]);
         
-        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
-        
-        // Check authorization
-        if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
-            \Log::warning('Unauthorized access attempt to restaurant images', [
-                'user_id' => Auth::id(),
-                'restaurant_id' => $restaurant->id
+        try {
+            $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+            
+            \Log::info('Restaurant found', [
+                'restaurant_id' => $restaurant->id,
+                'restaurant_name' => $restaurant->name
             ]);
-            abort(403, 'Unauthorized access to restaurant images.');
+            
+            // Check authorization
+            $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            $isAdmin = Auth::user()->isAdmin();
+            
+            \Log::info('Authorization check', [
+                'can_access' => $canAccess,
+                'is_admin' => $isAdmin,
+                'user_id' => Auth::id()
+            ]);
+            
+            if (!$canAccess && !$isAdmin) {
+                \Log::warning('Unauthorized access attempt to restaurant images', [
+                    'user_id' => Auth::id(),
+                    'restaurant_id' => $restaurant->id
+                ]);
+                abort(403, 'Unauthorized access to restaurant images.');
+            }
+            
+            $images = $restaurant->images()->unused()->orderBy('created_at', 'desc')->get();
+            
+            \Log::info('Images retrieved successfully', [
+                'restaurant_id' => $restaurant->id,
+                'images_count' => $images->count(),
+                'images' => $images->map(function ($image) {
+                    return [
+                        'id' => $image->id,
+                        'url' => $image->url,
+                        'thumbnail_url' => $image->thumbnail_url,
+                        'original_name' => $image->original_name
+                    ];
+                })
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'images' => $images->map(function ($image) {
+                    return [
+                        'id' => $image->id,
+                        'url' => $image->url,
+                        'thumbnail_url' => $image->thumbnail_url,
+                        'original_name' => $image->original_name,
+                        'alt_text' => $image->alt_text,
+                        'file_size' => $image->formatted_file_size
+                    ];
+                })
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in getImages', [
+                'slug' => $slug,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving images: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $images = $restaurant->images()->unused()->orderBy('created_at', 'desc')->get();
-        
-        \Log::info('Images retrieved successfully', [
-            'restaurant_id' => $restaurant->id,
-            'images_count' => $images->count()
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'images' => $images->map(function ($image) {
-                return [
-                    'id' => $image->id,
-                    'url' => $image->url,
-                    'thumbnail_url' => $image->thumbnail_url,
-                    'original_name' => $image->original_name,
-                    'alt_text' => $image->alt_text,
-                    'file_size' => $image->formatted_file_size
-                ];
-            })
-        ]);
     }
 
     /**
