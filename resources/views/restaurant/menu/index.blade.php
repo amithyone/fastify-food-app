@@ -555,6 +555,47 @@
                         </div>
                     </div>
                     
+                    <!-- Image Selection JavaScript - Placed close to the radio buttons -->
+                    <script>
+                        // Image selection functionality - placed close to the HTML elements
+                        function setupImageSelectionHandlers() {
+                            console.log('Setting up image selection handlers...');
+                            const imageSourceRadios = document.querySelectorAll('input[name="image_source"]');
+                            const uploadSection = document.getElementById('uploadSection');
+                            const existingSection = document.getElementById('existingSection');
+                            
+                            console.log('Found radio buttons:', imageSourceRadios.length);
+                            console.log('Upload section:', uploadSection);
+                            console.log('Existing section:', existingSection);
+                            
+                            imageSourceRadios.forEach(radio => {
+                                radio.addEventListener('change', function() {
+                                    console.log('Radio button changed to:', this.value);
+                                    if (this.value === 'upload') {
+                                        uploadSection.classList.remove('hidden');
+                                        existingSection.classList.add('hidden');
+                                        clearSelectedImage();
+                                    } else if (this.value === 'existing') {
+                                        uploadSection.classList.add('hidden');
+                                        existingSection.classList.remove('hidden');
+                                        document.getElementById('itemImage').value = '';
+                                        resetImagePreview();
+                                    }
+                                });
+                            });
+                        }
+                        
+                        // Setup handlers when this script loads
+                        document.addEventListener('DOMContentLoaded', setupImageSelectionHandlers);
+                        
+                        // Also setup when modal opens (in case DOM is already loaded)
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', setupImageSelectionHandlers);
+                        } else {
+                            setupImageSelectionHandlers();
+                        }
+                    </script>
+                    
                     <div>
                         <label for="itemDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                         <textarea id="itemDescription" name="description" rows="3"
@@ -771,11 +812,6 @@ function openMenuItemModal() {
     document.getElementById('itemSpicy').checked = false;
     resetImagePreview();
     document.getElementById('menuItemModal').classList.remove('hidden');
-    
-    // Setup image selection handlers after modal is shown
-    setTimeout(() => {
-        setupImageSelectionHandlers();
-    }, 100);
 }
 
 function closeMenuItemModal() {
@@ -804,11 +840,6 @@ function editMenuItem(id, name, price, description, categoryId, isAvailable, ima
     }
     
     document.getElementById('menuItemModal').classList.remove('hidden');
-    
-    // Setup image selection handlers after modal is shown
-    setTimeout(() => {
-        setupImageSelectionHandlers();
-    }, 100);
 }
 
 function previewImage(input) {
@@ -1063,41 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
         closeMenuItemModal();
     });
     
-    // Image selection functionality
-    function setupImageSelectionHandlers() {
-        console.log('Setting up image selection handlers...');
-        // Handle radio button changes for image source
-        const imageSourceRadios = document.querySelectorAll('input[name="image_source"]');
-        const uploadSection = document.getElementById('uploadSection');
-        const existingSection = document.getElementById('existingSection');
-        
-        console.log('Found radio buttons:', imageSourceRadios.length);
-        console.log('Upload section:', uploadSection);
-        console.log('Existing section:', existingSection);
-        
-        imageSourceRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                console.log('Radio button changed to:', this.value);
-                if (this.value === 'upload') {
-                    uploadSection.classList.remove('hidden');
-                    existingSection.classList.add('hidden');
-                    // Clear selected image
-                    clearSelectedImage();
-                } else if (this.value === 'existing') {
-                    uploadSection.classList.add('hidden');
-                    existingSection.classList.remove('hidden');
-                    // Clear file input
-                    document.getElementById('itemImage').value = '';
-                    resetImagePreview();
-                }
-            });
-        });
-    }
-    
-    // Setup handlers when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        setupImageSelectionHandlers();
-    });
+
     
     // Open image selector modal
     function openImageSelector() {
