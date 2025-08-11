@@ -261,6 +261,37 @@ class RestaurantImageController extends Controller
     }
 
     /**
+     * Set a restaurant image as default menu image (premium/trial only)
+     */
+    public function setDefault($slug, $imageId)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        // Auth check
+        if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized');
+        }
+        
+        // Subscription check: allow premium or trial
+        $subscription = $restaurant->activeSubscription;
+        if (!$subscription || !($subscription->isTrial() || ($subscription->plan_type === 'premium' && ($subscription->isActive() || $subscription->isTrial())))) {
+            return response()->json(['success' => false, 'message' => 'Feature available for Premium or Trial only'], 403);
+        }
+        
+        $image = RestaurantImage::where('restaurant_id', $restaurant->id)->findOrFail($imageId);
+        
+        // Set as default using original file path
+        $restaurant->default_menu_image = $image->file_path;
+        $restaurant->save();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Default menu image set successfully',
+            'default_menu_image_url' => $restaurant->default_menu_image_url
+        ]);
+    }
+
+    /**
      * Create thumbnail for uploaded image
      */
     private function createThumbnail($filePath, $restaurantId)

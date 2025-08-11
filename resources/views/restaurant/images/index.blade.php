@@ -121,6 +121,11 @@
                                                 title="Use this image">
                                             <i class="fas fa-check text-sm"></i>
                                         </button>
+                                        <button onclick="event.stopPropagation(); setDefaultImage({{ $image->id }})" 
+                                                class="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                                                title="Set as default for menu items">
+                                            <i class="fas fa-star text-sm"></i>
+                                        </button>
                                         <button onclick="event.stopPropagation(); deleteImage({{ $image->id }})" 
                                                 class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
                                                 title="Delete image">
@@ -416,5 +421,26 @@ document.addEventListener('click', function(e) {
         closePreviewModal();
     }
 });
+
+// Set default menu image
+function setDefaultImage(imageId) {
+    if (!confirm('Set this as the default image for menu items?')) return;
+    fetch(`{{ route('restaurant.images.set-default', ['slug' => $restaurant->slug, 'imageId' => 'IMAGE_ID']) }}`.replace('IMAGE_ID', imageId), {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            alert('Default image updated');
+        } else {
+            alert(data.message || 'Failed to set default image');
+        }
+    }).catch(err => {
+        console.error(err);
+        alert('Error setting default image');
+    });
+}
 </script>
 @endsection

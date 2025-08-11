@@ -1223,7 +1223,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.reload();
             }).catch(error => {
                 console.error('Create error:', error);
-                alert('Error creating menu item: ' + error.message);
+                alert('Error creating menu item: ' + error.message + '\nIf no image was selected, your restaurant default may be used automatically (Premium/Trial).');
             });
         }
         closeMenuItemModal();

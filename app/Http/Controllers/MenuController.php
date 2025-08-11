@@ -244,7 +244,7 @@ class MenuController extends Controller
             $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
-            // Handle image upload or selection
+            // Handle image upload or selection, otherwise use restaurant default if available
             $imageSource = $request->input('image_source', 'upload');
             
             if ($imageSource === 'upload' && $request->hasFile('image')) {
@@ -322,6 +322,15 @@ class MenuController extends Controller
                         'message' => 'Selected image not found'
                     ], 400);
                 }
+            }
+
+            // If no image provided, use restaurant default if available
+            if (empty($validated['image']) && $restaurant->default_menu_image) {
+                $validated['image'] = $restaurant->default_menu_image;
+                \Log::info('Using restaurant default menu image for new item', [
+                    'restaurant_id' => $restaurant->id,
+                    'image' => $validated['image']
+                ]);
             }
             
             $menuItem = MenuItem::create($validated);
