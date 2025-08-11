@@ -669,7 +669,7 @@
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-4" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                                        <div class="grid grid-cols-4 gap-4" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                                             ${imagesHtml}
                                         </div>
                                         <div class="mt-4 text-center text-sm text-gray-500">
