@@ -109,7 +109,7 @@
                                 <img src="{{ $image->thumbnail_url }}" 
                                      alt="{{ $image->alt_text ?: $image->original_name }}"
                                      class="w-full h-32 object-cover"
-                                     onerror="this.src='/images/placeholder-image.svg'"
+                                     onerror="this.src='{{ $image->url }}'"
                                      data-original-url="{{ $image->url }}"
                                      data-thumbnail-url="{{ $image->thumbnail_url }}">
                                 
@@ -159,7 +159,8 @@
                             <div class="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                                 <img src="{{ $image->thumbnail_url }}" 
                                      alt="{{ $image->alt_text ?: $image->original_name }}"
-                                     class="w-full h-32 object-cover">
+                                     class="w-full h-32 object-cover"
+                                     onerror="this.src='{{ $image->url }}'">
                                 
                                 <div class="absolute top-2 right-2">
                                     <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">

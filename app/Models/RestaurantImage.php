@@ -54,6 +54,8 @@ class RestaurantImage extends Model
             return Storage::disk('public')->url($thumbnailPath);
         }
         
+        // If thumbnail doesn't exist, return the original image URL
+        // This ensures we always have an image to display
         return $this->url;
     }
 
@@ -111,4 +113,5 @@ class RestaurantImage extends Model
     {
         $this->update(['is_used' => false]);
     }
+
 }
