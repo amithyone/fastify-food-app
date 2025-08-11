@@ -771,6 +771,11 @@ function openMenuItemModal() {
     document.getElementById('itemSpicy').checked = false;
     resetImagePreview();
     document.getElementById('menuItemModal').classList.remove('hidden');
+    
+    // Setup image selection handlers after modal is shown
+    setTimeout(() => {
+        setupImageSelectionHandlers();
+    }, 100);
 }
 
 function closeMenuItemModal() {
@@ -799,6 +804,11 @@ function editMenuItem(id, name, price, description, categoryId, isAvailable, ima
     }
     
     document.getElementById('menuItemModal').classList.remove('hidden');
+    
+    // Setup image selection handlers after modal is shown
+    setTimeout(() => {
+        setupImageSelectionHandlers();
+    }, 100);
 }
 
 function previewImage(input) {
@@ -1054,14 +1064,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Image selection functionality
-    document.addEventListener('DOMContentLoaded', function() {
+    function setupImageSelectionHandlers() {
+        console.log('Setting up image selection handlers...');
         // Handle radio button changes for image source
         const imageSourceRadios = document.querySelectorAll('input[name="image_source"]');
         const uploadSection = document.getElementById('uploadSection');
         const existingSection = document.getElementById('existingSection');
         
+        console.log('Found radio buttons:', imageSourceRadios.length);
+        console.log('Upload section:', uploadSection);
+        console.log('Existing section:', existingSection);
+        
         imageSourceRadios.forEach(radio => {
             radio.addEventListener('change', function() {
+                console.log('Radio button changed to:', this.value);
                 if (this.value === 'upload') {
                     uploadSection.classList.remove('hidden');
                     existingSection.classList.add('hidden');
@@ -1076,6 +1092,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+    }
+    
+    // Setup handlers when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        setupImageSelectionHandlers();
     });
     
     // Open image selector modal
