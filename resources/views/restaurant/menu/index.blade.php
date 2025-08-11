@@ -1107,10 +1107,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 imagesHtml += `
                     <div class="cursor-pointer hover:scale-105 transition-transform p-2" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
                         <div class="relative">
-                            <img src="${image.thumbnail_url}" alt="${image.original_name}" 
-                                 class="w-full h-20 object-cover rounded-lg border-2 border-transparent hover:border-orange-500 shadow-sm"
-                                 onerror="this.src='${image.url}'">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                            <img src="${image.thumbnail_url}?v=${Date.now()}" alt="${image.original_name}" 
+                                 class="w-full h-20 object-cover rounded-lg border-2 border-transparent hover:border-orange-500 shadow-sm bg-gray-200 dark:bg-gray-600"
+                                 onerror="this.src='${image.url}?v=${Date.now()}'"
+                                 style="min-height: 80px;">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center z-10">
                                 <i class="fas fa-check text-white opacity-0 hover:opacity-100 text-lg"></i>
                             </div>
                         </div>
