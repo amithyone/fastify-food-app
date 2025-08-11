@@ -634,10 +634,10 @@
                                         <div class="cursor-pointer hover:scale-105 transition-transform p-2" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
                                             <div class="relative">
                                                 <img src="${image.thumbnail_url}?v=${Date.now()}" alt="${image.original_name}" 
-                                                     class="w-full h-20 object-cover rounded-lg border-2 border-transparent hover:border-orange-500 shadow-sm bg-gray-200 dark:bg-gray-600"
+                                                     class="w-full h-24 object-cover rounded-lg border-2 border-transparent hover:border-orange-500 shadow-sm bg-gray-200 dark:bg-gray-600"
                                                      onerror="this.src='${image.url}?v=${Date.now()}'"
-                                                     style="min-height: 80px;">
-                                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center z-10">
+                                                     style="min-height: 96px;">
+                                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center z-10">
                                                     <i class="fas fa-check text-white opacity-0 hover:opacity-100 text-lg"></i>
                                                 </div>
                                             </div>
@@ -659,7 +659,7 @@
                             }
                             
                             modal.innerHTML = `
-                                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full max-h-[80vh] overflow-y-auto">
+                                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
                                     <div class="p-6">
                                         <div class="flex items-center justify-between mb-4">
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Select Image for Menu Item</h3>
@@ -667,7 +667,7 @@
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
-                                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                                        <div class="grid grid-cols-3 gap-4">
                                             ${imagesHtml}
                                         </div>
                                         <div class="mt-4 text-center text-sm text-gray-500">
