@@ -623,6 +623,7 @@
                         
                         // Show image selector modal
                         function showImageSelectorModal(images) {
+                            console.log('Creating modal with', images.length, 'images');
                             const modal = document.createElement('div');
                             modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
                             modal.id = 'imageSelectorModal';
@@ -668,7 +669,7 @@
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-4">
+                                        <div class="grid grid-cols-3 gap-4" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
                                             ${imagesHtml}
                                         </div>
                                         <div class="mt-4 text-center text-sm text-gray-500">
@@ -680,6 +681,7 @@
                             `;
                             
                             document.body.appendChild(modal);
+                            console.log('Modal created with grid layout');
                         }
                         
                         // Close image selector modal
