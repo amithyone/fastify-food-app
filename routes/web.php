@@ -16,6 +16,7 @@ use App\Http\Controllers\PayVibeController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\RestaurantStatusController;
 use App\Http\Controllers\RestaurantDeliverySettingController;
+use App\Http\Controllers\RestaurantDefaultImageController;
 use App\Http\Controllers\BankTransferPaymentController;
 use App\Http\Controllers\GuestSessionController;
 use App\Http\Controllers\CartController;
@@ -678,6 +679,11 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
 Route::get('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'index'])->name('restaurant.delivery-settings.index');
 Route::put('/{slug}/delivery-settings', [RestaurantDeliverySettingController::class, 'update'])->name('restaurant.delivery-settings.update');
 Route::post('/{slug}/delivery-settings/menu-items', [RestaurantDeliverySettingController::class, 'updateMenuItemDeliveryMethods'])->name('restaurant.delivery-settings.menu-items');
+
+    // Restaurant Default Image Management Routes (Premium Feature)
+Route::get('/{slug}/default-image', [RestaurantDefaultImageController::class, 'index'])->name('restaurant.default-image.index');
+Route::post('/{slug}/default-image', [RestaurantDefaultImageController::class, 'store'])->name('restaurant.default-image.store');
+Route::delete('/{slug}/default-image', [RestaurantDefaultImageController::class, 'destroy'])->name('restaurant.default-image.destroy');
 
 // API Routes for Delivery Settings
 Route::get('/{slug}/api/delivery-settings', [RestaurantDeliverySettingController::class, 'apiIndex'])->name('restaurant.api.delivery-settings');

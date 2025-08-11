@@ -17,6 +17,8 @@ class Restaurant extends Model
         'description',
         'logo',
         'banner_image',
+        'default_image',
+        'default_image_thumbnail',
         'whatsapp_number',
         'phone_number',
         'email',
@@ -398,6 +400,87 @@ class Restaurant extends Model
             
             return $placeholderUrl;
         }
+    }
+
+    /**
+     * Get the default image URL for menu items
+     */
+    public function getDefaultImageUrlAttribute()
+    {
+        try {
+            if ($this->default_image && \Storage::disk('public')->exists($this->default_image)) {
+                $url = \Storage::disk('public')->url($this->default_image);
+                $url = \App\Helpers\PWAHelper::fixStorageUrl($url);
+                
+                \Log::info('Restaurant model default_image_url generated', [
+                    'restaurant_id' => $this->id,
+                    'default_image_path' => $this->default_image,
+                    'default_image_url' => $url,
+                    'exists' => \Storage::disk('public')->exists($this->default_image)
+                ]);
+                return $url;
+            }
+            
+            // Return default placeholder
+            $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
+            $placeholderUrl = \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+            
+            return $placeholderUrl;
+        } catch (\Exception $e) {
+            \Log::error('Error getting restaurant default image URL', [
+                'restaurant_id' => $this->id,
+                'default_image_path' => $this->default_image,
+                'error' => $e->getMessage()
+            ]);
+            
+            // Return placeholder as fallback
+            $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
+            $placeholderUrl = \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+            
+            return $placeholderUrl;
+        }
+    }
+
+    /**
+     * Get the default image thumbnail URL for menu items
+     */
+    public function getDefaultImageThumbnailUrlAttribute()
+    {
+        try {
+            if ($this->default_image_thumbnail && \Storage::disk('public')->exists($this->default_image_thumbnail)) {
+                $url = \Storage::disk('public')->url($this->default_image_thumbnail);
+                $url = \App\Helpers\PWAHelper::fixStorageUrl($url);
+                return $url;
+            }
+            
+            // Fallback to original default image if thumbnail doesn't exist
+            return $this->default_image_url;
+        } catch (\Exception $e) {
+            \Log::error('Error getting restaurant default image thumbnail URL', [
+                'restaurant_id' => $this->id,
+                'default_image_thumbnail_path' => $this->default_image_thumbnail,
+                'error' => $e->getMessage()
+            ]);
+            
+            return $this->default_image_url;
+        }
+    }
+
+    /**
+     * Check if restaurant has a custom default image set
+     */
+    public function hasCustomDefaultImage()
+    {
+        return !empty($this->default_image) && \Storage::disk('public')->exists($this->default_image);
+    }
+
+    /**
+     * Check if restaurant can set custom default image (Premium feature)
+     */
+    public function canSetCustomDefaultImage()
+    {
+        return $this->hasActiveSubscription() && 
+               ($this->activeSubscription->plan_type === 'premium' || $this->activeSubscription->isTrial());
     }
 
     /**
