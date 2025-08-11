@@ -631,14 +631,15 @@
                             if (images.length > 0) {
                                 images.forEach(image => {
                                     imagesHtml += `
-                                        <div class="cursor-pointer hover:scale-105 transition-transform p-2" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
+                                        <div class="cursor-pointer hover:scale-105 transition-transform p-2 border-2 border-transparent hover:border-orange-500 rounded-lg" onclick="selectImageFromModal('${image.url}', ${image.id}, '${image.original_name}')">
                                             <div class="relative">
                                                 <img src="${image.thumbnail_url}?v=${Date.now()}" alt="${image.original_name}" 
-                                                     class="w-full h-24 object-cover rounded-lg border-2 border-transparent hover:border-orange-500 shadow-sm bg-gray-200 dark:bg-gray-600"
-                                                     onerror="this.src='${image.url}?v=${Date.now()}'"
+                                                     class="w-full h-24 object-cover rounded-lg shadow-sm"
+                                                     onload="console.log('Image loaded successfully:', '${image.original_name}')"
+                                                     onerror="console.log('Image failed to load:', '${image.original_name}'); this.src='${image.url}?v=${Date.now()}'"
                                                      style="min-height: 96px;">
-                                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center z-10">
-                                                    <i class="fas fa-check text-white opacity-0 hover:opacity-100 text-lg"></i>
+                                                <div class="absolute top-2 right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                                    <i class="fas fa-check text-xs"></i>
                                                 </div>
                                             </div>
                                             <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate text-center">${image.original_name}</p>
