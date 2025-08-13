@@ -611,10 +611,38 @@ class MenuController extends Controller
                 'is_active' => 'boolean',
             ]);
             
+            // Additional validation for parent_id
+            if (!empty($validated['parent_id'])) {
+                $parentCategory = Category::find($validated['parent_id']);
+                if (!$parentCategory || $parentCategory->type !== 'main') {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'Invalid parent category selected.'
+                        ], 422);
+                    }
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected.');
+                }
+            }
+            
             $validated['restaurant_id'] = $restaurant->id;
-            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
             $validated['is_active'] = $validated['is_active'] ?? true;
             $validated['type'] = $validated['parent_id'] ? 'sub' : 'main';
+            
+            // Generate unique slug for the category
+            $baseSlug = \Illuminate\Support\Str::slug($validated['name']);
+            $slug = $baseSlug;
+            $counter = 1;
+            
+            // Check if slug already exists
+            while (Category::where('slug', $slug)
+                          ->where('restaurant_id', $restaurant->id)
+                          ->exists()) {
+                $slug = $baseSlug . '-' . $counter;
+                $counter++;
+            }
+            
+            $validated['slug'] = $slug;
             
             $category = Category::create($validated);
             
@@ -667,9 +695,38 @@ class MenuController extends Controller
                 'is_active' => 'boolean',
             ]);
             
-            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+            // Additional validation for parent_id
+            if (!empty($validated['parent_id'])) {
+                $parentCategory = Category::find($validated['parent_id']);
+                if (!$parentCategory || $parentCategory->type !== 'main') {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'Invalid parent category selected.'
+                        ], 422);
+                    }
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected.');
+                }
+            }
+            
             $validated['is_active'] = $validated['is_active'] ?? true;
             $validated['type'] = $validated['parent_id'] ? 'sub' : 'main';
+            
+            // Generate unique slug for the category
+            $baseSlug = \Illuminate\Support\Str::slug($validated['name']);
+            $slug = $baseSlug;
+            $counter = 1;
+            
+            // Check if slug already exists (excluding current category)
+            while (Category::where('slug', $slug)
+                          ->where('restaurant_id', $restaurant->id)
+                          ->where('id', '!=', $category->id)
+                          ->exists()) {
+                $slug = $baseSlug . '-' . $counter;
+                $counter++;
+            }
+            
+            $validated['slug'] = $slug;
             
             $category->update($validated);
             
