@@ -1034,8 +1034,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (editingCategoryId) {
             // Update existing category
             console.log('Updating category with ID:', editingCategoryId);
+            
+            // Add the _method field for PUT request
+            formData.append('_method', 'PUT');
+            
             fetch(`{{ route('restaurant.categories.update', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', editingCategoryId), {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     'Accept': 'application/json'
