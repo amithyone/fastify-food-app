@@ -507,6 +507,7 @@
         <div class="mt-3">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4" id="categoryModalTitle">Add Category</h3>
             <form id="categoryForm">
+                @csrf
                 <div class="mb-4">
                     <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
                     <input type="text" id="categoryName" name="name" required
@@ -976,11 +977,13 @@ function closeCategoryModal() {
 }
 
 function editCategory(id, name, parentId = '') {
+    console.log('Editing category:', { id, name, parentId });
     editingCategoryId = id;
     document.getElementById('categoryModalTitle').textContent = 'Edit Category';
     document.getElementById('categoryName').value = name;
     document.getElementById('categoryParent').value = parentId || '';
     document.getElementById('categoryModal').classList.remove('hidden');
+    console.log('Category modal opened for editing');
 }
 
 function deleteCategory(id) {
@@ -1174,10 +1177,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Category form submission
     document.getElementById('categoryForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Category form submitted');
+        console.log('Editing category ID:', editingCategoryId);
+        
         const formData = new FormData(e.target);
+        
+        // Log form data
+        console.log('Form data:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
         
         if (editingCategoryId) {
             // Update existing category
+            console.log('Updating category with ID:', editingCategoryId);
             fetch(`{{ route('restaurant.categories.update', ['slug' => $restaurant->slug, 'category' => 'CATEGORY_ID']) }}`.replace('CATEGORY_ID', editingCategoryId), {
                 method: 'PUT',
                 headers: {
@@ -1186,8 +1199,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: formData
             }).then(response => {
+                console.log('Update response status:', response.status);
                 return response.json().then(data => {
+                    console.log('Update response data:', data);
                     if (response.ok) {
+                        console.log('Category updated successfully');
                         window.location.reload();
                     } else {
                         console.error('Error response:', data);
@@ -1196,7 +1212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }).catch(error => {
                 console.error('Fetch error:', error);
-                alert('Error updating category');
+                alert('Error updating category: ' + error.message);
             });
         } else {
             // Create new category
