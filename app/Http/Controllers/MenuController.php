@@ -153,7 +153,7 @@ class MenuController extends Controller
         // Combine restaurant categories and global categories for the dropdown
         $allCategories = $restaurantCategories->merge($globalCategories);
         
-        return view('restaurant.menu.index', compact('restaurant', 'menuItems', 'categories', 'restaurantCategories', 'globalCategories', 'allCategories'));
+        return view('restaurant.menu.index', compact('restaurant', 'menuItems', 'restaurantCategories', 'globalCategories', 'allCategories'));
     }
 
     public function restaurantCreate($slug)
