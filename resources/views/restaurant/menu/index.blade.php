@@ -880,7 +880,7 @@ function editMenuItem(id, name, price, description, categoryId, isAvailable, ima
     document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
     document.getElementById('itemName').value = name;
     document.getElementById('itemCategory').value = categoryId || '';
-    document.getElementById('itemPrice').value = (price / 100).toFixed(2);
+    document.getElementById('itemPrice').value = price;
     document.getElementById('itemDescription').value = description || '';
     document.getElementById('itemIngredients').value = ingredients || '';
     document.getElementById('itemAllergens').value = allergens || '';
@@ -1100,12 +1100,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`${key}: ${value}`);
         }
         
-        // Convert price to cents (multiply by 100)
+        // Use price as-is (no conversion)
         const priceField = document.getElementById('itemPrice');
         if (priceField && priceField.value) {
-            const priceInCents = Math.round(parseFloat(priceField.value) * 100);
-            formData.set('price', priceInCents);
-            console.log('Price converted to cents:', priceInCents);
+            const price = parseFloat(priceField.value);
+            formData.set('price', price);
+            console.log('Price set as:', price);
         }
         
         if (editingMenuItemId) {
