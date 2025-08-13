@@ -611,22 +611,27 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'parent_id' => 'required|exists:categories,id',
+                'parent_id' => 'nullable|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             
-            // Validate parent_id is a global main category
-            $parentCategory = Category::find($validated['parent_id']);
-            if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'success' => false, 
-                        'message' => 'Invalid parent category selected. Please select a main category.'
-                    ], 422);
+            // If parent_id is provided, validate it's a global main category
+            if (!empty($validated['parent_id'])) {
+                $parentCategory = Category::find($validated['parent_id']);
+                if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'Invalid parent category selected. Please select a main category.'
+                        ], 422);
+                    }
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
                 }
-                return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
+                $validated['type'] = 'sub'; // Category with parent is a sub-category
+            } else {
+                $validated['type'] = 'main'; // Category without parent is a main category
+                $validated['parent_id'] = null; // Ensure parent_id is null
             }
-            $validated['type'] = 'sub'; // All restaurant categories are sub-categories
             
             $validated['restaurant_id'] = $restaurant->id;
             $validated['is_active'] = $validated['is_active'] ?? true;
@@ -693,22 +698,27 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'parent_id' => 'required|exists:categories,id',
+                'parent_id' => 'nullable|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             
-            // Validate parent_id is a global main category
-            $parentCategory = Category::find($validated['parent_id']);
-            if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'success' => false, 
-                        'message' => 'Invalid parent category selected. Please select a main category.'
-                    ], 422);
+            // If parent_id is provided, validate it's a global main category
+            if (!empty($validated['parent_id'])) {
+                $parentCategory = Category::find($validated['parent_id']);
+                if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'Invalid parent category selected. Please select a main category.'
+                        ], 422);
+                    }
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
                 }
-                return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
+                $validated['type'] = 'sub'; // Category with parent is a sub-category
+            } else {
+                $validated['type'] = 'main'; // Category without parent is a main category
+                $validated['parent_id'] = null; // Ensure parent_id is null
             }
-            $validated['type'] = 'sub'; // All restaurant categories are sub-categories
             
             $validated['is_active'] = $validated['is_active'] ?? true;
             
