@@ -421,7 +421,7 @@
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Categories</span>
-                                    <span class="text-lg font-bold text-blue-600">{{ $categories->count() }}</span>
+                                    <span class="text-lg font-bold text-blue-600">{{ $restaurantCategories->count() }}</span>
                                 </div>
                                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                     @php
