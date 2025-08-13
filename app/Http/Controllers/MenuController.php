@@ -607,27 +607,25 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'parent_id' => 'nullable|exists:categories,id',
+                'parent_id' => 'required|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             
-            // Additional validation for parent_id
-            if (!empty($validated['parent_id'])) {
-                $parentCategory = Category::find($validated['parent_id']);
-                if (!$parentCategory || $parentCategory->type !== 'main') {
-                    if ($request->expectsJson()) {
-                        return response()->json([
-                            'success' => false, 
-                            'message' => 'Invalid parent category selected.'
-                        ], 422);
-                    }
-                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected.');
+            // Validate parent_id is a global main category
+            $parentCategory = Category::find($validated['parent_id']);
+            if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Invalid parent category selected. Please select a main category.'
+                    ], 422);
                 }
+                return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
             }
             
             $validated['restaurant_id'] = $restaurant->id;
             $validated['is_active'] = $validated['is_active'] ?? true;
-            $validated['type'] = $validated['parent_id'] ? 'sub' : 'main';
+            $validated['type'] = 'sub'; // All restaurant categories are now sub-categories
             
             // Generate unique slug for the category
             $baseSlug = \Illuminate\Support\Str::slug($validated['name']);
@@ -691,26 +689,24 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'parent_id' => 'nullable|exists:categories,id',
+                'parent_id' => 'required|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             
-            // Additional validation for parent_id
-            if (!empty($validated['parent_id'])) {
-                $parentCategory = Category::find($validated['parent_id']);
-                if (!$parentCategory || $parentCategory->type !== 'main') {
-                    if ($request->expectsJson()) {
-                        return response()->json([
-                            'success' => false, 
-                            'message' => 'Invalid parent category selected.'
-                        ], 422);
-                    }
-                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected.');
+            // Validate parent_id is a global main category
+            $parentCategory = Category::find($validated['parent_id']);
+            if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Invalid parent category selected. Please select a main category.'
+                    ], 422);
                 }
+                return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
             }
             
             $validated['is_active'] = $validated['is_active'] ?? true;
-            $validated['type'] = $validated['parent_id'] ? 'sub' : 'main';
+            $validated['type'] = 'sub'; // All restaurant categories are now sub-categories
             
             // Generate unique slug for the category
             $baseSlug = \Illuminate\Support\Str::slug($validated['name']);
