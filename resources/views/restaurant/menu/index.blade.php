@@ -179,7 +179,7 @@
                     </div>
                 </div>
                         
-                        @if($categories->count() == 0)
+                        @if($restaurantCategories->count() == 0)
                             <div class="text-center py-4">
                                 <i class="fas fa-folder-open text-2xl text-gray-400 mb-2"></i>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">No categories</p>
