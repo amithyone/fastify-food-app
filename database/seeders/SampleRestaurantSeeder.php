@@ -14,87 +14,94 @@ class SampleRestaurantSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create sample restaurant
-        $restaurant = Restaurant::create([
-            'name' => 'Taste of Abuja',
-            'slug' => 'taste-of-abuja',
-            'description' => 'Authentic Nigerian cuisine with a modern twist. Serving the best local and international dishes in Abuja.',
-            'whatsapp_number' => '+234 801 234 5678',
-            'phone_number' => '+234 801 234 5679',
-            'email' => 'info@tasteofabuja.com',
-            'address' => '123 Wuse Zone 2',
-            'city' => 'Abuja',
-            'state' => 'FCT',
-            'postal_code' => '900001',
-            'country' => 'Nigeria',
-            'currency' => '₦',
-            'theme_color' => '#ff6b35',
-            'secondary_color' => '#f7931e',
-            'is_active' => true,
-            'is_verified' => true,
-            'business_hours' => [
-                'monday' => ['open' => '07:00', 'close' => '22:00'],
-                'tuesday' => ['open' => '07:00', 'close' => '22:00'],
-                'wednesday' => ['open' => '07:00', 'close' => '22:00'],
-                'thursday' => ['open' => '07:00', 'close' => '22:00'],
-                'friday' => ['open' => '07:00', 'close' => '23:00'],
-                'saturday' => ['open' => '08:00', 'close' => '23:00'],
-                'sunday' => ['open' => '08:00', 'close' => '21:00'],
-            ],
-            'settings' => [
-                'delivery_enabled' => true,
-                'dine_in_enabled' => true,
-                'delivery_fee' => 500,
-                'minimum_order' => 1000,
-                'auto_accept_orders' => false,
-            ],
-        ]);
+        // Create or update sample restaurant
+        $restaurant = Restaurant::updateOrCreate(
+            ['slug' => 'taste-of-abuja'],
+            [
+                'name' => 'Taste of Abuja',
+                'description' => 'Authentic Nigerian cuisine with a modern twist. Serving the best local and international dishes in Abuja.',
+                'whatsapp_number' => '+234 801 234 5678',
+                'phone_number' => '+234 801 234 5679',
+                'email' => 'info@tasteofabuja.com',
+                'address' => '123 Wuse Zone 2',
+                'city' => 'Abuja',
+                'state' => 'FCT',
+                'postal_code' => '900001',
+                'country' => 'Nigeria',
+                'currency' => '₦',
+                'theme_color' => '#ff6b35',
+                'secondary_color' => '#f7931e',
+                'is_active' => true,
+                'is_verified' => true,
+                'business_hours' => [
+                    'monday' => ['open' => '07:00', 'close' => '22:00'],
+                    'tuesday' => ['open' => '07:00', 'close' => '22:00'],
+                    'wednesday' => ['open' => '07:00', 'close' => '22:00'],
+                    'thursday' => ['open' => '07:00', 'close' => '22:00'],
+                    'friday' => ['open' => '07:00', 'close' => '23:00'],
+                    'saturday' => ['open' => '08:00', 'close' => '23:00'],
+                    'sunday' => ['open' => '08:00', 'close' => '21:00'],
+                ],
+                'settings' => [
+                    'delivery_enabled' => true,
+                    'dine_in_enabled' => true,
+                    'delivery_fee' => 500,
+                    'minimum_order' => 1000,
+                    'auto_accept_orders' => false,
+                ],
+            ]
+        );
 
-        // Create main categories
-        $breakfast = Category::create([
-            'name' => 'Breakfast',
-            'slug' => 'breakfast',
-            'type' => 'main',
-            'sort_order' => 1,
-            'is_active' => true,
-            'restaurant_id' => $restaurant->id,
-        ]);
+        // Create or update main categories
+        $breakfast = Category::updateOrCreate(
+            ['slug' => 'breakfast', 'restaurant_id' => $restaurant->id],
+            [
+                'name' => 'Breakfast',
+                'type' => 'main',
+                'sort_order' => 1,
+                'is_active' => true,
+            ]
+        );
 
-        $lunch = Category::create([
-            'name' => 'Lunch',
-            'slug' => 'lunch',
-            'type' => 'main',
-            'sort_order' => 2,
-            'is_active' => true,
-            'restaurant_id' => $restaurant->id,
-        ]);
+        $lunch = Category::updateOrCreate(
+            ['slug' => 'lunch', 'restaurant_id' => $restaurant->id],
+            [
+                'name' => 'Lunch',
+                'type' => 'main',
+                'sort_order' => 2,
+                'is_active' => true,
+            ]
+        );
 
-        $dinner = Category::create([
-            'name' => 'Dinner',
-            'slug' => 'dinner',
-            'type' => 'main',
-            'sort_order' => 3,
-            'is_active' => true,
-            'restaurant_id' => $restaurant->id,
-        ]);
+        $dinner = Category::updateOrCreate(
+            ['slug' => 'dinner', 'restaurant_id' => $restaurant->id],
+            [
+                'name' => 'Dinner',
+                'type' => 'main',
+                'sort_order' => 3,
+                'is_active' => true,
+            ]
+        );
 
-        $drinks = Category::create([
-            'name' => 'Drinks',
-            'slug' => 'drinks',
-            'type' => 'main',
-            'sort_order' => 4,
-            'is_active' => true,
-            'restaurant_id' => $restaurant->id,
-        ]);
+        $drinks = Category::updateOrCreate(
+            ['slug' => 'drinks', 'restaurant_id' => $restaurant->id],
+            [
+                'name' => 'Drinks',
+                'type' => 'main',
+                'sort_order' => 4,
+                'is_active' => true,
+            ]
+        );
 
-        $desserts = Category::create([
-            'name' => 'Desserts',
-            'slug' => 'desserts',
-            'type' => 'main',
-            'sort_order' => 5,
-            'is_active' => true,
-            'restaurant_id' => $restaurant->id,
-        ]);
+        $desserts = Category::updateOrCreate(
+            ['slug' => 'desserts', 'restaurant_id' => $restaurant->id],
+            [
+                'name' => 'Desserts',
+                'type' => 'main',
+                'sort_order' => 5,
+                'is_active' => true,
+            ]
+        );
 
         // Create sub-categories for Breakfast
         $breakfastSubs = [
@@ -104,15 +111,16 @@ class SampleRestaurantSeeder extends Seeder
         ];
 
         foreach ($breakfastSubs as $name => $data) {
-            Category::create([
-                'name' => $name,
-                'slug' => Str::slug($name),
-                'type' => 'sub',
-                'parent_id' => $breakfast->id,
-                'sort_order' => $data['sort_order'],
-                'is_active' => true,
-                'restaurant_id' => $restaurant->id,
-            ]);
+            Category::updateOrCreate(
+                ['slug' => Str::slug($name), 'restaurant_id' => $restaurant->id],
+                [
+                    'name' => $name,
+                    'type' => 'sub',
+                    'parent_id' => $breakfast->id,
+                    'sort_order' => $data['sort_order'],
+                    'is_active' => true,
+                ]
+            );
         }
 
         // Create sub-categories for Lunch
@@ -124,15 +132,16 @@ class SampleRestaurantSeeder extends Seeder
         ];
 
         foreach ($lunchSubs as $name => $data) {
-            Category::create([
-                'name' => $name,
-                'slug' => Str::slug($name),
-                'type' => 'sub',
-                'parent_id' => $lunch->id,
-                'sort_order' => $data['sort_order'],
-                'is_active' => true,
-                'restaurant_id' => $restaurant->id,
-            ]);
+            Category::updateOrCreate(
+                ['slug' => Str::slug($name), 'restaurant_id' => $restaurant->id],
+                [
+                    'name' => $name,
+                    'type' => 'sub',
+                    'parent_id' => $lunch->id,
+                    'sort_order' => $data['sort_order'],
+                    'is_active' => true,
+                ]
+            );
         }
 
         // Create sub-categories for Dinner
@@ -144,15 +153,16 @@ class SampleRestaurantSeeder extends Seeder
         ];
 
         foreach ($dinnerSubs as $name => $data) {
-            Category::create([
-                'name' => $name,
-                'slug' => Str::slug($name),
-                'type' => 'sub',
-                'parent_id' => $dinner->id,
-                'sort_order' => $data['sort_order'],
-                'is_active' => true,
-                'restaurant_id' => $restaurant->id,
-            ]);
+            Category::updateOrCreate(
+                ['slug' => Str::slug($name), 'restaurant_id' => $restaurant->id],
+                [
+                    'name' => $name,
+                    'type' => 'sub',
+                    'parent_id' => $dinner->id,
+                    'sort_order' => $data['sort_order'],
+                    'is_active' => true,
+                ]
+            );
         }
 
         // Create sub-categories for Drinks
@@ -164,15 +174,16 @@ class SampleRestaurantSeeder extends Seeder
         ];
 
         foreach ($drinksSubs as $name => $data) {
-            Category::create([
-                'name' => $name,
-                'slug' => Str::slug($name),
-                'type' => 'sub',
-                'parent_id' => $drinks->id,
-                'sort_order' => $data['sort_order'],
-                'is_active' => true,
-                'restaurant_id' => $restaurant->id,
-            ]);
+            Category::updateOrCreate(
+                ['slug' => Str::slug($name), 'restaurant_id' => $restaurant->id],
+                [
+                    'name' => $name,
+                    'type' => 'sub',
+                    'parent_id' => $drinks->id,
+                    'sort_order' => $data['sort_order'],
+                    'is_active' => true,
+                ]
+            );
         }
 
         // Get all categories for menu items
@@ -362,38 +373,46 @@ class SampleRestaurantSeeder extends Seeder
         ];
 
         foreach ($menuItems as $item) {
-            MenuItem::create(array_merge($item, [
-                'restaurant_id' => $restaurant->id,
-            ]));
+            MenuItem::updateOrCreate(
+                ['name' => $item['name'], 'restaurant_id' => $restaurant->id],
+                array_merge($item, [
+                    'restaurant_id' => $restaurant->id,
+                ])
+            );
         }
 
-        // Create a restaurant owner user
-        $restaurantOwner = User::create([
-            'name' => 'Chef Adebayo',
-            'email' => 'chef@tasteofabuja.com',
-            'password' => Hash::make('password'),
-            'phone_number' => '+234 801 234 5678',
-        ]);
+        // Create or update restaurant owner user
+        $restaurantOwner = User::updateOrCreate(
+            ['email' => 'chef@tasteofabuja.com'],
+            [
+                'name' => 'Chef Adebayo',
+                'password' => Hash::make('password'),
+                'phone_number' => '+234 801 234 5678',
+            ]
+        );
 
         // Update restaurant to set the owner
         $restaurant->update(['owner_id' => $restaurantOwner->id]);
 
-        // Create manager record for restaurant owner
-        \App\Models\Manager::create([
-            'user_id' => $restaurantOwner->id,
-            'restaurant_id' => $restaurant->id,
-            'role' => 'owner',
-            'is_active' => true,
-            'permissions' => ['all'],
-        ]);
+        // Create or update manager record for restaurant owner
+        \App\Models\Manager::updateOrCreate(
+            ['user_id' => $restaurantOwner->id, 'restaurant_id' => $restaurant->id],
+            [
+                'role' => 'owner',
+                'is_active' => true,
+                'permissions' => ['all'],
+            ]
+        );
 
-        // Create an admin user
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@abujaeat.com',
-            'password' => Hash::make('password'),
-            'is_admin' => true,
-        ]);
+        // Create or update admin user
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@abujaeat.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+                'is_admin' => true,
+            ]
+        );
 
         $this->command->info('Sample restaurant "Taste of Abuja" created successfully!');
         $this->command->info('Restaurant Owner: chef@tasteofabuja.com / password');
