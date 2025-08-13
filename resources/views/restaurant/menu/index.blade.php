@@ -120,60 +120,37 @@
                             </div>
                         @endforeach
                         
-                        <!-- Restaurant's Own Main Categories -->
+                        <!-- Note: All categories should be sub-categories under global main categories -->
                         @if($restaurantMainCategories->count() > 0)
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <i class="fas fa-folder-open text-green-500 mr-2 text-sm"></i>
-                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Restaurant Categories</span>
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 mr-2 text-sm"></i>
+                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Unassigned Categories</span>
                                     </div>
-                                    <button onclick="openCategoryModal()" 
-                                            class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition-colors">
-                                        <i class="fas fa-plus mr-1"></i>Add
-                                    </button>
                                 </div>
                                 
                                 @foreach($restaurantMainCategories as $category)
-                                    <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ml-4">
+                                    <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800 ml-4">
                                         <div class="flex items-center min-w-0 flex-1">
-                                            <i class="fas fa-folder text-green-500 mr-2 text-sm"></i>
+                                            <i class="fas fa-folder text-yellow-500 mr-2 text-sm"></i>
                                             <div class="min-w-0 flex-1">
                                                 <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ $category->menuItems->count() }} items
+                                                <div class="text-xs text-yellow-600 dark:text-yellow-400">
+                                                    Needs parent category assignment
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="flex items-center space-x-1 ml-2">
-                                            <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '')" class="text-gray-400 hover:text-blue-600">
+                                            <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '')" class="text-yellow-600 hover:text-yellow-800">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
-                                            <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
+                                            <button onclick="deleteCategory({{ $category->id }})" class="text-red-600 hover:text-red-800">
                                                 <i class="fas fa-trash text-xs"></i>
                                             </button>
                                         </div>
                                     </div>
                                 @endforeach
-                            </div>
-                        @endif
-                        
-                        <!-- Add Restaurant Category Button (if no restaurant categories exist) -->
-                        @if($restaurantMainCategories->count() == 0)
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-folder-open text-green-500 mr-2 text-sm"></i>
-                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Restaurant Categories</span>
-                                    </div>
-                                    <button onclick="openCategoryModal()" 
-                                            class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition-colors">
-                                        <i class="fas fa-plus mr-1"></i>Add
-                                    </button>
-                                </div>
-                                <div class="text-center py-2 ml-4">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">No restaurant categories yet</p>
-                                </div>
                             </div>
                         @endif
                     </div>
