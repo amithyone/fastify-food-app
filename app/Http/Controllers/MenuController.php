@@ -283,39 +283,13 @@ class MenuController extends Controller
                     ->first();
                 
                 if ($restaurantImage) {
-                    // Copy the image to menu-items directory
-                    $newFileName = 'menu-items/' . time() . '_' . uniqid() . '.' . pathinfo($restaurantImage->file_path, PATHINFO_EXTENSION);
-                    $newPath = Storage::disk('public')->path($newFileName);
+                    // Reference the restaurant image directly (no copying)
+                    $validated['restaurant_image_id'] = $restaurantImage->id;
                     
-                    // Create directory if it doesn't exist
-                    $dir = dirname($newPath);
-                    if (!file_exists($dir)) {
-                        mkdir($dir, 0755, true);
-                    }
-                    
-                    // Copy the file
-                    if (Storage::disk('public')->exists($restaurantImage->file_path)) {
-                        Storage::disk('public')->copy($restaurantImage->file_path, $newFileName);
-                        $validated['image'] = $newFileName;
-                        
-                        // Mark the image as used
-                        $restaurantImage->markAsUsed();
-                        
-                        \Log::info('Existing image used for menu item', [
-                            'restaurant_image_id' => $restaurantImage->id,
-                            'new_image_path' => $newFileName,
-                            'original_path' => $restaurantImage->file_path
-                        ]);
-                    } else {
-                        \Log::error('Selected image file not found', [
-                            'restaurant_image_id' => $restaurantImage->id,
-                            'file_path' => $restaurantImage->file_path
-                        ]);
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Selected image file not found'
-                        ], 400);
-                    }
+                    \Log::info('Restaurant image referenced for menu item', [
+                        'restaurant_image_id' => $restaurantImage->id,
+                        'original_path' => $restaurantImage->file_path
+                    ]);
                 } else {
                     \Log::error('Selected image not found', [
                         'selected_image_id' => $selectedImageId,
@@ -453,7 +427,10 @@ class MenuController extends Controller
                 }
             }
             
-            if ($request->hasFile('image')) {
+            // Handle image upload or selection
+            $imageSource = $request->input('image_source', 'upload');
+            
+            if ($imageSource === 'upload' && $request->hasFile('image')) {
                 \Log::info('Image upload detected for update', [
                     'file_name' => $request->file('image')->getClientOriginalName(),
                     'file_size' => $request->file('image')->getSize(),
@@ -463,6 +440,9 @@ class MenuController extends Controller
                 
                 try {
                     $validated['image'] = $request->file('image')->store('menu-items', 'public');
+                    // Clear any existing restaurant image reference
+                    $validated['restaurant_image_id'] = null;
+                    
                     \Log::info('Image uploaded successfully for update', [
                         'image_path' => $validated['image'],
                         'full_url' => Storage::disk('public')->url($validated['image']),
@@ -477,6 +457,32 @@ class MenuController extends Controller
                         'success' => false,
                         'message' => 'Failed to upload image: ' . $e->getMessage()
                     ], 500);
+                }
+            } elseif ($imageSource === 'existing' && $request->input('selected_image_id')) {
+                $selectedImageId = $request->input('selected_image_id');
+                $restaurantImage = \App\Models\RestaurantImage::where('restaurant_id', $restaurant->id)
+                    ->where('id', $selectedImageId)
+                    ->first();
+                
+                if ($restaurantImage) {
+                    // Reference the restaurant image directly (no copying)
+                    $validated['restaurant_image_id'] = $restaurantImage->id;
+                    // Clear any existing uploaded image
+                    $validated['image'] = null;
+                    
+                    \Log::info('Restaurant image referenced for menu item update', [
+                        'restaurant_image_id' => $restaurantImage->id,
+                        'original_path' => $restaurantImage->file_path
+                    ]);
+                } else {
+                    \Log::error('Selected image not found for update', [
+                        'selected_image_id' => $selectedImageId,
+                        'restaurant_id' => $restaurant->id
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Selected image not found'
+                    ], 400);
                 }
             }
             

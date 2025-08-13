@@ -17,6 +17,7 @@ class MenuItem extends Model
         'price',
         'category_id',
         'image',
+        'restaurant_image_id',
         'is_available',
         'is_featured',
         'is_available_for_delivery',
@@ -54,6 +55,11 @@ class MenuItem extends Model
         return $this->hasMany(MenuItemDeliveryMethod::class);
     }
 
+    public function restaurantImage()
+    {
+        return $this->belongsTo(RestaurantImage::class);
+    }
+
     public function getFormattedPriceAttribute()
     {
         return '₦' . number_format($this->price, 0);
@@ -64,7 +70,12 @@ class MenuItem extends Model
      */
     public function getImageUrlAttribute()
     {
-        // If menu item has its own image, use it
+        // If menu item references a restaurant image, use it
+        if ($this->restaurant_image_id && $this->restaurantImage) {
+            return $this->restaurantImage->url;
+        }
+        
+        // If menu item has its own uploaded image, use it
         if ($this->image && \Storage::disk('public')->exists($this->image)) {
             $url = \Storage::disk('public')->url($this->image);
             return \App\Helpers\PWAHelper::fixStorageUrl($url);
@@ -85,6 +96,11 @@ class MenuItem extends Model
      */
     public function getImageThumbnailUrlAttribute()
     {
+        // If menu item references a restaurant image, use its thumbnail
+        if ($this->restaurant_image_id && $this->restaurantImage) {
+            return $this->restaurantImage->thumbnail_url;
+        }
+        
         // If menu item has its own image, try to get thumbnail
         if ($this->image) {
             $pathInfo = pathinfo($this->image);

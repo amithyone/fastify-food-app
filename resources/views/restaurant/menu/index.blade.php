@@ -227,7 +227,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center space-x-1 ml-2">
-                                                    <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image ? Storage::url($item->image) : null }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }})" 
+                                                    <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image_url }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }}, {{ $item->restaurant_image_id ?? 'null' }})" 
                                                             class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded">
                                                         <i class="fas fa-edit text-xs"></i>
                                                     </button>
@@ -875,7 +875,7 @@ function closeMenuItemModal() {
     document.getElementById('menuItemModal').classList.add('hidden');
 }
 
-function editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl = null, ingredients = '', allergens = '', isFeatured = false, isVegetarian = false, isSpicy = false) {
+function editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl = null, ingredients = '', allergens = '', isFeatured = false, isVegetarian = false, isSpicy = false, restaurantImageId = null) {
     editingMenuItemId = id;
     document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
     document.getElementById('itemName').value = name;
@@ -890,9 +890,28 @@ function editMenuItem(id, name, price, description, categoryId, isAvailable, ima
     document.getElementById('itemSpicy').checked = isSpicy;
     
     // Handle image preview for editing
-    if (imageUrl) {
+    if (restaurantImageId && restaurantImageId !== 'null') {
+        // Set up for existing restaurant image
+        document.querySelector('input[name="image_source"][value="existing"]').checked = true;
+        document.getElementById('uploadSection').classList.add('hidden');
+        document.getElementById('existingSection').classList.remove('hidden');
+        document.getElementById('selectedImageId').value = restaurantImageId;
+        document.getElementById('selectedImageText').textContent = 'Image selected from gallery';
+        
+        if (imageUrl) {
+            setImagePreview(imageUrl);
+        }
+    } else if (imageUrl) {
+        // Set up for uploaded image
+        document.querySelector('input[name="image_source"][value="upload"]').checked = true;
+        document.getElementById('uploadSection').classList.remove('hidden');
+        document.getElementById('existingSection').classList.add('hidden');
         setImagePreview(imageUrl);
     } else {
+        // No image
+        document.querySelector('input[name="image_source"][value="upload"]').checked = true;
+        document.getElementById('uploadSection').classList.remove('hidden');
+        document.getElementById('existingSection').classList.add('hidden');
         resetImagePreview();
     }
     
