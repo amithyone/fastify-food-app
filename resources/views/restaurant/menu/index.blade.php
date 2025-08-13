@@ -49,22 +49,22 @@
             </div>
         @endif
 
-        <!-- Two-Column Layout: Categories (1/3) + Menu Management (2/3) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Two-Column Layout: Category Management (1/3) + Menu Management (2/3) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Left Column: Category Management (4 columns - 1/3 width) -->
-            <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <!-- Left Column: Category Management Widget (1/3 width) -->
+            <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Category Management</h2>
-                        <button onclick="openCategoryModal()" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Categories</h2>
+                        <button onclick="openCategoryModal()" class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
                             <i class="fas fa-plus mr-1"></i>Add
                         </button>
                     </div>
                 </div>
                 
-                <div class="p-6">
-                    <div class="space-y-4">
+                <div class="p-4">
+                    <div class="space-y-3">
                         @php
                             $globalParentCategories = $globalCategories;
                             $restaurantCategories = $restaurantCategories->groupBy('parent_id');
@@ -80,21 +80,21 @@
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <i class="fas fa-folder-open text-orange-500 mr-2 text-sm"></i>
+                                        <i class="fas fa-folder-open text-orange-500 mr-2 text-xs"></i>
                                         <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">{{ $parentCategory->name }}</span>
-                                        <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">(Global)</span>
+                                        <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">(Global)</span>
                                     </div>
                                     <button onclick="openCategoryModal('{{ $parentCategory->id }}', '{{ $parentCategory->name }}')" 
-                                            class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition-colors">
-                                        <i class="fas fa-plus mr-1"></i>Add
+                                            class="text-xs bg-blue-500 text-white px-1.5 py-0.5 rounded hover:bg-blue-600 transition-colors">
+                                        <i class="fas fa-plus text-xs"></i>
                                     </button>
                                 </div>
                                 
                                 @if($subCategories->count() > 0)
                                     @foreach($subCategories as $category)
-                                        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ml-4">
+                                        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ml-3">
                                             <div class="flex items-center min-w-0 flex-1">
-                                                <i class="fas fa-folder text-blue-500 mr-2 text-sm"></i>
+                                                <i class="fas fa-folder text-blue-500 mr-2 text-xs"></i>
                                                 <div class="min-w-0 flex-1">
                                                     <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
                                                     <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -113,31 +113,31 @@
                                         </div>
                                     @endforeach
                                 @else
-                                    <div class="text-center py-2 ml-4">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">No sub-categories yet</p>
+                                    <div class="text-center py-1 ml-3">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">No sub-categories</p>
                                     </div>
                                 @endif
                             </div>
                         @endforeach
                         
-                        <!-- Note: All categories should be sub-categories under global main categories -->
+                        <!-- Unassigned Categories -->
                         @if($restaurantMainCategories->count() > 0)
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <i class="fas fa-exclamation-triangle text-yellow-500 mr-2 text-sm"></i>
-                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Unassigned Categories</span>
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 mr-2 text-xs"></i>
+                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Unassigned</span>
                                     </div>
                                 </div>
                                 
                                 @foreach($restaurantMainCategories as $category)
-                                    <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800 ml-4">
+                                    <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800 ml-3">
                                         <div class="flex items-center min-w-0 flex-1">
-                                            <i class="fas fa-folder text-yellow-500 mr-2 text-sm"></i>
+                                            <i class="fas fa-folder text-yellow-500 mr-2 text-xs"></i>
                                             <div class="min-w-0 flex-1">
                                                 <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
                                                 <div class="text-xs text-yellow-600 dark:text-yellow-400">
-                                                    Needs parent category assignment
+                                                    Needs parent
                                                 </div>
                                             </div>
                                         </div>
@@ -153,14 +153,12 @@
                                 @endforeach
                             </div>
                         @endif
-                    </div>
-                </div>
                         
                         @if($restaurantCategories->count() == 0)
                             <div class="text-center py-4">
-                                <i class="fas fa-folder-open text-2xl text-gray-400 mb-2"></i>
+                                <i class="fas fa-folder-open text-xl text-gray-400 mb-2"></i>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">No categories</p>
-                                <button onclick="openCategoryModal()" class="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
+                                <button onclick="openCategoryModal()" class="mt-2 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
                                     <i class="fas fa-plus mr-1"></i>Add
                                 </button>
                             </div>
@@ -169,8 +167,8 @@
                 </div>
             </div>
 
-            <!-- Right Column: Menu Items Management (8 columns - 2/3 width) -->
-            <div class="lg:col-span-8 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <!-- Right Column: Menu Items Management (2/3 width) -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Menu Items ({{ $menuItems->count() }})</h2>
@@ -204,7 +202,7 @@
                                     </h3>
                                 </div>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                     @foreach($items as $item)
                                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                                         <div class="p-4">
@@ -345,17 +343,17 @@
                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                 </div>
                 <div class="mb-4">
-                    <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category</label>
+                    <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category (Optional)</label>
                     <select id="categoryParent" name="parent_id" 
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                        <option value="">Select a main category</option>
+                        <option value="">No parent category (standalone)</option>
                         @foreach($globalCategories as $parentCategory)
                             <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }}</option>
                         @endforeach
                     </select>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         <i class="fas fa-info-circle mr-1"></i>
-                        Select a global main category to create a sub-category
+                        Optional: Select a global main category to create a sub-category, or leave empty for a standalone category
                     </p>
                 </div>
                 <div class="flex justify-end space-x-3">
@@ -808,7 +806,7 @@ function openCategoryModal(parentId = '', parentName = '') {
         document.getElementById('categoryParent').value = parentId;
         document.getElementById('categoryParent').disabled = true;
     } else {
-        document.getElementById('categoryModalTitle').textContent = 'Add Restaurant Category';
+        document.getElementById('categoryModalTitle').textContent = 'Add Category';
         document.getElementById('categoryParent').value = '';
         document.getElementById('categoryParent').disabled = false;
     }
