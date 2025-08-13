@@ -66,8 +66,8 @@
                 <div class="p-4">
                     <div class="space-y-4">
                         @php
-                            $globalParentCategories = \App\Models\Category::where('type', 'main')->whereNull('restaurant_id')->orderBy('sort_order')->get();
-                            $restaurantCategories = $categories->groupBy('parent_id');
+                            $globalParentCategories = $globalCategories;
+                            $restaurantCategories = $restaurantCategories->groupBy('parent_id');
                             $restaurantMainCategories = $restaurantCategories->get(null, collect());
                         @endphp
                         
@@ -596,8 +596,13 @@
                         <select id="itemCategory" name="category_id" 
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select Category</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @foreach($allCategories as $category)
+                                <option value="{{ $category->id }}">
+                                    {{ $category->name }}
+                                    @if($category->restaurant_id === null)
+                                        (Global)
+                                    @endif
+                                </option>
                             @endforeach
                         </select>
                     </div>
