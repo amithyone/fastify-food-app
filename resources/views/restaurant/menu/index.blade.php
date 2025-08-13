@@ -50,7 +50,7 @@
         @endif
 
         <!-- Two-Column Layout: Category Management (1/3) + Menu Management (2/3) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; width: 100%;">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" style="display: grid; grid-template-columns: 33.3% 66.6%; gap: 1.5rem; width: 100%;">
             
             <!-- Left Column: Category Management Widget (1/3 width) -->
             <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow" style="width: 100%; min-width: 100%; max-width: 100%;">
