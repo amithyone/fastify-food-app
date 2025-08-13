@@ -134,8 +134,31 @@
     </div>
 
     <!-- Menu Items Grid -->
-    <div class="grid grid-cols-2 gap-4 mb-24" id="menuGrid">
-        @foreach($menuItems as $item)
+    <div class="mb-24" id="menuGrid">
+        @php
+            $menuItemsByParent = $menuItems->groupBy(function($item) {
+                return $item->category && $item->category->parent ? $item->category->parent->name : ($item->category ? 'Main Categories' : 'Uncategorized');
+            });
+        @endphp
+        
+        @foreach($menuItemsByParent as $parentName => $items)
+            <div class="mb-8 category-section" data-parent="{{ $parentName }}">
+                <div class="flex items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        @if($parentName === 'Main Categories')
+                            <i class="fas fa-folder-open text-green-500 mr-2"></i>
+                        @elseif($parentName === 'Uncategorized')
+                            <i class="fas fa-folder-open text-gray-500 mr-2"></i>
+                        @else
+                            <i class="fas fa-folder-open text-orange-500 mr-2"></i>
+                        @endif
+                        {{ $parentName }}
+                        <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $items->count() }} items)</span>
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    @foreach($items as $item)
             <div class="food-card bg-white dark:bg-gray-800 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200 overflow-hidden flex flex-col cursor-pointer transform hover:scale-105 border-2 border-transparent relative" 
                  data-category="{{ $item->category_id }}" 
                  data-name="{{ strtolower($item->name) }}"
@@ -161,6 +184,9 @@
                             <i class="fas fa-sticky-note"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        @endforeach
                 </div>
             </div>
         @endforeach

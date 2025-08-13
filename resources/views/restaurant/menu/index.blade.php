@@ -64,28 +64,85 @@
                 </div>
                 
                 <div class="p-4">
-                    <div class="space-y-2">
-                        @foreach($categories as $category)
-                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                                <div class="flex items-center min-w-0 flex-1">
-                                    <i class="fas fa-folder text-blue-500 mr-2 text-sm"></i>
-                                    <div class="min-w-0 flex-1">
-                                        <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $category->menuItems->count() }} items
+                    <div class="space-y-4">
+                        @php
+                            $parentCategories = \App\Models\Category::where('type', 'main')->whereNull('restaurant_id')->orderBy('sort_order')->get();
+                            $restaurantCategories = $categories->groupBy('parent_id');
+                        @endphp
+                        
+                        @foreach($parentCategories as $parentCategory)
+                            @php
+                                $subCategories = $restaurantCategories->get($parentCategory->id, collect());
+                            @endphp
+                            
+                            @if($subCategories->count() > 0)
+                                <div class="space-y-2">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-folder-open text-orange-500 mr-2 text-sm"></i>
+                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">{{ $parentCategory->name }}</span>
+                                    </div>
+                                    
+                                    @foreach($subCategories as $category)
+                                        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ml-4">
+                                            <div class="flex items-center min-w-0 flex-1">
+                                                <i class="fas fa-folder text-blue-500 mr-2 text-sm"></i>
+                                                <div class="min-w-0 flex-1">
+                                                    <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ $category->menuItems->count() }} items
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-1 ml-2">
+                                                <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->parent_id }}')" class="text-gray-400 hover:text-blue-600">
+                                                    <i class="fas fa-edit text-xs"></i>
+                                                </button>
+                                                <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
+                                                    <i class="fas fa-trash text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endforeach
+                        
+                        @php
+                            $mainCategories = $restaurantCategories->get(null, collect());
+                        @endphp
+                        
+                        @if($mainCategories->count() > 0)
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-folder-open text-green-500 mr-2 text-sm"></i>
+                                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Main Categories</span>
+                                </div>
+                                
+                                @foreach($mainCategories as $category)
+                                    <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ml-4">
+                                        <div class="flex items-center min-w-0 flex-1">
+                                            <i class="fas fa-folder text-green-500 mr-2 text-sm"></i>
+                                            <div class="min-w-0 flex-1">
+                                                <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $category->menuItems->count() }} items
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-1 ml-2">
+                                            <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '')" class="text-gray-400 hover:text-blue-600">
+                                                <i class="fas fa-edit text-xs"></i>
+                                            </button>
+                                            <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="flex items-center space-x-1 ml-2">
-                                    <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}')" class="text-gray-400 hover:text-blue-600">
-                                        <i class="fas fa-edit text-xs"></i>
-                                    </button>
-                                    <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
-                                        <i class="fas fa-trash text-xs"></i>
-                                    </button>
-                                </div>
+                                @endforeach
                             </div>
-                        @endforeach
+                        @endif
+                    </div>
+                </div>
                         
                         @if($categories->count() == 0)
                             <div class="text-center py-4">
@@ -112,98 +169,101 @@
                 </div>
                 
                 @if($menuItems->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-2/5">
-                                        Item
-                                    </th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
-                                        Price
-                                    </th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
-                                        Status
-                                    </th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
-                                        Options
-                                    </th>
-                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/6">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach($menuItems as $item)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="px-4 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10">
-                                                    <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
-                                                         alt="{{ $item->name }}" 
-                                                         class="h-10 w-10 rounded-lg object-cover"
-                                                         onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
-                                                </div>
-                                                <div class="ml-3 min-w-0 flex-1">
-                                                    <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                                        {{ $item->name }}
+                    <div class="p-6 space-y-6">
+                        @php
+                            $menuItemsByParent = $menuItems->groupBy(function($item) {
+                                return $item->category && $item->category->parent ? $item->category->parent->name : ($item->category ? 'Main Categories' : 'Uncategorized');
+                            });
+                        @endphp
+                        
+                        @foreach($menuItemsByParent as $parentName => $items)
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                        @if($parentName === 'Main Categories')
+                                            <i class="fas fa-folder-open text-green-500 mr-2"></i>
+                                        @elseif($parentName === 'Uncategorized')
+                                            <i class="fas fa-folder-open text-gray-500 mr-2"></i>
+                                        @else
+                                            <i class="fas fa-folder-open text-orange-500 mr-2"></i>
+                                        @endif
+                                        {{ $parentName }}
+                                        <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $items->count() }} items)</span>
+                                    </h3>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    @foreach($items as $item)
+                                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                        <div class="p-4">
+                                            <div class="flex items-start justify-between mb-3">
+                                                <div class="flex items-center min-w-0 flex-1">
+                                                    <div class="flex-shrink-0 h-12 w-12 mr-3">
+                                                        <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
+                                                             alt="{{ $item->name }}" 
+                                                             class="h-12 w-12 rounded-lg object-cover"
+                                                             onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
                                                     </div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                        {{ $item->category->name ?? 'Uncategorized' }}
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                            {{ $item->name }}
+                                                        </div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                            {{ $item->category->name ?? 'Uncategorized' }}
+                                                        </div>
+                                                        <div class="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                                                            {{ $restaurant->currency }}{{ number_format($item->price) }}
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <div class="flex items-center space-x-1 ml-2">
+                                                    <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image ? Storage::url($item->image) : null }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }})" 
+                                                            class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded">
+                                                        <i class="fas fa-edit text-xs"></i>
+                                                    </button>
+                                                    <button onclick="deleteMenuItem({{ $item->id }})" 
+                                                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                                                        <i class="fas fa-trash text-xs"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
-                                            {{ $restaurant->currency }}{{ number_format($item->price) }}
-                                        </td>
-                                        <td class="px-3 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <button onclick="toggleItemStatus({{ $item->id }}, {{ $item->is_available ? 'false' : 'true' }})" 
-                                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {{ $item->is_available ? 'bg-green-600' : 'bg-gray-200' }}">
-                                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $item->is_available ? 'translate-x-6' : 'translate-x-1' }}"></span>
-                                                </button>
-                                                <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ $item->is_available ? 'Available' : 'Hidden' }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="px-3 py-4 whitespace-nowrap">
-                                            <div class="flex items-center space-x-1">
-                                                @if($item->is_featured)
-                                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full">
-                                                        <i class="fas fa-star mr-1"></i>Featured
+                                            
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-2">
+                                                    <button onclick="toggleItemStatus({{ $item->id }}, {{ $item->is_available ? 'false' : 'true' }})" 
+                                                            class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors {{ $item->is_available ? 'bg-green-600' : 'bg-gray-200' }}">
+                                                        <span class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform {{ $item->is_available ? 'translate-x-5' : 'translate-x-1' }}"></span>
+                                                    </button>
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ $item->is_available ? 'Available' : 'Hidden' }}
                                                     </span>
-                                                @endif
-                                                @if($item->is_vegetarian)
-                                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
-                                                        <i class="fas fa-leaf mr-1"></i>Veg
-                                                    </span>
-                                                @endif
-                                                @if($item->is_spicy)
-                                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
-                                                        <i class="fas fa-fire mr-1"></i>Spicy
-                                                    </span>
-                                                @endif
+                                                </div>
+                                                
+                                                <div class="flex items-center space-x-1">
+                                                    @if($item->is_featured)
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 rounded-full">
+                                                            <i class="fas fa-star text-xs mr-0.5"></i>
+                                                        </span>
+                                                    @endif
+                                                    @if($item->is_vegetarian)
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                                                            <i class="fas fa-leaf text-xs mr-0.5"></i>
+                                                        </span>
+                                                    @endif
+                                                    @if($item->is_spicy)
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
+                                                            <i class="fas fa-fire text-xs mr-0.5"></i>
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex items-center space-x-2">
-                                                <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image ? Storage::url($item->image) : null }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }})" 
-                                                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button onclick="deleteMenuItem({{ $item->id }})" 
-                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        </div>
+                                    </div>
                                 @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
                 @else
                     <div class="px-6 py-12 text-center">
                         <div class="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -451,6 +511,20 @@
                     <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
                     <input type="text" id="categoryName" name="name" required
                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="mb-4">
+                    <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category (Optional)</label>
+                    <select id="categoryParent" name="parent_id" 
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <option value="">No Parent (Main Category)</option>
+                        @foreach(\App\Models\Category::where('type', 'main')->whereNull('restaurant_id')->orderBy('name')->get() as $parentCategory)
+                            <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Select a parent category to organize your menu items better
+                    </p>
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeCategoryModal()" 
@@ -893,6 +967,7 @@ function openCategoryModal() {
     editingCategoryId = null;
     document.getElementById('categoryModalTitle').textContent = 'Add Category';
     document.getElementById('categoryName').value = '';
+    document.getElementById('categoryParent').value = '';
     document.getElementById('categoryModal').classList.remove('hidden');
 }
 
@@ -900,10 +975,11 @@ function closeCategoryModal() {
     document.getElementById('categoryModal').classList.add('hidden');
 }
 
-function editCategory(id, name) {
+function editCategory(id, name, parentId = '') {
     editingCategoryId = id;
     document.getElementById('categoryModalTitle').textContent = 'Edit Category';
     document.getElementById('categoryName').value = name;
+    document.getElementById('categoryParent').value = parentId || '';
     document.getElementById('categoryModal').classList.remove('hidden');
 }
 

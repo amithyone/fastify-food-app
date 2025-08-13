@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             FeaturedRestaurantSeeder::class,
             VideoPackageTemplateSeeder::class,
             SubscriptionPlanSeeder::class,
+            ParentCategorySeeder::class,
+            AssignParentCategoriesSeeder::class,
         ]);
     }
 }

@@ -607,12 +607,14 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'parent_id' => 'nullable|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             
             $validated['restaurant_id'] = $restaurant->id;
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
             $validated['is_active'] = $validated['is_active'] ?? true;
+            $validated['type'] = $validated['parent_id'] ? 'sub' : 'main';
             
             $category = Category::create($validated);
             
@@ -661,11 +663,13 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'parent_id' => 'nullable|exists:categories,id',
                 'is_active' => 'boolean',
             ]);
             
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
             $validated['is_active'] = $validated['is_active'] ?? true;
+            $validated['type'] = $validated['parent_id'] ? 'sub' : 'main';
             
             $category->update($validated);
             
