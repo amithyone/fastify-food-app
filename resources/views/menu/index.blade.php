@@ -524,23 +524,118 @@ function openKitchenLive() {
 
 // Search and filter functions
 function performSearch(query) {
-    fetch(`/menu/search?query=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-            currentMenuItems = data;
-            renderMenuItems(data);
-        })
-        .catch(error => console.error('Search error:', error));
+    const menuGrid = document.getElementById('menuGrid');
+    const categorySections = menuGrid.querySelectorAll('.category-section');
+    const foodCards = menuGrid.querySelectorAll('.food-card');
+    
+    if (!query.trim()) {
+        // Show all sections and cards when search is empty
+        categorySections.forEach(section => {
+            section.style.display = 'block';
+        });
+        foodCards.forEach(card => {
+            card.style.display = 'block';
+        });
+        return;
+    }
+    
+    const searchTerm = query.toLowerCase();
+    let hasVisibleItems = false;
+    
+    // Search through each section
+    categorySections.forEach(section => {
+        const sectionCards = section.querySelectorAll('.food-card');
+        let sectionHasVisibleItems = false;
+        
+        sectionCards.forEach(card => {
+            const itemName = card.getAttribute('data-name').toLowerCase();
+            const categoryName = card.querySelector('.text-xs').textContent.toLowerCase();
+            
+            if (itemName.includes(searchTerm) || categoryName.includes(searchTerm)) {
+                card.style.display = 'block';
+                sectionHasVisibleItems = true;
+                hasVisibleItems = true;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Show/hide section based on whether it has visible items
+        section.style.display = sectionHasVisibleItems ? 'block' : 'none';
+    });
+    
+    // If no items found, show a message
+    if (!hasVisibleItems) {
+        const noResultsMessage = document.createElement('div');
+        noResultsMessage.className = 'col-span-2 text-center py-8';
+        noResultsMessage.innerHTML = `
+            <div class="text-gray-500 dark:text-gray-400">
+                <i class="fas fa-search text-4xl mb-4"></i>
+                <p class="text-lg font-medium">No items found</p>
+                <p class="text-sm">Try searching for something else</p>
+            </div>
+        `;
+        
+        // Remove any existing no results message
+        const existingMessage = menuGrid.querySelector('.col-span-2');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        menuGrid.appendChild(noResultsMessage);
+    } else {
+        // Remove no results message if it exists
+        const existingMessage = menuGrid.querySelector('.col-span-2');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+    }
 }
 
 function filterByCategory(categoryId) {
-    fetch(`/menu/items?category_id=${categoryId}`)
-        .then(response => response.json())
-        .then(data => {
-            currentMenuItems = data;
-            renderMenuItems(data);
-        })
-        .catch(error => console.error('Filter error:', error));
+    const menuGrid = document.getElementById('menuGrid');
+    const categorySections = menuGrid.querySelectorAll('.category-section');
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    
+    // Update button states
+    categoryButtons.forEach(btn => {
+        btn.classList.remove('active', 'bg-orange-500', 'text-white');
+        btn.classList.add('bg-white', 'dark:bg-gray-800', 'border', 'border-gray-200', 'dark:border-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    });
+    
+    const activeButton = document.querySelector(`[data-category="${categoryId}"]`);
+    if (activeButton) {
+        activeButton.classList.add('active', 'bg-orange-500', 'text-white', 'dark:text-white');
+        activeButton.classList.remove('bg-white', 'dark:bg-gray-800', 'border', 'border-gray-200', 'dark:border-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    }
+    
+    if (categoryId === 'all') {
+        // Show all sections
+        categorySections.forEach(section => {
+            section.style.display = 'block';
+        });
+    } else {
+        // Hide all sections first
+        categorySections.forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show only sections that contain items from the selected category
+        categorySections.forEach(section => {
+            const foodCards = section.querySelectorAll('.food-card');
+            let hasMatchingCategory = false;
+            
+            foodCards.forEach(card => {
+                if (card.getAttribute('data-category') === categoryId) {
+                    hasMatchingCategory = true;
+                }
+            });
+            
+            if (hasMatchingCategory) {
+                section.style.display = 'block';
+            }
+        });
+    }
 }
 
 function loadMenuItems() {
@@ -846,6 +941,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Pause auto-scroll when user interacts
         kitchenSlider.addEventListener('mouseenter', () => clearInterval(autoScrollInterval));
         kitchenSlider.addEventListener('touchstart', () => clearInterval(autoScrollInterval));
+    }
+
+    // Category filter functionality
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const categoryId = this.getAttribute('data-category');
+            filterByCategory(categoryId);
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            performSearch(query);
+        });
     }
 });
 
