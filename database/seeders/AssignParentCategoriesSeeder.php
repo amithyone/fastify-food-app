@@ -53,21 +53,29 @@ class AssignParentCategoriesSeeder extends Seeder
     {
         $categoryName = strtolower($categoryName);
         
-        // Direct matches
+        // Don't assign parent if the category name exactly matches a parent category name
+        // This prevents "Breakfast" from becoming a sub-category of "Breakfast"
         foreach ($parentCategories as $parent) {
-            if (str_contains($categoryName, strtolower($parent->name))) {
+            if ($categoryName === strtolower($parent->name)) {
+                return null; // Keep as main category
+            }
+        }
+        
+        // Direct matches (but not exact matches)
+        foreach ($parentCategories as $parent) {
+            if (str_contains($categoryName, strtolower($parent->name)) && $categoryName !== strtolower($parent->name)) {
                 return $parent;
             }
         }
         
-        // Keyword matches
+        // Keyword matches for more specific categories
         $keywordMap = [
-            'breakfast' => ['breakfast', 'morning', 'eggs', 'pancake', 'waffle'],
-            'lunch' => ['lunch', 'main', 'rice', 'pasta', 'chicken', 'beef', 'fish'],
-            'dinner' => ['dinner', 'evening', 'supper'],
+            'breakfast' => ['morning', 'eggs', 'pancake', 'waffle', 'continental breakfast'],
+            'lunch' => ['main dish', 'rice dish', 'pasta dish', 'chicken dish', 'beef dish', 'fish dish'],
+            'dinner' => ['evening', 'supper', 'dinner special'],
             'drinks' => ['drink', 'beverage', 'juice', 'soda', 'water', 'tea', 'coffee'],
             'intercontinental' => ['intercontinental', 'continental', 'western', 'american', 'italian', 'chinese'],
-            'starters' => ['starter', 'appetizer', 'snack', 'small'],
+            'starters' => ['starter', 'appetizer', 'snack', 'small plate'],
             'desserts' => ['dessert', 'sweet', 'ice cream', 'cake'],
             'pastries' => ['pastry', 'bread', 'bun', 'doughnut']
         ];
