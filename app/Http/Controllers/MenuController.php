@@ -1088,7 +1088,7 @@ class MenuController extends Controller
             
             return response()->json([
                 'success' => true, 
-                'message' => 'Category "' . $category->name . '" has been deactivated for your restaurant.',
+                'message' => 'Category "' . $category->name . '" has been removed from your restaurant menu.',
                 'category' => $category
             ]);
             

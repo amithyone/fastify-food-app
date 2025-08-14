@@ -128,15 +128,15 @@
                                                             <i class="fas fa-trash text-xs"></i>
                                                         </button>
                                                     @else
-                                                        {{-- For shared categories, only allow deactivation --}}
-                                                        <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-orange-600" title="Deactivate for this restaurant">
-                                                            <i class="fas fa-eye-slash text-xs"></i>
+                                                        {{-- For shared categories, only allow removal from this restaurant --}}
+                                                        <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600" title="Remove from this restaurant">
+                                                            <i class="fas fa-times text-xs"></i>
                                                         </button>
                                                     @endif
                                                 @else
-                                                    {{-- For categories not created by this restaurant, only allow deactivation --}}
-                                                    <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-orange-600" title="Deactivate for this restaurant">
-                                                        <i class="fas fa-eye-slash text-xs"></i>
+                                                    {{-- For categories not created by this restaurant, only allow removal from this restaurant --}}
+                                                    <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600" title="Remove from this restaurant">
+                                                        <i class="fas fa-times text-xs"></i>
                                                     </button>
                                                 @endif
                                             </div>
@@ -1198,7 +1198,7 @@ function removeFromSharedCategory(categoryId) {
 }
 
 function deactivateCategory(categoryId) {
-    if (confirm('Are you sure you want to deactivate this category for your restaurant? This will hide it from your menu but won\'t affect other restaurants using it.')) {
+    if (confirm('Are you sure you want to remove this category from your restaurant? This will completely remove it from your menu but won\'t affect other restaurants using it.')) {
         fetch(`{{ route('restaurant.categories.deactivate', ['slug' => $restaurant->slug ?? 'restaurant']) }}`, {
             method: 'POST',
             headers: {
