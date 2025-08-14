@@ -121,7 +121,7 @@
     <form id="checkoutForm" class="space-y-6">
         <!-- Customer Information Section -->
         <div id="customerInfoSection" class="space-y-4 transition-all duration-300 ease-in-out">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Customer Information</h2>
+            <h2 id="customerInfoTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Customer Information</h2>
             
             <div class="space-y-4">
                 <!-- Full form for delivery/pickup -->
@@ -147,14 +147,9 @@
                     <div>
                         <label for="restaurantName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name (Optional)</label>
                         <input type="text" id="restaurantName" name="restaurantName" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Your name (optional)">
-                    </div>
-                    
-                    <div>
-                        <label for="restaurantPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
-                        <input type="tel" id="restaurantPhone" name="restaurantPhone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="For order updates">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
-                            We'll use your table number for identification
+                            Optional - for order identification
                         </p>
                     </div>
                 </div>
@@ -163,12 +158,16 @@
 
         <!-- Restaurant Information Section -->
         <div id="restaurantInfoSection" class="space-y-4 transition-all duration-300 ease-in-out" style="display: none;">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Restaurant Information</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Table Information</h2>
             
             <div class="space-y-4">
                 <div>
                     <label for="tableNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Table Number *</label>
-                    <input type="text" id="tableNumber" name="tableNumber" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="e.g., Table 5, A1, etc.">
+                    <input type="text" id="tableNumber" name="tableNumber" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="e.g., Table 5, A1, etc.">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Required - for order delivery to your table
+                    </p>
                 </div>
                 
                 <div>
@@ -558,6 +557,9 @@ document.addEventListener('DOMContentLoaded', function() {
             restaurantInfoSection.style.opacity = '1';
             restaurantInfoSection.style.marginBottom = '24px';
             
+            // Change section title to "Table Information"
+            document.getElementById('customerInfoTitle').textContent = 'Table Information';
+            
             // Add required attribute to table number
             document.getElementById('tableNumber').setAttribute('required', 'required');
             
@@ -568,7 +570,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Showing simplified restaurant form');
             document.getElementById('fullCustomerForm').style.display = 'none';
             document.getElementById('restaurantCustomerForm').style.display = 'block';
-            document.getElementById('restaurantPhone').setAttribute('required', 'required');
             
             // Update delivery fee to 0
             updateDeliveryFee(0);
@@ -584,6 +585,9 @@ document.addEventListener('DOMContentLoaded', function() {
             pickupInfoSection.style.overflow = 'visible';
             pickupInfoSection.style.opacity = '1';
             pickupInfoSection.style.marginBottom = '24px';
+            
+            // Change section title back to "Customer Information"
+            document.getElementById('customerInfoTitle').textContent = 'Customer Information';
             
             // Show full customer form for pickup
             console.log('Showing full customer form for pickup');
@@ -606,6 +610,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Pickup mode - pickup section shown');
         } else {
             // Delivery mode - show delivery sections, hide restaurant section
+            
+            // Change section title back to "Customer Information"
+            document.getElementById('customerInfoTitle').textContent = 'Customer Information';
             
             // Show full customer form for delivery
             document.getElementById('fullCustomerForm').style.display = 'block';
