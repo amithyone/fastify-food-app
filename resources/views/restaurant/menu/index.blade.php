@@ -1514,6 +1514,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (useExistingCategory === '1' && existingCategoryId) {
             console.log('Bypassing form validation for existing category');
             
+            console.log('Sending share request with category_id:', existingCategoryId);
             fetch(`{{ route('restaurant.categories.share', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
                 headers: {
@@ -1618,6 +1619,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } else {
             // Create new category
+            console.log('Creating new category with form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+            
             fetch(`{{ route('restaurant.categories.store', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
                 headers: {

@@ -627,6 +627,11 @@ class MenuController extends Controller
         }
         
         try {
+            \Log::info('Store category request', [
+                'request_data' => $request->all(),
+                'restaurant_id' => $restaurant->id
+            ]);
+            
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'parent_id' => 'required|exists:categories,id', // Make parent_id required for managers
@@ -953,6 +958,12 @@ class MenuController extends Controller
         }
         
         try {
+            \Log::info('Share category request', [
+                'request_data' => $request->all(),
+                'category_id' => $request->input('category_id'),
+                'restaurant_id' => $restaurant->id
+            ]);
+            
             $validated = $request->validate([
                 'category_id' => 'required|exists:categories,id',
             ]);
