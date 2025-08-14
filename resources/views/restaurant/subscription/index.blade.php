@@ -119,6 +119,43 @@
                             </form>
                         @endif
                     </div>
+
+                    <!-- Premium Features Management -->
+                    @if($subscription->plan_type === 'premium' || $subscription->isTrial())
+                        <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Premium Features Management</h4>
+                            
+                            <!-- Menu Placeholder Image Management -->
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h5 class="text-sm font-medium text-gray-900 dark:text-white">Custom Menu Placeholder Image</h5>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            Upload a custom image to replace the default Fastify logo for menu items without images.
+                                        </p>
+                                    </div>
+                                    <button type="button" onclick="openMenuPlaceholderModal()" 
+                                            class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-600 dark:border-gray-500 dark:hover:bg-gray-500">
+                                        <i class="fas fa-image mr-2"></i>
+                                        {{ $restaurant->hasCustomDefaultImage() ? 'Change Image' : 'Upload Image' }}
+                                    </button>
+                                </div>
+                                
+                                @if($restaurant->hasCustomDefaultImage())
+                                    <div class="mt-3 flex items-center space-x-3">
+                                        <img src="{{ $restaurant->default_image_url }}" alt="Menu Placeholder" class="w-16 h-16 object-cover rounded-lg border">
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Current placeholder image</p>
+                                            <button type="button" onclick="removeMenuPlaceholder()" 
+                                                    class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                Remove image
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @else
@@ -203,4 +240,128 @@
         </div>
     </div>
 </div>
+
+<!-- Menu Placeholder Image Modal -->
+<div id="menuPlaceholderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Upload Menu Placeholder Image</h3>
+                <button type="button" onclick="closeMenuPlaceholderModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="menuPlaceholderForm" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-4">
+                    <label for="menu_placeholder_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Choose Image
+                    </label>
+                    <input type="file" id="menu_placeholder_image" name="menu_placeholder_image" 
+                           accept="image/*" required
+                           class="block w-full text-sm text-gray-500 dark:text-gray-400
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-full file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100
+                                  dark:file:bg-blue-900 dark:file:text-blue-300">
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Recommended: Square image, max 5MB. This will replace the default Fastify logo for menu items without images.
+                    </p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeMenuPlaceholderModal()" 
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-500">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                        Upload Image
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openMenuPlaceholderModal() {
+    document.getElementById('menuPlaceholderModal').classList.remove('hidden');
+}
+
+function closeMenuPlaceholderModal() {
+    document.getElementById('menuPlaceholderModal').classList.add('hidden');
+    document.getElementById('menuPlaceholderForm').reset();
+}
+
+function removeMenuPlaceholder() {
+    if (confirm('Are you sure you want to remove the custom menu placeholder image? This will revert to using the default Fastify logo.')) {
+        fetch('{{ route("restaurant.menu-placeholder.destroy", $restaurant->slug) }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while removing the image.');
+        });
+    }
+}
+
+document.getElementById('menuPlaceholderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+    submitButton.disabled = true;
+    
+    fetch('{{ route("restaurant.menu-placeholder.store", $restaurant->slug) }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeMenuPlaceholderModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while uploading the image.');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+});
+
+// Close modal when clicking outside
+document.getElementById('menuPlaceholderModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeMenuPlaceholderModal();
+    }
+});
+</script>
 @endsection
