@@ -43,7 +43,7 @@
             <!-- Delivery Option -->
             @if((!$deliverySetting || $deliverySetting->delivery_enabled) && $allItemsAvailableForDelivery)
             <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="deliveryOption">
-                <input type="radio" name="orderType" value="delivery" id="deliveryRadio" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
+                <input type="radio" name="orderType" value="delivery" id="deliveryRadio" class="mr-3 text-orange-500 focus:ring-orange-500">
                 <div class="flex items-center flex-1">
                     <div class="flex-shrink-0">
                         <i class="fas fa-motorcycle text-orange-500 text-xl mr-3"></i>
@@ -90,7 +90,7 @@
             <!-- In Restaurant Option -->
             @if(!$deliverySetting || $deliverySetting->in_restaurant_enabled)
             <label class="flex items-center p-3 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" id="restaurantOption">
-                <input type="radio" name="orderType" value="restaurant" id="restaurantRadio" class="mr-3 text-orange-500 focus:ring-orange-500" {{ (!$deliverySetting || (!$deliverySetting->delivery_enabled && !$deliverySetting->pickup_enabled)) && ($deliverySetting && $deliverySetting->in_restaurant_enabled) ? 'checked' : '' }}>
+                <input type="radio" name="orderType" value="restaurant" id="restaurantRadio" class="mr-3 text-orange-500 focus:ring-orange-500" checked>
                 <div class="flex items-center flex-1">
                     <div class="flex-shrink-0">
                         <i class="fas fa-utensils text-orange-500 text-xl mr-3"></i>
@@ -564,24 +564,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Setup QR code and check for simplified form
             setupQRCode();
             
-            // Check if we have QR table number for simplified form
-            const qrTableNumber = '{{ $qrTableNumber ?? "" }}';
-            console.log('QR table number:', qrTableNumber);
-            
-            if (qrTableNumber) {
-                // Show simplified customer form
-                console.log('Showing simplified restaurant form');
-                document.getElementById('fullCustomerForm').style.display = 'none';
-                document.getElementById('restaurantCustomerForm').style.display = 'block';
-                document.getElementById('restaurantPhone').setAttribute('required', 'required');
-            } else {
-                // Show full customer form
-                console.log('Showing full customer form for restaurant');
-                document.getElementById('fullCustomerForm').style.display = 'block';
-                document.getElementById('restaurantCustomerForm').style.display = 'none';
-                document.getElementById('name').setAttribute('required', 'required');
-                document.getElementById('phone').setAttribute('required', 'required');
-            }
+            // Always show simplified customer form for restaurant orders
+            console.log('Showing simplified restaurant form');
+            document.getElementById('fullCustomerForm').style.display = 'none';
+            document.getElementById('restaurantCustomerForm').style.display = 'block';
+            document.getElementById('restaurantPhone').setAttribute('required', 'required');
             
             // Update delivery fee to 0
             updateDeliveryFee(0);
