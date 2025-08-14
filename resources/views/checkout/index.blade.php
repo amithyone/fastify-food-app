@@ -124,19 +124,34 @@
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Customer Information</h2>
             
             <div class="space-y-4">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
-                    <input type="text" id="name" name="name" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                <!-- Full form for delivery/pickup -->
+                <div id="fullCustomerForm">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
+                        <input type="text" id="name" name="name" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email (Optional)</label>
+                        <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                    </div>
                 </div>
                 
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
-                    <input type="tel" id="phone" name="phone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
-                </div>
-                
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email (Optional)</label>
-                    <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                <!-- Simplified form for restaurant dining -->
+                <div id="restaurantCustomerForm" style="display: none;">
+                    <div>
+                        <label for="restaurantPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
+                        <input type="tel" id="restaurantPhone" name="restaurantPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="For order updates">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            We'll use your table number for identification
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -541,6 +556,21 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add required attribute to table number
             document.getElementById('tableNumber').setAttribute('required', 'required');
             
+            // Check if we have QR table number for simplified form
+            const qrTableNumber = '{{ session("qr_table_number") }}';
+            if (qrTableNumber) {
+                // Show simplified customer form
+                document.getElementById('fullCustomerForm').style.display = 'none';
+                document.getElementById('restaurantCustomerForm').style.display = 'block';
+                document.getElementById('restaurantPhone').setAttribute('required', 'required');
+            } else {
+                // Show full customer form
+                document.getElementById('fullCustomerForm').style.display = 'block';
+                document.getElementById('restaurantCustomerForm').style.display = 'none';
+                document.getElementById('name').setAttribute('required', 'required');
+                document.getElementById('phone').setAttribute('required', 'required');
+            }
+            
             // Update delivery fee to 0
             updateDeliveryFee(0);
             
@@ -555,6 +585,12 @@ document.addEventListener('DOMContentLoaded', function() {
             pickupInfoSection.style.overflow = 'visible';
             pickupInfoSection.style.opacity = '1';
             pickupInfoSection.style.marginBottom = '24px';
+            
+            // Show full customer form for pickup
+            document.getElementById('fullCustomerForm').style.display = 'block';
+            document.getElementById('restaurantCustomerForm').style.display = 'none';
+            document.getElementById('name').setAttribute('required', 'required');
+            document.getElementById('phone').setAttribute('required', 'required');
             
             // Add required attributes to pickup fields
             document.getElementById('pickupName').setAttribute('required', 'required');
@@ -574,6 +610,12 @@ document.addEventListener('DOMContentLoaded', function() {
             customerInfoSection.style.overflow = 'visible';
             customerInfoSection.style.opacity = '1';
             customerInfoSection.style.marginBottom = '24px';
+            
+            // Show full customer form for delivery
+            document.getElementById('fullCustomerForm').style.display = 'block';
+            document.getElementById('restaurantCustomerForm').style.display = 'none';
+            document.getElementById('name').setAttribute('required', 'required');
+            document.getElementById('phone').setAttribute('required', 'required');
             
             addressSection.style.maxHeight = '1000px';
             addressSection.style.overflow = 'visible';
@@ -720,12 +762,30 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     
     if (restaurantRadio.checked) {
         orderType = 'restaurant';
-        customerInfo = {
-            order_type: orderType,
-            in_restaurant: true,
-            table_number: formData.get('tableNumber'),
-            restaurant_notes: formData.get('restaurantNotes')
-        };
+        // Check if we're using the simplified restaurant form
+        const qrTableNumber = '{{ session("qr_table_number") }}';
+        if (qrTableNumber) {
+            // Use simplified form data
+            customerInfo = {
+                order_type: orderType,
+                in_restaurant: true,
+                table_number: formData.get('tableNumber'),
+                restaurant_notes: formData.get('restaurantNotes'),
+                phone: formData.get('restaurantPhone'), // Use restaurant phone
+                name: 'Table ' + formData.get('tableNumber') // Use table number as name
+            };
+        } else {
+            // Use full form data
+            customerInfo = {
+                order_type: orderType,
+                in_restaurant: true,
+                table_number: formData.get('tableNumber'),
+                restaurant_notes: formData.get('restaurantNotes'),
+                name: formData.get('name'),
+                phone: formData.get('phone'),
+                email: formData.get('email')
+            };
+        }
     } else if (pickupRadio.checked) {
         orderType = 'pickup';
         customerInfo = {
@@ -875,6 +935,13 @@ document.addEventListener('DOMContentLoaded', function() {
         note.className = 'text-xs text-orange-600 dark:text-orange-400 mt-1';
         note.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Table number from QR code';
         tableNumberContainer.appendChild(note);
+        
+        // Show simplified customer form for restaurant dining
+        document.getElementById('fullCustomerForm').style.display = 'none';
+        document.getElementById('restaurantCustomerForm').style.display = 'block';
+        
+        // Make restaurant phone required
+        document.getElementById('restaurantPhone').setAttribute('required', 'required');
     }
 });
 
