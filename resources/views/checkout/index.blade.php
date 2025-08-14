@@ -848,8 +848,12 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Order...';
         submitBtn.disabled = true;
         
+        // Determine the correct endpoint based on authentication status
+        const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
+        const orderEndpoint = isAuthenticated ? '/orders' : '/guest/orders';
+        
         // Create order first, then initialize bank transfer
-        fetch('/orders', {
+        fetch(orderEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -888,8 +892,12 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         return;
     }
     
+    // Determine the correct endpoint based on authentication status
+    const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
+    const orderEndpoint = isAuthenticated ? '/orders' : '/guest/orders';
+    
     // Send order to server
-    fetch('/orders', {
+    fetch(orderEndpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

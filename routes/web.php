@@ -179,6 +179,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('orders.show');
     Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
 });
+
+// Guest Order Route (no auth required)
+Route::post('/guest/orders', [OrderController::class, 'store'])->name('guest.orders.store');
 Route::get('/track-order', function () {
     return view('orders.track-form');
 })->name('orders.track-form');
