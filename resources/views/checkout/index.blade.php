@@ -145,8 +145,13 @@
                 <!-- Simplified form for restaurant dining -->
                 <div id="restaurantCustomerForm" style="display: none;">
                     <div>
+                        <label for="restaurantName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name (Optional)</label>
+                        <input type="text" id="restaurantName" name="restaurantName" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Your name (optional)">
+                    </div>
+                    
+                    <div>
                         <label for="restaurantPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
-                        <input type="tel" id="restaurantPhone" name="restaurantPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="For order updates">
+                        <input type="tel" id="restaurantPhone" name="restaurantPhone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="For order updates">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
                             We'll use your table number for identification
@@ -179,13 +184,13 @@
             
             <div class="space-y-4">
                 <div>
-                    <label for="pickupName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name for Pickup *</label>
-                    <input type="text" id="pickupName" name="pickupName" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Name to call when order is ready">
+                    <label for="pickupName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name for Pickup *</label>
+                    <input type="text" id="pickupName" name="pickupName" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Full name to call when order is ready">
                 </div>
                 
                 <div>
                     <label for="pickupPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number for Pickup *</label>
-                    <input type="tel" id="pickupPhone" name="pickupPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number to contact">
+                    <input type="tel" id="pickupPhone" name="pickupPhone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number to contact">
                 </div>
                 
                 <div>
