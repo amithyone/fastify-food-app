@@ -31,7 +31,8 @@ class CartController extends Controller
                             'price' => $menuItem->price,
                             'quantity' => $quantity,
                             'total' => $itemTotal,
-                            'image' => $menuItem->image
+                            'image' => $menuItem->image,
+                            'image_url' => $menuItem->image_url
                         ];
                         $restaurantTotal += $itemTotal;
                     }

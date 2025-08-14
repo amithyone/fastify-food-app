@@ -79,15 +79,9 @@
                                         @foreach($restaurantCart['items'] as $item)
                                             <div class="cart-item flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                                                 <div class="flex items-center">
-                                                    @if($item['image'])
-                                                        <img src="{{ $item['image_url'] }}" 
-                                                             alt="{{ $item['name'] }}" 
-                                                             class="w-12 h-12 rounded-lg object-cover mr-3">
-                                                    @else
-                                                        <img src="{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}" 
-                                                             alt="{{ $item['name'] }}" 
-                                                             class="w-12 h-12 rounded-lg object-cover mr-3">
-                                                    @endif
+                                                    <img src="{{ $item['image_url'] }}" 
+                                                         alt="{{ $item['name'] }}" 
+                                                         class="w-12 h-12 rounded-lg object-cover mr-3">
                                                     <div>
                                                         <h4 class="item-name font-medium text-gray-900 dark:text-white text-sm">{{ $item['name'] }}</h4>
                                                         <p class="item-price text-xs text-gray-600 dark:text-gray-400">{{ $restaurantCart['restaurant']->currency }}{{ number_format($item['price']) }}</p>
