@@ -1515,13 +1515,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Check if we're using an existing category (this should not be reached for existing categories)
-        const useExistingCategory = formData.get('use_existing_category');
-        const existingCategoryId = formData.get('existing_category_id');
+        const useExistingCategoryCheck = formData.get('use_existing_category');
+        const existingCategoryIdCheck = formData.get('existing_category_id');
         
-        console.log('Form submission check:', { useExistingCategory, existingCategoryId });
+        console.log('Form submission check:', { useExistingCategoryCheck, existingCategoryIdCheck });
         
         // This section should only handle new category creation and editing
-        if (useExistingCategory === '1' && existingCategoryId) {
+        if (useExistingCategoryCheck === '1' && existingCategoryIdCheck) {
             console.log('Unexpected: Existing category logic reached in form data section');
             return;
         } else if (editingCategoryId) {
