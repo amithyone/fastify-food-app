@@ -93,7 +93,7 @@ class Category extends Model
         return $query->where(function($q) use ($restaurantId) {
             $q->whereNull('restaurant_id') // Global categories
               ->orWhere('restaurant_id', $restaurantId) // Restaurant-specific categories
-              ->orWhereJsonContains('restaurant_ids', $restaurantId); // Shared categories
+              ->orWhereRaw('JSON_CONTAINS(restaurant_ids, ?)', [json_encode($restaurantId)]); // Shared categories
         });
     }
 
