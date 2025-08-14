@@ -79,7 +79,12 @@ class OrderController extends Controller
             $cartItems = [];
         }
 
-        return view('checkout.index', compact('cartItems', 'total'));
+        // Get QR code information from session
+        $qrTableNumber = session('qr_table_number');
+        $qrRestaurantId = session('qr_restaurant_id');
+        $qrTableQrId = session('qr_table_qr_id');
+
+        return view('checkout.index', compact('cartItems', 'total', 'qrTableNumber', 'qrRestaurantId', 'qrTableQrId'));
     }
 
     public function addToCart(Request $request)

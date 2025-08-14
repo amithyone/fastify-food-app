@@ -556,8 +556,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add required attribute to table number
             document.getElementById('tableNumber').setAttribute('required', 'required');
             
+            // Setup QR code and check for simplified form
+            setupQRCode();
+            
             // Check if we have QR table number for simplified form
-            const qrTableNumber = '{{ session("qr_table_number") }}';
+            const qrTableNumber = '{{ $qrTableNumber ?? "" }}';
             console.log('QR table number:', qrTableNumber);
             
             if (qrTableNumber) {
@@ -773,7 +776,7 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     if (restaurantRadio.checked) {
         orderType = 'restaurant';
         // Check if we're using the simplified restaurant form
-        const qrTableNumber = '{{ session("qr_table_number") }}';
+        const qrTableNumber = '{{ $qrTableNumber ?? "" }}';
         if (qrTableNumber) {
             // Use simplified form data
             customerInfo = {
@@ -920,39 +923,43 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
     });
 });
 
+// Function to setup QR code
+function setupQRCode() {
+    const qrTableNumber = '{{ $qrTableNumber ?? "" }}';
+    console.log('Setting up QR code with table number:', qrTableNumber);
+    
+    if (qrTableNumber) {
+        const tableNumberField = document.getElementById('tableNumber');
+        if (tableNumberField) {
+            tableNumberField.value = qrTableNumber;
+            console.log('Pre-filled table number from QR code:', qrTableNumber);
+            
+            // Add visual indicator that table number was pre-filled
+            tableNumberField.style.backgroundColor = '#fef3c7';
+            tableNumberField.style.borderColor = '#f59e0b';
+            tableNumberField.style.color = '#000000';
+            tableNumberField.placeholder = 'Table number from QR code';
+            
+            // Add a small note below the field (only if it doesn't exist)
+            const tableNumberContainer = tableNumberField.parentElement;
+            if (!tableNumberContainer.querySelector('.qr-note')) {
+                const note = document.createElement('p');
+                note.className = 'text-xs text-orange-600 dark:text-orange-400 mt-1 qr-note';
+                note.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Table number from QR code';
+                tableNumberContainer.appendChild(note);
+            }
+        }
+    }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadCart();
     updateCartCount();
     loadWalletBalance();
     
-    // Pre-fill table number from QR code if available
-    const qrTableNumber = '{{ session("qr_table_number") }}';
-    if (qrTableNumber) {
-        document.getElementById('tableNumber').value = qrTableNumber;
-        console.log('Pre-filled table number from QR code:', qrTableNumber);
-        
-        // Add visual indicator that table number was pre-filled
-        const tableNumberField = document.getElementById('tableNumber');
-        tableNumberField.style.backgroundColor = '#fef3c7';
-        tableNumberField.style.borderColor = '#f59e0b';
-        tableNumberField.style.color = '#000000';
-        tableNumberField.placeholder = 'Table number from QR code';
-        
-        // Add a small note below the field
-        const tableNumberContainer = tableNumberField.parentElement;
-        const note = document.createElement('p');
-        note.className = 'text-xs text-orange-600 dark:text-orange-400 mt-1';
-        note.innerHTML = '<i class="fas fa-qrcode mr-1"></i>Table number from QR code';
-        tableNumberContainer.appendChild(note);
-        
-        // Show simplified customer form for restaurant dining
-        document.getElementById('fullCustomerForm').style.display = 'none';
-        document.getElementById('restaurantCustomerForm').style.display = 'block';
-        
-        // Make restaurant phone required
-        document.getElementById('restaurantPhone').setAttribute('required', 'required');
-    }
+            // Setup QR code on page load
+    setupQRCode();
 });
 
 // Load wallet balance
