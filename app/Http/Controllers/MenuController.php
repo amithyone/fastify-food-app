@@ -1047,4 +1047,58 @@ class MenuController extends Controller
             ], 500);
         }
     }
+
+    public function deactivateCategory(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories. You need manager privileges.'], 403);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+        }
+        
+        try {
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+            ]);
+            
+            $category = Category::find($validated['category_id']);
+            
+            if (!$category) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Category not found.'
+                ], 404);
+            }
+            
+            // Check if category has menu items for this restaurant
+            $menuItemsCount = $category->menuItems()->where('restaurant_id', $restaurant->id)->count();
+            if ($menuItemsCount > 0) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cannot deactivate category that has menu items. Please move or delete the menu items first.'
+                ], 422);
+            }
+            
+            // Remove restaurant from the shared category (same as unshare but different messaging)
+            $category->removeRestaurant($restaurant->id);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Category "' . $category->name . '" has been deactivated for your restaurant.',
+                'category' => $category
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error deactivating category: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error deactivating category: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

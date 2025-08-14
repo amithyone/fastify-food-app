@@ -114,16 +114,26 @@
                                                 </div>
                                             </div>
                                             <div class="flex items-center space-x-1 ml-2">
-                                                <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->parent_id }}')" class="text-gray-400 hover:text-blue-600">
-                                                    <i class="fas fa-edit text-xs"></i>
-                                                </button>
-                                                @if(!$category->isShared())
-                                                    <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
-                                                        <i class="fas fa-trash text-xs"></i>
+                                                @if($category->restaurant_id == $restaurant->id)
+                                                    {{-- Only show edit button for categories created by this restaurant --}}
+                                                    <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->parent_id }}')" class="text-gray-400 hover:text-blue-600" title="Edit category">
+                                                        <i class="fas fa-edit text-xs"></i>
                                                     </button>
+                                                    @if(!$category->isShared())
+                                                        {{-- Only show delete for non-shared categories created by this restaurant --}}
+                                                        <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600" title="Delete category">
+                                                            <i class="fas fa-trash text-xs"></i>
+                                                        </button>
+                                                    @else
+                                                        {{-- For shared categories, only allow deactivation --}}
+                                                        <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-orange-600" title="Deactivate for this restaurant">
+                                                            <i class="fas fa-eye-slash text-xs"></i>
+                                                        </button>
+                                                    @endif
                                                 @else
-                                                    <button onclick="removeFromSharedCategory({{ $category->id }})" class="text-gray-400 hover:text-orange-600" title="Remove from shared category">
-                                                        <i class="fas fa-unlink text-xs"></i>
+                                                    {{-- For categories not created by this restaurant, only allow deactivation --}}
+                                                    <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-orange-600" title="Deactivate for this restaurant">
+                                                        <i class="fas fa-eye-slash text-xs"></i>
                                                     </button>
                                                 @endif
                                             </div>
@@ -1159,6 +1169,34 @@ function removeFromSharedCategory(categoryId) {
     }
 }
 
+function deactivateCategory(categoryId) {
+    if (confirm('Are you sure you want to deactivate this category for your restaurant? This will hide it from your menu but won\'t affect other restaurants using it.')) {
+        fetch(`{{ route('restaurant.categories.deactivate', ['slug' => $restaurant->slug ?? 'restaurant']) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                category_id: categoryId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deactivating category');
+        });
+    }
+}
+
 function closeCategoryModal() {
     document.getElementById('categoryModal').classList.add('hidden');
 }
@@ -1415,7 +1453,38 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`${key}: ${value}`);
         }
         
-        if (editingCategoryId) {
+        // Check if we're using an existing category
+        const useExistingCategory = formData.get('use_existing_category');
+        const existingCategoryId = formData.get('existing_category_id');
+        
+        if (useExistingCategory === '1' && existingCategoryId) {
+            // Use existing category
+            console.log('Using existing category with ID:', existingCategoryId);
+            
+            fetch(`{{ route('restaurant.categories.share', ['slug' => $restaurant->slug]) }}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    category_id: existingCategoryId
+                })
+            }).then(response => {
+                return response.json().then(data => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        console.error('Error response:', data);
+                        alert('Error using category: ' + (data.message || 'Unknown error'));
+                    }
+                });
+            }).catch(error => {
+                console.error('Fetch error:', error);
+                alert('Error using category');
+            });
+        } else if (editingCategoryId) {
             // Update existing category
             console.log('Updating category with ID:', editingCategoryId);
             

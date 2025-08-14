@@ -598,6 +598,7 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::delete('/{slug}/categories/{category}', [MenuController::class, 'destroyCategory'])->name('restaurant.categories.destroy');
     Route::post('/{slug}/categories/share', [MenuController::class, 'shareCategory'])->name('restaurant.categories.share');
     Route::post('/{slug}/categories/unshare', [MenuController::class, 'unshareCategory'])->name('restaurant.categories.unshare');
+    Route::post('/{slug}/categories/deactivate', [MenuController::class, 'deactivateCategory'])->name('restaurant.categories.deactivate');
     
     // Restaurant Image Management
     Route::get('/{slug}/images', [RestaurantImageController::class, 'index'])->name('restaurant.images.index');
