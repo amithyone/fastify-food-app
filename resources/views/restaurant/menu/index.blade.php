@@ -67,7 +67,7 @@
                     <div class="space-y-3">
                         @php
                             $globalParentCategories = $globalCategories;
-                            $restaurantCategories = $restaurantCategories->groupBy('parent_id');
+                            $restaurantCategories = $allCategories->groupBy('parent_id');
                             $restaurantMainCategories = $restaurantCategories->get(null, collect());
                         @endphp
                         
@@ -1496,7 +1496,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Share response data:', data);
                     if (response.ok) {
                         console.log('Category shared successfully');
-                        window.location.reload();
+                        console.log('Reloading page to show new category...');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500); // Small delay to ensure the database update is complete
                     } else {
                         console.error('Error response:', data);
                         alert('Error using category: ' + (data.message || 'Unknown error'));
