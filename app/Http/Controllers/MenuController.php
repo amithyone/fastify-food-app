@@ -929,14 +929,30 @@ class MenuController extends Controller
                 return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category that has menu items. Please move or delete the menu items first.');
             }
             
+            \Log::info('Category deletion/removal', [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'is_shared' => $category->isShared(),
+                'restaurant_ids' => $category->restaurant_ids,
+                'restaurant_id' => $category->restaurant_id,
+                'can_be_used' => $category->canBeUsedByRestaurant($restaurant->id)
+            ]);
+            
             // If this is a shared category, remove the restaurant from it
             if ($category->isShared() && $category->canBeUsedByRestaurant($restaurant->id)) {
                 $category->removeRestaurant($restaurant->id);
                 $message = 'Category "' . $category->name . '" has been removed from your restaurant.';
+                \Log::info('Removed restaurant from shared category', [
+                    'category_id' => $category->id,
+                    'restaurant_id' => $restaurant->id
+                ]);
             } else {
                 // If this is a restaurant-specific category, delete it entirely
                 $category->delete();
                 $message = 'Category deleted successfully!';
+                \Log::info('Deleted restaurant-specific category', [
+                    'category_id' => $category->id
+                ]);
             }
             
             if ($request->expectsJson()) {
@@ -1110,8 +1126,20 @@ class MenuController extends Controller
                 ], 422);
             }
             
+            \Log::info('Deactivating category', [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'restaurant_id' => $restaurant->id,
+                'restaurant_ids_before' => $category->restaurant_ids
+            ]);
+            
             // Remove restaurant from the shared category (same as unshare but different messaging)
             $category->removeRestaurant($restaurant->id);
+            
+            \Log::info('Category deactivated', [
+                'category_id' => $category->id,
+                'restaurant_ids_after' => $category->restaurant_ids
+            ]);
             
             return response()->json([
                 'success' => true, 

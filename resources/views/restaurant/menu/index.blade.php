@@ -1270,9 +1270,14 @@ function deleteCategory(id) {
             }
         }).then(response => {
             return response.json().then(data => {
+                console.log('Delete response:', data);
                 if (response.ok) {
-                    window.location.reload();
+                    console.log('Category deleted successfully, reloading page...');
+                    setTimeout(() => {
+                        window.location.href = window.location.href + '?t=' + Date.now();
+                    }, 100);
                 } else {
+                    console.error('Error response:', data);
                     alert('Error deleting category: ' + (data.message || 'Unknown error'));
                 }
             });
@@ -1297,9 +1302,14 @@ function deactivateCategory(id) {
             })
         }).then(response => {
             return response.json().then(data => {
+                console.log('Deactivate response:', data);
                 if (response.ok) {
-                    window.location.reload();
+                    console.log('Category removed successfully, reloading page...');
+                    setTimeout(() => {
+                        window.location.href = window.location.href + '?t=' + Date.now();
+                    }, 100);
                 } else {
+                    console.error('Error response:', data);
                     alert('Error removing category: ' + (data.message || 'Unknown error'));
                 }
             });
