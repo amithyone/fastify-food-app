@@ -512,11 +512,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Order type changed:', { isRestaurant, isPickup, isDelivery });
         
-        // Hide all sections first
-        customerInfoSection.style.maxHeight = '0px';
-        customerInfoSection.style.overflow = 'hidden';
-        customerInfoSection.style.opacity = '0';
-        customerInfoSection.style.marginBottom = '0px';
+        // Hide all sections first (except customer info which is always shown)
+        customerInfoSection.style.maxHeight = '1000px';
+        customerInfoSection.style.overflow = 'visible';
+        customerInfoSection.style.opacity = '1';
+        customerInfoSection.style.marginBottom = '24px';
         
         restaurantInfoSection.style.display = 'none';
         restaurantInfoSection.style.maxHeight = '0px';
@@ -558,13 +558,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Check if we have QR table number for simplified form
             const qrTableNumber = '{{ session("qr_table_number") }}';
+            console.log('QR table number:', qrTableNumber);
+            
             if (qrTableNumber) {
                 // Show simplified customer form
+                console.log('Showing simplified restaurant form');
                 document.getElementById('fullCustomerForm').style.display = 'none';
                 document.getElementById('restaurantCustomerForm').style.display = 'block';
                 document.getElementById('restaurantPhone').setAttribute('required', 'required');
             } else {
                 // Show full customer form
+                console.log('Showing full customer form for restaurant');
                 document.getElementById('fullCustomerForm').style.display = 'block';
                 document.getElementById('restaurantCustomerForm').style.display = 'none';
                 document.getElementById('name').setAttribute('required', 'required');
@@ -587,6 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
             pickupInfoSection.style.marginBottom = '24px';
             
             // Show full customer form for pickup
+            console.log('Showing full customer form for pickup');
             document.getElementById('fullCustomerForm').style.display = 'block';
             document.getElementById('restaurantCustomerForm').style.display = 'none';
             document.getElementById('name').setAttribute('required', 'required');
@@ -606,10 +611,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Pickup mode - pickup section shown');
         } else {
             // Delivery mode - show delivery sections, hide restaurant section
-            customerInfoSection.style.maxHeight = '1000px';
-            customerInfoSection.style.overflow = 'visible';
-            customerInfoSection.style.opacity = '1';
-            customerInfoSection.style.marginBottom = '24px';
             
             // Show full customer form for delivery
             document.getElementById('fullCustomerForm').style.display = 'block';
@@ -657,7 +658,16 @@ document.addEventListener('DOMContentLoaded', function() {
         restaurantRadio.addEventListener('change', handleOrderTypeChange);
         
         // Initialize with delivery mode
+        console.log('Initializing order type change...');
         handleOrderTypeChange();
+        
+        // Debug: Check form visibility
+        setTimeout(() => {
+            console.log('Form visibility check:');
+            console.log('Full customer form display:', document.getElementById('fullCustomerForm').style.display);
+            console.log('Restaurant customer form display:', document.getElementById('restaurantCustomerForm').style.display);
+            console.log('Customer section opacity:', document.getElementById('customerInfoSection').style.opacity);
+        }, 100);
         
         // Handle custom pickup time selection
         const pickupTimeSelect = document.getElementById('pickupTime');
