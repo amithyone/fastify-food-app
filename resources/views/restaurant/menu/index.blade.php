@@ -436,7 +436,7 @@
                     
                     <div class="mb-4">
                         <label for="newCategoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
-                        <select id="newCategoryParent" name="parent_id_new" required
+                        <select id="newCategoryParent" name="parent_id_new"
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select a parent category</option>
                             @foreach($globalCategories as $parentCategory)
@@ -946,6 +946,9 @@ function openCategoryModal(parentId = '', parentName = '') {
     document.querySelector('input[name="category_type"][value="existing"]').checked = true;
     showExistingCategoryForm();
     
+    // Ensure required attributes are properly set
+    document.getElementById('newCategoryParent').removeAttribute('required');
+    
     // Clear existing category selection
     clearExistingCategorySelection();
     
@@ -974,6 +977,7 @@ function showExistingCategoryForm() {
     document.getElementById('existingCategoryForm').classList.remove('hidden');
     document.getElementById('customCategoryForm').classList.add('hidden');
     document.getElementById('categoryName').required = false;
+    document.getElementById('newCategoryParent').removeAttribute('required');
     document.getElementById('submitButtonText').textContent = 'Select Sub-Category';
 }
 
@@ -981,6 +985,7 @@ function showCustomCategoryForm() {
     document.getElementById('existingCategoryForm').classList.add('hidden');
     document.getElementById('customCategoryForm').classList.remove('hidden');
     document.getElementById('categoryName').required = true;
+    document.getElementById('newCategoryParent').setAttribute('required', 'required');
     document.getElementById('submitButtonText').textContent = 'Create Sub-Category';
 }
 
@@ -1508,7 +1513,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // For new category creation, ensure parent_id is properly set
         const parentIdField = document.querySelector('select[name="parent_id_new"]');
-        if (parentIdField && !parentIdField.value) {
+        const isCustomForm = document.getElementById('customCategoryForm').classList.contains('hidden') === false;
+        
+        if (isCustomForm && parentIdField && !parentIdField.value) {
             console.log('Parent ID is required but not set');
             parentIdField.focus();
             alert('Please select a parent category');
