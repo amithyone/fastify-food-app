@@ -151,6 +151,11 @@ class Restaurant extends Model
         return $this->hasOne(RestaurantSubscription::class);
     }
 
+    public function subscriptions()
+    {
+        return $this->hasMany(RestaurantSubscription::class);
+    }
+
     public function getActiveSubscriptionAttribute()
     {
         return $this->subscription()->where(function($query) {
