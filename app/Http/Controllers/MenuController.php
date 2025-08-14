@@ -26,7 +26,7 @@ class MenuController extends Controller
             // Restaurant-specific menu
             $restaurant = Restaurant::where('slug', $slug)->where('is_active', true)->firstOrFail();
             $categories = $restaurant->categories()->with('menuItems')->where('is_active', true)->get();
-            $menuItems = $restaurant->menuItems()->with('category')->where('is_available', true)->get();
+            $menuItems = $restaurant->menuItems()->with(['category', 'restaurant'])->where('is_available', true)->get();
             $stories = $restaurant->stories()->active()->ordered()->get();
             
             return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurant'));
@@ -51,7 +51,7 @@ class MenuController extends Controller
             
             foreach ($restaurants as $restaurant) {
                 $categories = $categories->merge($restaurant->categories()->with('menuItems')->where('is_active', true)->get());
-                $menuItems = $menuItems->merge($restaurant->menuItems()->with('category')->where('is_available', true)->get());
+                $menuItems = $menuItems->merge($restaurant->menuItems()->with(['category', 'restaurant'])->where('is_available', true)->get());
                 $stories = $stories->merge($restaurant->stories()->active()->ordered()->get());
             }
             
@@ -66,7 +66,7 @@ class MenuController extends Controller
 
     public function show($id)
     {
-        $menuItem = MenuItem::with('category')->findOrFail($id);
+        $menuItem = MenuItem::with(['category', 'restaurant'])->findOrFail($id);
         return view('menu.show', compact('menuItem'));
     }
 
@@ -75,7 +75,7 @@ class MenuController extends Controller
         $query = $request->get('query');
         
         if ($query) {
-            $menuItems = MenuItem::with('category')
+            $menuItems = MenuItem::with(['category', 'restaurant'])
                 ->where('is_available', true)
                 ->where(function($q) use ($query) {
                     $q->where('name', 'LIKE', "%{$query}%")
@@ -83,7 +83,7 @@ class MenuController extends Controller
                 })
                 ->get();
         } else {
-            $menuItems = MenuItem::with('category')->where('is_available', true)->get();
+            $menuItems = MenuItem::with(['category', 'restaurant'])->where('is_available', true)->get();
         }
         
         return response()->json($menuItems);
@@ -94,12 +94,12 @@ class MenuController extends Controller
         $categoryId = $request->get('category_id');
         
         if ($categoryId && $categoryId !== 'all') {
-            $menuItems = MenuItem::with('category')
+            $menuItems = MenuItem::with(['category', 'restaurant'])
                 ->where('category_id', $categoryId)
                 ->where('is_available', true)
                 ->get();
         } else {
-            $menuItems = MenuItem::with('category')
+            $menuItems = MenuItem::with(['category', 'restaurant'])
                 ->where('is_available', true)
                 ->get();
         }
@@ -118,12 +118,12 @@ class MenuController extends Controller
         $categoryId = $request->get('category_id');
         
         if ($categoryId && $categoryId !== 'all') {
-            $menuItems = MenuItem::with('category')
+            $menuItems = MenuItem::with(['category', 'restaurant'])
                 ->where('category_id', $categoryId)
                 ->where('is_available', true)
                 ->get();
         } else {
-            $menuItems = MenuItem::with('category')
+            $menuItems = MenuItem::with(['category', 'restaurant'])
                 ->where('is_available', true)
                 ->get();
         }
@@ -146,7 +146,7 @@ class MenuController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access the restaurant menu.');
         }
         
-        $menuItems = $restaurant->menuItems()->with('category')->get();
+        $menuItems = $restaurant->menuItems()->with(['category', 'restaurant'])->get();
         $restaurantCategories = $restaurant->categories()->get();
         
         // Get global main categories (categories with restaurant_id = null)
