@@ -68,7 +68,10 @@
                         @php
                             $globalParentCategories = $globalCategories;
                             $restaurantCategories = $allCategories->groupBy('parent_id');
-                            $restaurantMainCategories = $restaurantCategories->get(null, collect());
+                            // Only show categories as "unassigned" if they have a restaurant_id but no parent_id
+                            $restaurantMainCategories = $allCategories->where('restaurant_id', '!=', null)
+                                                                      ->where('parent_id', null)
+                                                                      ->where('type', '!=', 'main'); // Exclude main categories
                         @endphp
                         
                         <!-- Global Main Categories -->
