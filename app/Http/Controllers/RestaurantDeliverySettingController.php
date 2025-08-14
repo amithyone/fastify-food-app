@@ -41,7 +41,7 @@ class RestaurantDeliverySettingController extends Controller
             ]);
         }
 
-        $menuItems = $restaurant->menuItems()->with('deliveryMethods')->get();
+        $menuItems = $restaurant->menuItems()->with(['deliveryMethods', 'restaurant'])->get();
 
         return view('restaurant.delivery-settings.index', compact('restaurant', 'deliverySetting', 'menuItems'));
     }
@@ -173,7 +173,7 @@ class RestaurantDeliverySettingController extends Controller
     public function apiMenuItemDeliveryMethods($slug)
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
-        $menuItems = $restaurant->menuItems()->with('deliveryMethods')->get();
+        $menuItems = $restaurant->menuItems()->with(['deliveryMethods', 'restaurant'])->get();
 
         return response()->json([
             'success' => true,

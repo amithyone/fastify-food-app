@@ -237,19 +237,19 @@ class Restaurant extends Model
     {
         $subscription = $this->activeSubscription;
         if (!$subscription) {
-            return $this->menuItems()->limit(5)->get();
+            return $this->menuItems()->with('restaurant')->limit(5)->get();
         }
         
         // During trial, show all menu items
         if ($subscription->isTrial()) {
-            return $this->menuItems;
+            return $this->menuItems()->with('restaurant')->get();
         }
         
         if ($subscription->unlimited_menu_items) {
-            return $this->menuItems;
+            return $this->menuItems()->with('restaurant')->get();
         }
         
-        return $this->menuItems()->limit($subscription->menu_item_limit)->get();
+        return $this->menuItems()->with('restaurant')->limit($subscription->menu_item_limit)->get();
     }
 
     // Scopes
