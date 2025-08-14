@@ -129,7 +129,7 @@
                                     <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                         <div class="flex items-center space-x-3">
                                             @if($item->menuItem->image)
-                                                <img src="{{ Storage::url($item->menuItem->image) }}" alt="{{ $item->menuItem->name }}" class="w-12 h-12 rounded-lg object-cover">
+                                                <img src="{{ $item->menuItem->image_url }}" alt="{{ $item->menuItem->name }}" class="w-12 h-12 rounded-lg object-cover">
                                             @else
                                                 <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
                                                     <i class="fas fa-utensils text-gray-400"></i>

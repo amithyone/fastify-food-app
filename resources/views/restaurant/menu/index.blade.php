@@ -239,7 +239,7 @@
                                             <div class="flex items-start justify-between mb-3">
                                                 <div class="flex items-center min-w-0 flex-1">
                                                     <div class="flex-shrink-0 h-12 w-12 mr-3">
-                                                        <img src="{{ \App\Helpers\PWAHelper::getMenuItemImage($item->image, 'square') }}" 
+                                                        <img src="{{ $item->image_url }}" 
                                                              alt="{{ $item->name }}" 
                                                              class="h-12 w-12 rounded-lg object-cover"
                                                              onerror="this.src='{{ \App\Helpers\PWAHelper::getPlaceholderImage('square') }}'">
