@@ -787,15 +787,14 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                 name: 'Table ' + formData.get('tableNumber') // Use table number as name
             };
         } else {
-            // Use full form data
+            // Use simplified form data (no QR code)
             customerInfo = {
                 order_type: orderType,
                 in_restaurant: true,
                 table_number: formData.get('tableNumber'),
                 restaurant_notes: formData.get('restaurantNotes'),
-                name: formData.get('name'),
-                phone: formData.get('phone'),
-                email: formData.get('email')
+                name: formData.get('restaurantName') || 'Restaurant Customer',
+                phone: 'N/A' // No phone required for restaurant orders
             };
         }
     } else if (pickupRadio.checked) {
