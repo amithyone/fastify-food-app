@@ -158,7 +158,14 @@ class MenuController extends Controller
                                 ->ordered()
                                 ->get();
         
-        return view('restaurant.menu.index', compact('restaurant', 'menuItems', 'restaurantCategories', 'globalCategories', 'allCategories'));
+        // Get existing sub-categories that can be selected by managers
+        $existingSubCategories = Category::where('type', 'sub')
+                                        ->where('is_active', true)
+                                        ->whereNotNull('parent_id')
+                                        ->ordered()
+                                        ->get();
+        
+        return view('restaurant.menu.index', compact('restaurant', 'menuItems', 'restaurantCategories', 'globalCategories', 'allCategories', 'existingSubCategories'));
     }
 
     public function restaurantCreate($slug)
@@ -622,132 +629,124 @@ class MenuController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'parent_id' => 'nullable|exists:categories,id',
-                'use_global_category' => 'nullable|boolean',
-                'global_category_id' => 'nullable|exists:categories,id',
+                'parent_id' => 'required|exists:categories,id', // Make parent_id required for managers
+                'use_existing_category' => 'nullable|boolean',
+                'existing_category_id' => 'nullable|exists:categories,id',
                 'force_create' => 'nullable|boolean', // New field to force create even if similar exists
             ]);
             
-            // If user wants to use a global category
-            if (!empty($validated['use_global_category']) && !empty($validated['global_category_id'])) {
-                $globalCategory = Category::find($validated['global_category_id']);
+            // Check if user is manager (not admin) - managers can only create sub-categories
+            $isManager = Auth::user() && !Auth::user()->isAdmin() && \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
+            
+            if ($isManager && empty($validated['parent_id'])) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Managers can only create sub-categories. Please select a parent category.'
+                    ], 422);
+                }
+                return redirect()->route('restaurant.menu', $slug)->with('error', 'Managers can only create sub-categories. Please select a parent category.');
+            }
+            
+            // If user wants to use an existing sub-category
+            if (!empty($validated['use_existing_category']) && !empty($validated['existing_category_id'])) {
+                $existingCategory = Category::find($validated['existing_category_id']);
                 
-                if (!$globalCategory || !$globalCategory->isGlobal()) {
+                if (!$existingCategory || $existingCategory->type !== 'sub') {
                     if ($request->expectsJson()) {
                         return response()->json([
                             'success' => false, 
-                            'message' => 'Invalid global category selected.'
+                            'message' => 'Invalid sub-category selected. Please select a valid sub-category.'
                         ], 422);
                     }
-                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid global category selected.');
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid sub-category selected. Please select a valid sub-category.');
                 }
                 
-                // Check if this global category is already being used by this restaurant
+                // Check if this sub-category is already being used by this restaurant
                 $existingUsage = Category::where('restaurant_id', $restaurant->id)
-                                        ->where('name', $globalCategory->name)
+                                        ->where('name', $existingCategory->name)
+                                        ->where('parent_id', $existingCategory->parent_id)
                                         ->first();
                 
                 if ($existingUsage) {
                     if ($request->expectsJson()) {
                         return response()->json([
                             'success' => true, 
-                            'message' => 'Global category "' . $globalCategory->name . '" is already available for your restaurant.',
+                            'message' => 'Sub-category "' . $existingCategory->name . '" is already available for your restaurant.',
                             'category' => $existingUsage
                         ]);
                     }
-                    return redirect()->route('restaurant.menu', $slug)->with('success', 'Global category "' . $globalCategory->name . '" is already available for your restaurant.');
+                    return redirect()->route('restaurant.menu', $slug)->with('success', 'Sub-category "' . $existingCategory->name . '" is already available for your restaurant.');
                 }
                 
-                // Create a restaurant-specific copy of the global category
-                $categoryData = [
-                    'name' => $globalCategory->name,
-                    'type' => $globalCategory->type,
-                    'parent_id' => $globalCategory->parent_id,
-                    'sort_order' => $globalCategory->sort_order,
-                    'is_active' => true,
-                    'restaurant_id' => $restaurant->id,
-                ];
-                
-                // Generate unique slug for the restaurant
-                $baseSlug = \Illuminate\Support\Str::slug($globalCategory->name);
-                $slug = $baseSlug;
-                $counter = 1;
-                
-                while (Category::where('slug', $slug)
-                              ->where('restaurant_id', $restaurant->id)
-                              ->exists()) {
-                    $slug = $baseSlug . '-' . $counter;
-                    $counter++;
-                }
-                
-                $categoryData['slug'] = $slug;
-                $category = Category::create($categoryData);
+                // Share the existing sub-category with this restaurant
+                $existingCategory->addRestaurant($restaurant->id);
                 
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => true, 
-                        'message' => 'Global category "' . $globalCategory->name . '" added to your restaurant successfully!',
-                        'category' => $category
+                        'message' => 'Sub-category "' . $existingCategory->name . '" is now available for your restaurant!',
+                        'category' => $existingCategory
                     ]);
                 }
                 
-                return redirect()->route('restaurant.menu', $slug)->with('success', 'Global category "' . $globalCategory->name . '" added to your restaurant successfully!');
+                return redirect()->route('restaurant.menu', $slug)->with('success', 'Sub-category "' . $existingCategory->name . '" is now available for your restaurant!');
             }
             
-            // Smart category creation with matching
+            // Smart sub-category creation with matching
             $categoryName = trim($validated['name']);
-            $parentId = $validated['parent_id'] ?? null;
+            $parentId = $validated['parent_id'];
             $forceCreate = $validated['force_create'] ?? false;
             
-            // Determine category type
-            $type = $parentId ? 'sub' : 'main';
+            // For managers, always create sub-categories
+            $type = 'sub';
             
-            // If not forcing creation, check for similar existing categories
+            // If not forcing creation, check for similar existing sub-categories
             if (!$forceCreate) {
-                $similarCategories = Category::findSimilar($categoryName, $parentId, $type);
+                $similarCategories = Category::findSimilar($categoryName, $parentId, 'sub');
                 
                 if ($similarCategories->isNotEmpty()) {
-                    // Check if any similar category can be shared
+                    // Check if any similar sub-category can be shared
                     foreach ($similarCategories as $similarCategory) {
                         if ($similarCategory->canBeUsedByRestaurant($restaurant->id)) {
-                            // Restaurant can already use this category
+                            // Restaurant can already use this sub-category
                             if ($request->expectsJson()) {
                                 return response()->json([
                                     'success' => true,
-                                    'message' => 'Category "' . $similarCategory->name . '" is already available for your restaurant.',
+                                    'message' => 'Sub-category "' . $similarCategory->name . '" is already available for your restaurant.',
                                     'category' => $similarCategory,
                                     'similar_found' => true
                                 ]);
                             }
-                            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category "' . $similarCategory->name . '" is already available for your restaurant.');
+                            return redirect()->route('restaurant.menu', $slug)->with('success', 'Sub-category "' . $similarCategory->name . '" is already available for your restaurant.');
                         }
                     }
                     
-                    // Check if we can share an existing category
+                    // Check if we can share an existing sub-category
                     $exactMatch = $similarCategories->first(function($cat) use ($categoryName) {
                         return strtolower(trim($cat->name)) === strtolower($categoryName);
                     });
                     
                     if ($exactMatch) {
-                        // Share the existing category
+                        // Share the existing sub-category
                         $exactMatch->addRestaurant($restaurant->id);
                         
                         if ($request->expectsJson()) {
                             return response()->json([
                                 'success' => true,
-                                'message' => 'Category "' . $exactMatch->name . '" is now shared with your restaurant!',
+                                'message' => 'Sub-category "' . $exactMatch->name . '" is now shared with your restaurant!',
                                 'category' => $exactMatch,
                                 'shared' => true
                             ]);
                         }
-                        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category "' . $exactMatch->name . '" is now shared with your restaurant!');
+                        return redirect()->route('restaurant.menu', $slug)->with('success', 'Sub-category "' . $exactMatch->name . '" is now shared with your restaurant!');
                     }
                     
-                    // Show similar categories to user
+                    // Show similar sub-categories to user
                     if ($request->expectsJson()) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'Similar categories found. Please choose one or create a new one.',
+                            'message' => 'Similar sub-categories found. Please choose one or create a new one.',
                             'similar_categories' => $similarCategories->map(function($cat) {
                                 return [
                                     'id' => $cat->id,
@@ -765,15 +764,15 @@ class MenuController extends Controller
                 }
             }
             
-            // Create new category (either forced or no similar found)
-            $category = Category::findOrCreateShared($categoryName, $restaurant->id, $parentId, $type);
+            // Create new sub-category (either forced or no similar found)
+            $category = Category::findOrCreateShared($categoryName, $restaurant->id, $parentId, 'sub');
             
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true, 
                     'message' => $category->isShared() ? 
-                        'Category "' . $category->name . '" created and is now available for sharing with other restaurants!' :
-                        'Category "' . $category->name . '" created successfully!',
+                        'Sub-category "' . $category->name . '" created and is now available for sharing with other restaurants!' :
+                        'Sub-category "' . $category->name . '" created successfully!',
                     'category' => $category,
                     'created' => true
                 ]);
@@ -781,8 +780,8 @@ class MenuController extends Controller
             
             return redirect()->route('restaurant.menu', $slug)->with('success', 
                 $category->isShared() ? 
-                'Category "' . $category->name . '" created and is now available for sharing with other restaurants!' :
-                'Category "' . $category->name . '" created successfully!'
+                'Sub-category "' . $category->name . '" created and is now available for sharing with other restaurants!' :
+                'Sub-category "' . $category->name . '" created successfully!'
             );
             
         } catch (\Exception $e) {

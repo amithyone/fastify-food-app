@@ -351,57 +351,91 @@
 <div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
         <div class="mt-3">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4" id="categoryModalTitle">Add Category</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4" id="categoryModalTitle">Add Sub-Category</h3>
             
             <!-- Category Type Selection -->
             <div class="mb-6">
                 <div class="flex space-x-4 mb-4">
                     <label class="flex items-center">
-                        <input type="radio" name="category_type" value="custom" checked class="text-orange-600 focus:ring-orange-500 mr-2">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Create Custom Category</span>
+                        <input type="radio" name="category_type" value="existing" checked class="text-orange-600 focus:ring-orange-500 mr-2">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Select Existing Sub-Category</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="category_type" value="global" class="text-orange-600 focus:ring-orange-500 mr-2">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Use Global Category</span>
+                        <input type="radio" name="category_type" value="custom" class="text-orange-600 focus:ring-orange-500 mr-2">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Create New Sub-Category</span>
                     </label>
                 </div>
                 
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                     <i class="fas fa-info-circle mr-1"></i>
-                    <strong>Custom Category:</strong> Create a unique category for your restaurant<br>
-                    <strong>Global Category:</strong> Use a pre-defined category that other restaurants can also use
+                    <strong>Select Existing:</strong> Choose from sub-categories already created by other restaurants<br>
+                    <strong>Create New:</strong> Create a new sub-category (we'll check for similar ones to avoid duplication)
                 </p>
             </div>
             
-            <!-- Custom Category Form -->
+            <!-- Category Form -->
             <form id="categoryForm" class="space-y-4">
                 @csrf
-                <input type="hidden" name="use_global_category" value="0">
-                <input type="hidden" name="global_category_id" value="">
+                <input type="hidden" name="use_existing_category" value="0">
+                <input type="hidden" name="existing_category_id" value="">
                 
-                <div id="customCategoryForm">
+                <!-- Existing Sub-Category Selection -->
+                <div id="existingCategoryForm">
                     <div class="mb-4">
-                        <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
-                        <input type="text" id="categoryName" name="name" required
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                               placeholder="e.g., Breakfast, Main Course, Desserts">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            <i class="fas fa-lightbulb mr-1"></i>
-                            <strong>Smart Matching:</strong> We'll check if similar categories exist and suggest sharing them to avoid duplication.
-                        </p>
-                    </div>
-                    <div class="mb-4">
-                        <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category (Optional)</label>
-                        <select id="categoryParent" name="parent_id" 
+                        <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
+                        <select id="categoryParent" name="parent_id" required
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                            <option value="">No parent category (standalone)</option>
+                            <option value="">Select a parent category</option>
                             @foreach($globalCategories as $parentCategory)
                                 <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }} (Global)</option>
                             @endforeach
                         </select>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
-                            Optional: Select a global main category to create a sub-category, or leave empty for a standalone category
+                            Select the main category under which you want to add a sub-category
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available Sub-Categories</label>
+                        <div id="existingSubCategoriesList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                            <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+                                <i class="fas fa-info-circle mb-2"></i>
+                                <p>Select a parent category to see available sub-categories</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <i class="fas fa-share-alt mr-1"></i>
+                            Click on a sub-category to use it for your restaurant. This will share it with other restaurants.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- New Sub-Category Creation -->
+                <div id="customCategoryForm" class="hidden">
+                    <div class="mb-4">
+                        <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sub-Category Name</label>
+                        <input type="text" id="categoryName" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                               placeholder="e.g., Caesar Salad, Grilled Chicken, Chocolate Cake">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <i class="fas fa-lightbulb mr-1"></i>
+                            <strong>Smart Matching:</strong> We'll check if similar sub-categories exist and suggest sharing them to avoid duplication.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="newCategoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
+                        <select id="newCategoryParent" name="parent_id" required
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            <option value="">Select a parent category</option>
+                            @foreach($globalCategories as $parentCategory)
+                                <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }} (Global)</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Required: Select the main category under which to create this sub-category
                         </p>
                     </div>
                     
@@ -409,38 +443,11 @@
                     <div class="mb-4">
                         <label class="flex items-center">
                             <input type="checkbox" name="force_create" value="1" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
-                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Force create new category (skip smart matching)</span>
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Force create new sub-category (skip smart matching)</span>
                         </label>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
                             <i class="fas fa-exclamation-triangle mr-1"></i>
-                            Only use this if you're sure you want a completely new category
-                        </p>
-                    </div>
-                </div>
-                
-                <!-- Global Category Selection -->
-                <div id="globalCategoryForm" class="hidden">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Global Category</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-                            @foreach($globalCategories as $globalCategory)
-                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                                     onclick="selectGlobalCategory({{ $globalCategory->id }}, '{{ $globalCategory->name }}')">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <div class="font-medium text-gray-900 dark:text-white">{{ $globalCategory->name }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">Global Category</div>
-                                        </div>
-                                        <div class="text-green-500">
-                                            <i class="fas fa-check-circle hidden" id="selected-{{ $globalCategory->id }}"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Click on a global category to use it for your restaurant. This will create a copy that you can customize.
+                            Only use this if you're sure you want a completely new sub-category
                         </p>
                     </div>
                 </div>
@@ -452,7 +459,7 @@
                     </button>
                     <button type="submit" 
                             class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                        <span id="submitButtonText">Save Category</span>
+                        <span id="submitButtonText">Add Sub-Category</span>
                     </button>
                 </div>
             </form>
@@ -921,69 +928,131 @@ function openCategoryModal(parentId = '', parentName = '') {
     document.getElementById('categoryForm').reset();
     document.getElementById('categoryName').value = '';
     document.getElementById('categoryParent').value = '';
-    document.querySelector('input[name="use_global_category"]').value = '0';
-    document.querySelector('input[name="global_category_id"]').value = '';
+    document.getElementById('newCategoryParent').value = '';
+    document.querySelector('input[name="use_existing_category"]').value = '0';
+    document.querySelector('input[name="existing_category_id"]').value = '';
     
     // Reset category type selection
-    document.querySelector('input[name="category_type"][value="custom"]').checked = true;
-    showCustomCategoryForm();
+    document.querySelector('input[name="category_type"][value="existing"]').checked = true;
+    showExistingCategoryForm();
     
-    // Clear global category selection
-    clearGlobalCategorySelection();
+    // Clear existing category selection
+    clearExistingCategorySelection();
     
     if (parentId && parentName) {
         document.getElementById('categoryModalTitle').textContent = `Add Sub-Category to ${parentName}`;
         document.getElementById('categoryParent').value = parentId;
+        document.getElementById('newCategoryParent').value = parentId;
         document.getElementById('categoryParent').disabled = true;
+        document.getElementById('newCategoryParent').disabled = true;
+        // Load sub-categories for this parent
+        loadExistingSubCategories(parentId);
     } else {
-        document.getElementById('categoryModalTitle').textContent = 'Add Category';
+        document.getElementById('categoryModalTitle').textContent = 'Add Sub-Category';
         document.getElementById('categoryParent').value = '';
+        document.getElementById('newCategoryParent').value = '';
         document.getElementById('categoryParent').disabled = false;
+        document.getElementById('newCategoryParent').disabled = false;
+        // Clear sub-categories list
+        clearExistingSubCategoriesList();
     }
     
     document.getElementById('categoryModal').classList.remove('hidden');
 }
 
-function showCustomCategoryForm() {
-    document.getElementById('customCategoryForm').classList.remove('hidden');
-    document.getElementById('globalCategoryForm').classList.add('hidden');
-    document.getElementById('categoryName').required = true;
-    document.getElementById('submitButtonText').textContent = 'Save Category';
-}
-
-function showGlobalCategoryForm() {
+function showExistingCategoryForm() {
+    document.getElementById('existingCategoryForm').classList.remove('hidden');
     document.getElementById('customCategoryForm').classList.add('hidden');
-    document.getElementById('globalCategoryForm').classList.remove('hidden');
     document.getElementById('categoryName').required = false;
-    document.getElementById('submitButtonText').textContent = 'Add Global Category';
+    document.getElementById('submitButtonText').textContent = 'Select Sub-Category';
 }
 
-function selectGlobalCategory(categoryId, categoryName) {
+function showCustomCategoryForm() {
+    document.getElementById('existingCategoryForm').classList.add('hidden');
+    document.getElementById('customCategoryForm').classList.remove('hidden');
+    document.getElementById('categoryName').required = true;
+    document.getElementById('submitButtonText').textContent = 'Create Sub-Category';
+}
+
+function loadExistingSubCategories(parentId) {
+    const listContainer = document.getElementById('existingSubCategoriesList');
+    
+    // Filter existing sub-categories by parent
+    const subCategories = @json($existingSubCategories).filter(cat => cat.parent_id == parentId);
+    
+    if (subCategories.length === 0) {
+        listContainer.innerHTML = `
+            <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+                <i class="fas fa-info-circle mb-2"></i>
+                <p>No existing sub-categories found for this parent category</p>
+                <p class="text-xs mt-1">You can create a new one using the "Create New Sub-Category" option</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    subCategories.forEach(category => {
+        const isShared = category.is_shared || false;
+        const restaurantCount = category.restaurant_ids ? category.restaurant_ids.length : 1;
+        
+        html += `
+            <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                 onclick="selectExistingCategory(${category.id}, '${category.name}')">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-medium text-gray-900 dark:text-white">${category.name}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            ${isShared ? `Shared by ${restaurantCount} restaurants` : 'Single restaurant'}
+                        </div>
+                    </div>
+                    <div class="text-green-500">
+                        <i class="fas fa-check-circle hidden" id="selected-existing-${category.id}"></i>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    listContainer.innerHTML = html;
+}
+
+function clearExistingSubCategoriesList() {
+    const listContainer = document.getElementById('existingSubCategoriesList');
+    listContainer.innerHTML = `
+        <div class="text-center text-gray-500 dark:text-gray-400 py-4">
+            <i class="fas fa-info-circle mb-2"></i>
+            <p>Select a parent category to see available sub-categories</p>
+        </div>
+    `;
+}
+
+function selectExistingCategory(categoryId, categoryName) {
     // Clear previous selection
-    clearGlobalCategorySelection();
+    clearExistingCategorySelection();
     
     // Set the selected category
-    document.querySelector('input[name="use_global_category"]').value = '1';
-    document.querySelector('input[name="global_category_id"]').value = categoryId;
+    document.querySelector('input[name="use_existing_category"]').value = '1';
+    document.querySelector('input[name="existing_category_id"]').value = categoryId;
     
     // Show selection indicator
-    const selectedIcon = document.getElementById(`selected-${categoryId}`);
+    const selectedIcon = document.getElementById(`selected-existing-${categoryId}`);
     if (selectedIcon) {
         selectedIcon.classList.remove('hidden');
     }
     
     // Update submit button text
-    document.getElementById('submitButtonText').textContent = `Add "${categoryName}" to Restaurant`;
+    document.getElementById('submitButtonText').textContent = `Use "${categoryName}"`;
 }
 
-function clearGlobalCategorySelection() {
+function clearExistingCategorySelection() {
     // Clear all selection indicators
-    const selectedIcons = document.querySelectorAll('[id^="selected-"]');
+    const selectedIcons = document.querySelectorAll('[id^="selected-existing-"]');
     selectedIcons.forEach(icon => icon.classList.add('hidden'));
     
     // Clear form values
-    document.querySelector('input[name="use_global_category"]').value = '0';
-    document.querySelector('input[name="global_category_id"]').value = '';
+    document.querySelector('input[name="use_existing_category"]').value = '0';
+    document.querySelector('input[name="existing_category_id"]').value = '';
 }
 
 // Similar Categories Functions
@@ -1316,10 +1385,20 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             if (this.value === 'custom') {
                 showCustomCategoryForm();
-            } else if (this.value === 'global') {
-                showGlobalCategoryForm();
+            } else if (this.value === 'existing') {
+                showExistingCategoryForm();
             }
         });
+    });
+    
+    // Parent category selection handler for existing sub-categories
+    document.getElementById('categoryParent').addEventListener('change', function() {
+        const parentId = this.value;
+        if (parentId) {
+            loadExistingSubCategories(parentId);
+        } else {
+            clearExistingSubCategoriesList();
+        }
     });
     
     // Category form submission
