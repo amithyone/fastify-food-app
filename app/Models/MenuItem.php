@@ -70,42 +70,36 @@ class MenuItem extends Model
     }
 
     /**
-     * Get the image URL with fallback to restaurant's default image
+     * Get the image URL with comprehensive fallback logic
      */
     public function getImageUrlAttribute()
     {
-        // If menu item references a restaurant image, use it
-        if ($this->restaurant_image_id && $this->restaurantImage) {
-            return $this->restaurantImage->url;
-        }
-        
-        // If menu item has its own uploaded image, use it
+        // 1. If menu item has its own uploaded image, use it
         if ($this->image && \Storage::disk('public')->exists($this->image)) {
             $url = \Storage::disk('public')->url($this->image);
             return \App\Helpers\PWAHelper::fixStorageUrl($url);
         }
         
-        // If restaurant has a custom default image, use it
+        // 2. If menu item references a restaurant image, use it
+        if ($this->restaurant_image_id && $this->restaurantImage) {
+            return $this->restaurantImage->url;
+        }
+        
+        // 3. If restaurant is premium AND has custom placeholder image, use it
         if ($this->restaurant && $this->restaurant->hasCustomDefaultImage()) {
             return $this->restaurant->default_image_url;
         }
         
-        // Fallback to system default placeholder
-        $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
-        return \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+        // 4. Fallback to system default placeholder (for non-premium or premium without custom image)
+        return asset('images/imageplaceholder.png');
     }
 
     /**
-     * Get the image thumbnail URL with fallback
+     * Get the image thumbnail URL with comprehensive fallback logic
      */
     public function getImageThumbnailUrlAttribute()
     {
-        // If menu item references a restaurant image, use its thumbnail
-        if ($this->restaurant_image_id && $this->restaurantImage) {
-            return $this->restaurantImage->thumbnail_url;
-        }
-        
-        // If menu item has its own image, try to get thumbnail
+        // 1. If menu item has its own image, try to get thumbnail
         if ($this->image) {
             $pathInfo = pathinfo($this->image);
             $thumbnailPath = $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['basename'];
@@ -116,13 +110,17 @@ class MenuItem extends Model
             }
         }
         
-        // If restaurant has a custom default image, use its thumbnail
+        // 2. If menu item references a restaurant image, use its thumbnail
+        if ($this->restaurant_image_id && $this->restaurantImage) {
+            return $this->restaurantImage->thumbnail_url;
+        }
+        
+        // 3. If restaurant is premium AND has custom placeholder image, use its thumbnail
         if ($this->restaurant && $this->restaurant->hasCustomDefaultImage()) {
             return $this->restaurant->default_image_thumbnail_url;
         }
         
-        // Fallback to system default placeholder
-        $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
-        return \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+        // 4. Fallback to system default placeholder (for non-premium or premium without custom image)
+        return asset('images/imageplaceholder.png');
     }
 }

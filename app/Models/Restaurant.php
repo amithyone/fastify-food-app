@@ -220,8 +220,7 @@ class Restaurant extends Model
         }
         
         // Fallback to system default placeholder
-        $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
-        return \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+        return asset('images/imageplaceholder.png');
     }
 
     public function getDefaultImageThumbnailUrlAttribute()
@@ -241,8 +240,7 @@ class Restaurant extends Model
         }
         
         // Fallback to system default placeholder
-        $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
-        return \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+        return asset('images/imageplaceholder.png');
     }
 
     public function getVisibleMenuItemsAttribute()
