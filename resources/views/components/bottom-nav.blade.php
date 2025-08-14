@@ -8,7 +8,32 @@
         <span class="text-xs mt-0.5">Home</span>
     </a>
     
-    <a href="{{ route('menu.index') }}" class="flex flex-col items-center {{ request()->routeIs('menu.*') ? 'text-orange-500 dark:text-orange-300' : 'text-gray-400 dark:text-gray-400' }}">
+    @php
+        // Determine the current restaurant context
+        $currentRestaurant = null;
+        
+        // Check if we're on a restaurant-specific page
+        if (isset($restaurant)) {
+            $currentRestaurant = $restaurant;
+        } elseif (request()->routeIs('menu.index') && request()->segment(2)) {
+            // We're on a restaurant-specific menu page
+            $currentRestaurant = \App\Models\Restaurant::where('slug', request()->segment(2))->first();
+        } elseif (session('qr_restaurant_id')) {
+            // We're in a QR code context
+            $currentRestaurant = \App\Models\Restaurant::find(session('qr_restaurant_id'));
+        }
+        
+        // Determine menu URL
+        if ($currentRestaurant) {
+            $menuUrl = route('menu.index', $currentRestaurant->slug);
+            $isRestaurantMenu = true;
+        } else {
+            $menuUrl = route('menu.index');
+            $isRestaurantMenu = false;
+        }
+    @endphp
+    
+    <a href="{{ $menuUrl }}" class="flex flex-col items-center {{ request()->routeIs('menu.*') ? 'text-orange-500 dark:text-orange-300' : 'text-gray-400 dark:text-gray-400' }}">
         <!-- Menu Icon (modern) -->
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
