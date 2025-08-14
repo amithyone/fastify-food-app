@@ -1283,6 +1283,33 @@ function deleteCategory(id) {
     }
 }
 
+function deactivateCategory(id) {
+    if (confirm('Are you sure you want to remove this category from your restaurant? This will completely remove it from your menu but won\'t affect other restaurants using it.')) {
+        fetch(`{{ route('restaurant.categories.deactivate', ['slug' => $restaurant->slug]) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                category_id: id
+            })
+        }).then(response => {
+            return response.json().then(data => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error removing category: ' + (data.message || 'Unknown error'));
+                }
+            });
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Error removing category');
+        });
+    }
+}
+
 // Menu Item Management
 function openMenuItemModal() {
     editingMenuItemId = null;

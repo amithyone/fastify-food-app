@@ -893,7 +893,14 @@ class MenuController extends Controller
     public function destroyCategory(Request $request, $slug, $category)
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
-        $category = Category::where('id', $category)->where('restaurant_id', $restaurant->id)->firstOrFail();
+        
+        // Find category - either owned by this restaurant or shared with this restaurant
+        $category = Category::where('id', $category)
+                           ->where(function($query) use ($restaurant) {
+                               $query->where('restaurant_id', $restaurant->id)
+                                     ->orWhereRaw('JSON_CONTAINS(restaurant_ids, ?)', [json_encode($restaurant->id)]);
+                           })
+                           ->firstOrFail();
         
         if (Auth::check()) {
             if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
@@ -910,8 +917,9 @@ class MenuController extends Controller
         }
         
         try {
-            // Check if category has menu items
-            if ($category->menuItems()->count() > 0) {
+            // Check if category has menu items for this restaurant
+            $menuItemsCount = $category->menuItems()->where('restaurant_id', $restaurant->id)->count();
+            if ($menuItemsCount > 0) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false, 
@@ -921,16 +929,24 @@ class MenuController extends Controller
                 return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category that has menu items. Please move or delete the menu items first.');
             }
             
-            $category->delete();
+            // If this is a shared category, remove the restaurant from it
+            if ($category->isShared() && $category->canBeUsedByRestaurant($restaurant->id)) {
+                $category->removeRestaurant($restaurant->id);
+                $message = 'Category "' . $category->name . '" has been removed from your restaurant.';
+            } else {
+                // If this is a restaurant-specific category, delete it entirely
+                $category->delete();
+                $message = 'Category deleted successfully!';
+            }
             
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true, 
-                    'message' => 'Category deleted successfully!'
+                    'message' => $message
                 ]);
             }
             
-            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category deleted successfully!');
+            return redirect()->route('restaurant.menu', $slug)->with('success', $message);
         } catch (\Exception $e) {
             \Log::error('Error deleting category: ' . $e->getMessage());
             
