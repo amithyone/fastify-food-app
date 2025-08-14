@@ -583,8 +583,8 @@ class OrderController extends Controller
             elseif ($user && $user->isAdmin()) {
                 $canAccess = true;
             }
-            // Restaurant owner can access their restaurant's orders
-            elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+            // Restaurant manager/owner can access their restaurant's orders
+            elseif ($user && \App\Models\Manager::canAccessRestaurant(Auth::id(), $order->restaurant_id, 'manager')) {
                 $canAccess = true;
             }
         }
@@ -776,8 +776,8 @@ class OrderController extends Controller
         // Check if user can view this order
         if ($user && $user->isAdmin()) {
             // Admin can view any order
-        } elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
-            // Restaurant owner can view their own restaurant's orders
+        } elseif ($user && \App\Models\Manager::canAccessRestaurant(Auth::id(), $order->restaurant_id, 'manager')) {
+            // Restaurant manager/owner can view their restaurant's orders
         } elseif (Auth::check() && $order->user_id === Auth::id()) {
             // User can view their own orders
         } elseif ($order->user_id === null) {
