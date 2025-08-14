@@ -877,6 +877,14 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                     submitBtn.disabled = false;
                 }
             } else {
+                // For non-transfer payments, redirect to order confirmation
+                const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
+                if (isAuthenticated) {
+                    window.location.href = `/orders/${data.order_id}`;
+                } else {
+                    window.location.href = `/guest/orders/${data.order_id}`;
+                }
+            } else {
                 showNotification(data.message || 'Failed to create order', 'error');
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -917,8 +925,13 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                 }
             });
             
-            // Redirect to order confirmation
-            window.location.href = `/orders/${data.order_id}`;
+            // Redirect to order confirmation based on authentication status
+            const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
+            if (isAuthenticated) {
+                window.location.href = `/orders/${data.order_id}`;
+            } else {
+                window.location.href = `/guest/orders/${data.order_id}`;
+            }
         } else {
             alert('Error placing order: ' + data.message);
         }

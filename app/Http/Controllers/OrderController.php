@@ -585,6 +585,39 @@ class OrderController extends Controller
         return view('orders.show', compact('order'));
     }
 
+    public function guestOrderShow($id)
+    {
+        // Find order by ID or tracking code
+        $order = Order::with('orderItems.menuItem')
+            ->where(function($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('tracking_code', $id);
+            })
+            ->first();
+
+        if (!$order) {
+            abort(404, 'Order not found.');
+        }
+
+        // For guest orders, check if it's a guest order (no user_id or has tracking code)
+        if ($order->user_id !== null && !$order->tracking_code) {
+            abort(403, 'This order requires authentication to view.');
+        }
+
+        // Log guest order access
+        \Log::info('Guest order show access', [
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'tracking_code' => $order->tracking_code,
+            'order_type' => $order->order_type,
+            'restaurant_id' => $order->restaurant_id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent()
+        ]);
+
+        return view('orders.guest-show', compact('order'));
+    }
+
     public function index()
     {
         if (Auth::check()) {
