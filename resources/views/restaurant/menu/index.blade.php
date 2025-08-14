@@ -436,7 +436,7 @@
                     
                     <div class="mb-4">
                         <label for="newCategoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
-                        <select id="newCategoryParent" name="parent_id" required
+                        <select id="newCategoryParent" name="parent_id_new" required
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select a parent category</option>
                             @foreach($globalCategories as $parentCategory)
@@ -1504,6 +1504,24 @@ document.addEventListener('DOMContentLoaded', function() {
             
             closeCategoryModal();
             return;
+        }
+        
+        // For new category creation, ensure parent_id is properly set
+        const parentIdField = document.querySelector('select[name="parent_id_new"]');
+        if (parentIdField && !parentIdField.value) {
+            console.log('Parent ID is required but not set');
+            parentIdField.focus();
+            alert('Please select a parent category');
+            return;
+        }
+        
+        // Copy the parent_id_new value to parent_id for the backend
+        if (parentIdField && parentIdField.value) {
+            const hiddenParentId = document.createElement('input');
+            hiddenParentId.type = 'hidden';
+            hiddenParentId.name = 'parent_id';
+            hiddenParentId.value = parentIdField.value;
+            e.target.appendChild(hiddenParentId);
         }
         
         const formData = new FormData(e.target);
