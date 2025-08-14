@@ -104,6 +104,11 @@ class MenuController extends Controller
                 ->get();
         }
         
+        // Add image_url to each menu item
+        $menuItems->each(function ($item) {
+            $item->image_url = $item->image_url;
+        });
+        
         return response()->json($menuItems);
     }
 
@@ -127,6 +132,11 @@ class MenuController extends Controller
                 ->where('is_available', true)
                 ->get();
         }
+        
+        // Add image_url to each menu item
+        $menuItems->each(function ($item) {
+            $item->image_url = $item->image_url;
+        });
         
         return response()->json($menuItems);
     }
