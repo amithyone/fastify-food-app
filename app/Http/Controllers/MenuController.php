@@ -27,6 +27,11 @@ class MenuController extends Controller
             $restaurant = Restaurant::where('slug', $slug)->where('is_active', true)->firstOrFail();
             $categories = $restaurant->categories()->with('menuItems')->where('is_active', true)->get();
             $menuItems = $restaurant->menuItems()->with(['category', 'restaurant'])->where('is_available', true)->get();
+            
+            // Ensure all menu items have the image_url attribute
+            $menuItems->each(function ($item) {
+                $item->image_url = $item->image_url;
+            });
             $stories = $restaurant->stories()->active()->ordered()->get();
             
             return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurant'));
@@ -60,6 +65,11 @@ class MenuController extends Controller
             $menuItems = $menuItems->unique('id');
             $stories = $stories->unique('id');
             
+            // Ensure all menu items have the image_url attribute
+            $menuItems->each(function ($item) {
+                $item->image_url = $item->image_url;
+            });
+            
             return view('menu.index', compact('categories', 'menuItems', 'stories', 'restaurants', 'userLocation'));
         }
     }
@@ -85,6 +95,11 @@ class MenuController extends Controller
         } else {
             $menuItems = MenuItem::with(['category', 'restaurant'])->where('is_available', true)->get();
         }
+        
+        // Ensure all menu items have the image_url attribute
+        $menuItems->each(function ($item) {
+            $item->image_url = $item->image_url;
+        });
         
         return response()->json($menuItems);
     }
@@ -157,6 +172,11 @@ class MenuController extends Controller
         }
         
         $menuItems = $restaurant->menuItems()->with(['category', 'restaurant'])->get();
+        
+        // Ensure all menu items have the image_url attribute
+        $menuItems->each(function ($item) {
+            $item->image_url = $item->image_url;
+        });
         $restaurantCategories = $restaurant->categories()->get();
         
         // Get global main categories (categories with restaurant_id = null)
@@ -608,11 +628,17 @@ class MenuController extends Controller
                 ->whereIn('restaurant_id', $restaurantIds)
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
-        } 
+        }
+        
         // Otherwise, unauthorized
         else {
             abort(403, 'Unauthorized access to admin menu. You need manager privileges.');
         }
+        
+        // Ensure all menu items have the image_url attribute
+        $menuItems->each(function ($item) {
+            $item->image_url = $item->image_url;
+        });
         
         return view('menu.admin-index', compact('menuItems'));
     }
