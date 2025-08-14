@@ -393,7 +393,7 @@
                 <div id="existingCategoryForm">
                     <div class="mb-4">
                         <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
-                        <select id="categoryParent" name="parent_id" required
+                        <select id="categoryParent" name="parent_id_existing" 
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select a parent category</option>
                             @foreach($globalCategories as $parentCategory)
@@ -1038,12 +1038,30 @@ function clearExistingSubCategoriesList() {
 }
 
 function selectExistingCategory(categoryId, categoryName) {
+    console.log('Selecting existing category:', { categoryId, categoryName });
+    
     // Clear previous selection
     clearExistingCategorySelection();
     
     // Set the selected category
-    document.querySelector('input[name="use_existing_category"]').value = '1';
-    document.querySelector('input[name="existing_category_id"]').value = categoryId;
+    const useExistingInput = document.querySelector('input[name="use_existing_category"]');
+    const existingCategoryInput = document.querySelector('input[name="existing_category_id"]');
+    
+    useExistingInput.value = '1';
+    existingCategoryInput.value = categoryId;
+    
+    // Also set the parent_id to avoid form validation errors
+    const parentSelect = document.getElementById('categoryParent');
+    if (parentSelect && parentSelect.value) {
+        // The parent_id is already set from the dropdown selection
+        console.log('Parent ID already set:', parentSelect.value);
+    }
+    
+    console.log('Set form values:', { 
+        useExisting: useExistingInput.value, 
+        existingCategoryId: existingCategoryInput.value,
+        parentId: parentSelect ? parentSelect.value : 'not set'
+    });
     
     // Show selection indicator
     const selectedIcon = document.getElementById(`selected-existing-${categoryId}`);
@@ -1053,6 +1071,8 @@ function selectExistingCategory(categoryId, categoryName) {
     
     // Update submit button text
     document.getElementById('submitButtonText').textContent = `Use "${categoryName}"`;
+    
+    console.log('Category selection completed');
 }
 
 function clearExistingCategorySelection() {
@@ -1445,21 +1465,15 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Category form submitted');
         console.log('Editing category ID:', editingCategoryId);
         
-        const formData = new FormData(e.target);
+        // Check if we're using an existing category before form validation
+        const useExistingCategory = e.target.querySelector('input[name="use_existing_category"]').value;
+        const existingCategoryId = e.target.querySelector('input[name="existing_category_id"]').value;
         
-        // Log form data
-        console.log('Form data:');
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-        }
+        console.log('Pre-validation check:', { useExistingCategory, existingCategoryId });
         
-        // Check if we're using an existing category
-        const useExistingCategory = formData.get('use_existing_category');
-        const existingCategoryId = formData.get('existing_category_id');
-        
+        // If using existing category, bypass form validation and submit directly
         if (useExistingCategory === '1' && existingCategoryId) {
-            // Use existing category
-            console.log('Using existing category with ID:', existingCategoryId);
+            console.log('Bypassing form validation for existing category');
             
             fetch(`{{ route('restaurant.categories.share', ['slug' => $restaurant->slug]) }}`, {
                 method: 'POST',
@@ -1472,8 +1486,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     category_id: existingCategoryId
                 })
             }).then(response => {
+                console.log('Share response status:', response.status);
                 return response.json().then(data => {
+                    console.log('Share response data:', data);
                     if (response.ok) {
+                        console.log('Category shared successfully');
                         window.location.reload();
                     } else {
                         console.error('Error response:', data);
@@ -1482,8 +1499,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }).catch(error => {
                 console.error('Fetch error:', error);
-                alert('Error using category');
+                alert('Error using category: ' + error.message);
             });
+            
+            closeCategoryModal();
+            return;
+        }
+        
+        const formData = new FormData(e.target);
+        
+        // Log form data
+        console.log('Form data:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        
+        // Check if we're using an existing category (this should not be reached for existing categories)
+        const useExistingCategory = formData.get('use_existing_category');
+        const existingCategoryId = formData.get('existing_category_id');
+        
+        console.log('Form submission check:', { useExistingCategory, existingCategoryId });
+        
+        // This section should only handle new category creation and editing
+        if (useExistingCategory === '1' && existingCategoryId) {
+            console.log('Unexpected: Existing category logic reached in form data section');
+            return;
         } else if (editingCategoryId) {
             // Update existing category
             console.log('Updating category with ID:', editingCategoryId);
