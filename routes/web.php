@@ -612,6 +612,10 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'store'])->name('restaurant.default-image.store');
     Route::delete('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'destroy'])->name('restaurant.default-image.destroy');
     
+    // Restaurant Menu Placeholder Image Management (Premium Feature)
+    Route::post('/{slug}/menu-placeholder-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'storeMenuPlaceholder'])->name('restaurant.menu-placeholder.store');
+    Route::delete('/{slug}/menu-placeholder-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'destroyMenuPlaceholder'])->name('restaurant.menu-placeholder.destroy');
+    
     // Restaurant Order Management
     Route::get('/{slug}/orders', [OrderController::class, 'restaurantOrders'])->name('restaurant.orders');
     Route::get('/{slug}/orders/{order}', [OrderController::class, 'restaurantOrderShow'])->name('restaurant.orders.show');

@@ -197,6 +197,12 @@ class Restaurant extends Model
     // Default Image Methods
     public function hasCustomDefaultImage()
     {
+        // Check if restaurant has premium subscription that allows custom placeholder images
+        $subscription = $this->activeSubscription;
+        if (!$subscription || $subscription->plan_type !== 'premium') {
+            return false;
+        }
+        
         return !empty($this->default_menu_image) && \Storage::disk('public')->exists($this->default_menu_image);
     }
 
