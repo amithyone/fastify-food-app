@@ -96,9 +96,20 @@
                                             <div class="flex items-center min-w-0 flex-1">
                                                 <i class="fas fa-folder text-blue-500 mr-2 text-xs"></i>
                                                 <div class="min-w-0 flex-1">
-                                                    <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">{{ $category->name }}</span>
+                                                    <span class="text-xs font-medium text-gray-900 dark:text-white truncate block">
+                                                        {{ $category->name }}
+                                                        @if($category->isShared())
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full ml-1">
+                                                                <i class="fas fa-share-alt text-xs mr-0.5"></i>
+                                                                Shared
+                                                            </span>
+                                                        @endif
+                                                    </span>
                                                     <div class="text-xs text-gray-500 dark:text-gray-400">
                                                         {{ $category->menuItems->count() }} items
+                                                        @if($category->isShared())
+                                                            • {{ count($category->restaurant_ids ?? []) }} restaurants
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -106,9 +117,15 @@
                                                 <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->parent_id }}')" class="text-gray-400 hover:text-blue-600">
                                                     <i class="fas fa-edit text-xs"></i>
                                                 </button>
-                                                <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
-                                                    <i class="fas fa-trash text-xs"></i>
-                                                </button>
+                                                @if(!$category->isShared())
+                                                    <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600">
+                                                        <i class="fas fa-trash text-xs"></i>
+                                                    </button>
+                                                @else
+                                                    <button onclick="removeFromSharedCategory({{ $category->id }})" class="text-gray-400 hover:text-orange-600" title="Remove from shared category">
+                                                        <i class="fas fa-unlink text-xs"></i>
+                                                    </button>
+                                                @endif
                                             </div>
                                         </div>
                                     @endforeach
@@ -332,38 +349,110 @@
 
 <!-- Category Modal -->
 <div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+    <div class="relative top-20 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
         <div class="mt-3">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4" id="categoryModalTitle">Add Category</h3>
-            <form id="categoryForm">
+            
+            <!-- Category Type Selection -->
+            <div class="mb-6">
+                <div class="flex space-x-4 mb-4">
+                    <label class="flex items-center">
+                        <input type="radio" name="category_type" value="custom" checked class="text-orange-600 focus:ring-orange-500 mr-2">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Create Custom Category</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="category_type" value="global" class="text-orange-600 focus:ring-orange-500 mr-2">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Use Global Category</span>
+                    </label>
+                </div>
+                
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <strong>Custom Category:</strong> Create a unique category for your restaurant<br>
+                    <strong>Global Category:</strong> Use a pre-defined category that other restaurants can also use
+                </p>
+            </div>
+            
+            <!-- Custom Category Form -->
+            <form id="categoryForm" class="space-y-4">
                 @csrf
-                <div class="mb-4">
-                    <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
-                    <input type="text" id="categoryName" name="name" required
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                <input type="hidden" name="use_global_category" value="0">
+                <input type="hidden" name="global_category_id" value="">
+                
+                <div id="customCategoryForm">
+                    <div class="mb-4">
+                        <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
+                        <input type="text" id="categoryName" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                               placeholder="e.g., Breakfast, Main Course, Desserts">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <i class="fas fa-lightbulb mr-1"></i>
+                            <strong>Smart Matching:</strong> We'll check if similar categories exist and suggest sharing them to avoid duplication.
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category (Optional)</label>
+                        <select id="categoryParent" name="parent_id" 
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            <option value="">No parent category (standalone)</option>
+                            @foreach($globalCategories as $parentCategory)
+                                <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }} (Global)</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Optional: Select a global main category to create a sub-category, or leave empty for a standalone category
+                        </p>
+                    </div>
+                    
+                    <!-- Force Create Option -->
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="force_create" value="1" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Force create new category (skip smart matching)</span>
+                        </label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Only use this if you're sure you want a completely new category
+                        </p>
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category (Optional)</label>
-                    <select id="categoryParent" name="parent_id" 
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                        <option value="">No parent category (standalone)</option>
-                        @foreach($globalCategories as $parentCategory)
-                            <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }}</option>
-                        @endforeach
-                    </select>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Optional: Select a global main category to create a sub-category, or leave empty for a standalone category
-                    </p>
+                
+                <!-- Global Category Selection -->
+                <div id="globalCategoryForm" class="hidden">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Global Category</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+                            @foreach($globalCategories as $globalCategory)
+                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                                     onclick="selectGlobalCategory({{ $globalCategory->id }}, '{{ $globalCategory->name }}')">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-medium text-gray-900 dark:text-white">{{ $globalCategory->name }}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">Global Category</div>
+                                        </div>
+                                        <div class="text-green-500">
+                                            <i class="fas fa-check-circle hidden" id="selected-{{ $globalCategory->id }}"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Click on a global category to use it for your restaurant. This will create a copy that you can customize.
+                        </p>
+                    </div>
                 </div>
-                <div class="flex justify-end space-x-3">
+                
+                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <button type="button" onclick="closeCategoryModal()" 
                             class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
                         Cancel
                     </button>
                     <button type="submit" 
                             class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                        Save Category
+                        <span id="submitButtonText">Save Category</span>
                     </button>
                 </div>
             </form>
@@ -701,6 +790,33 @@
     </div>
 </div>
 
+<!-- Similar Categories Modal -->
+<div id="similarCategoriesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Similar Categories Found</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                We found similar categories that already exist. You can either use one of these or create a new category.
+            </p>
+            
+            <div id="similarCategoriesList" class="space-y-3 mb-6">
+                <!-- Similar categories will be populated here -->
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <button onclick="closeSimilarCategoriesModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="forceCreateCategory()" 
+                        class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    Create New Category
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Note Modal -->
 <div id="quickNoteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
@@ -801,6 +917,20 @@ function stopDrag() {
 function openCategoryModal(parentId = '', parentName = '') {
     editingCategoryId = null;
     
+    // Reset form
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryName').value = '';
+    document.getElementById('categoryParent').value = '';
+    document.querySelector('input[name="use_global_category"]').value = '0';
+    document.querySelector('input[name="global_category_id"]').value = '';
+    
+    // Reset category type selection
+    document.querySelector('input[name="category_type"][value="custom"]').checked = true;
+    showCustomCategoryForm();
+    
+    // Clear global category selection
+    clearGlobalCategorySelection();
+    
     if (parentId && parentName) {
         document.getElementById('categoryModalTitle').textContent = `Add Sub-Category to ${parentName}`;
         document.getElementById('categoryParent').value = parentId;
@@ -811,8 +941,153 @@ function openCategoryModal(parentId = '', parentName = '') {
         document.getElementById('categoryParent').disabled = false;
     }
     
-    document.getElementById('categoryName').value = '';
     document.getElementById('categoryModal').classList.remove('hidden');
+}
+
+function showCustomCategoryForm() {
+    document.getElementById('customCategoryForm').classList.remove('hidden');
+    document.getElementById('globalCategoryForm').classList.add('hidden');
+    document.getElementById('categoryName').required = true;
+    document.getElementById('submitButtonText').textContent = 'Save Category';
+}
+
+function showGlobalCategoryForm() {
+    document.getElementById('customCategoryForm').classList.add('hidden');
+    document.getElementById('globalCategoryForm').classList.remove('hidden');
+    document.getElementById('categoryName').required = false;
+    document.getElementById('submitButtonText').textContent = 'Add Global Category';
+}
+
+function selectGlobalCategory(categoryId, categoryName) {
+    // Clear previous selection
+    clearGlobalCategorySelection();
+    
+    // Set the selected category
+    document.querySelector('input[name="use_global_category"]').value = '1';
+    document.querySelector('input[name="global_category_id"]').value = categoryId;
+    
+    // Show selection indicator
+    const selectedIcon = document.getElementById(`selected-${categoryId}`);
+    if (selectedIcon) {
+        selectedIcon.classList.remove('hidden');
+    }
+    
+    // Update submit button text
+    document.getElementById('submitButtonText').textContent = `Add "${categoryName}" to Restaurant`;
+}
+
+function clearGlobalCategorySelection() {
+    // Clear all selection indicators
+    const selectedIcons = document.querySelectorAll('[id^="selected-"]');
+    selectedIcons.forEach(icon => icon.classList.add('hidden'));
+    
+    // Clear form values
+    document.querySelector('input[name="use_global_category"]').value = '0';
+    document.querySelector('input[name="global_category_id"]').value = '';
+}
+
+// Similar Categories Functions
+function showSimilarCategoriesModal(similarCategories) {
+    const modal = document.getElementById('similarCategoriesModal');
+    const listContainer = document.getElementById('similarCategoriesList');
+    
+    // Clear previous content
+    listContainer.innerHTML = '';
+    
+    // Add similar categories to the list
+    similarCategories.forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors';
+        categoryDiv.onclick = () => useSimilarCategory(category.id, category.name);
+        
+        categoryDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-gray-900 dark:text-white">${category.name}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                        ${category.is_shared ? `Shared by ${category.restaurant_count} restaurants` : 'Single restaurant category'}
+                    </div>
+                </div>
+                <div class="text-green-500">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        `;
+        
+        listContainer.appendChild(categoryDiv);
+    });
+    
+    modal.classList.remove('hidden');
+}
+
+function closeSimilarCategoriesModal() {
+    document.getElementById('similarCategoriesModal').classList.add('hidden');
+}
+
+function useSimilarCategory(categoryId, categoryName) {
+    // Add the restaurant to the shared category
+    fetch(`{{ route('restaurant.categories.share', ['slug' => $restaurant->slug ?? 'restaurant']) }}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            category_id: categoryId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeSimilarCategoriesModal();
+            closeCategoryModal();
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sharing category');
+    });
+}
+
+function forceCreateCategory() {
+    // Set force create flag and submit the form
+    document.querySelector('input[name="force_create"]').value = '1';
+    closeSimilarCategoriesModal();
+    
+    // Submit the category form
+    document.getElementById('categoryForm').dispatchEvent(new Event('submit'));
+}
+
+function removeFromSharedCategory(categoryId) {
+    if (confirm('Are you sure you want to remove this category from your restaurant? This will not delete the category, just remove it from your restaurant.')) {
+        fetch(`{{ route('restaurant.categories.unshare', ['slug' => $restaurant->slug ?? 'restaurant']) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                category_id: categoryId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing category');
+        });
+    }
 }
 
 function closeCategoryModal() {
@@ -1036,6 +1311,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Category type selection handlers
+    document.querySelectorAll('input[name="category_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                showCustomCategoryForm();
+            } else if (this.value === 'global') {
+                showGlobalCategoryForm();
+            }
+        });
+    });
+    
     // Category form submission
     document.getElementById('categoryForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -1093,6 +1379,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json().then(data => {
                     if (response.ok) {
                         window.location.reload();
+                    } else if (response.status === 422 && data.suggest_sharing) {
+                        // Show similar categories modal
+                        showSimilarCategoriesModal(data.similar_categories);
                     } else {
                         console.error('Error response:', data);
                         alert('Error creating category: ' + (data.message || 'Unknown error'));

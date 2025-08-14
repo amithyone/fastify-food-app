@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            GlobalCategorySeeder::class, // Global categories should be seeded first
             SampleRestaurantSeeder::class,
             FeaturedRestaurantSeeder::class,
             VideoPackageTemplateSeeder::class,

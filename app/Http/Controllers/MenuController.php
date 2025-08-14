@@ -148,10 +148,15 @@ class MenuController extends Controller
         
         $menuItems = $restaurant->menuItems()->with('category')->get();
         $restaurantCategories = $restaurant->categories()->get();
-        $globalCategories = Category::where('type', 'main')->whereNull('restaurant_id')->orderBy('sort_order')->get();
         
-        // Combine restaurant categories and global categories for the dropdown
-        $allCategories = $restaurantCategories->merge($globalCategories);
+        // Get global main categories (categories with restaurant_id = null)
+        $globalCategories = Category::globalMainCategories()->ordered()->get();
+        
+        // Get all categories available for this restaurant (global + restaurant-specific)
+        $allCategories = Category::availableForRestaurant($restaurant->id)
+                                ->where('is_active', true)
+                                ->ordered()
+                                ->get();
         
         return view('restaurant.menu.index', compact('restaurant', 'menuItems', 'restaurantCategories', 'globalCategories', 'allCategories'));
     }
@@ -618,56 +623,168 @@ class MenuController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'parent_id' => 'nullable|exists:categories,id',
-                'is_active' => 'boolean',
+                'use_global_category' => 'nullable|boolean',
+                'global_category_id' => 'nullable|exists:categories,id',
+                'force_create' => 'nullable|boolean', // New field to force create even if similar exists
             ]);
             
-            // If parent_id is provided, validate it's a global main category
-            if (!empty($validated['parent_id'])) {
-                $parentCategory = Category::find($validated['parent_id']);
-                if (!$parentCategory || $parentCategory->type !== 'main' || $parentCategory->restaurant_id !== null) {
+            // If user wants to use a global category
+            if (!empty($validated['use_global_category']) && !empty($validated['global_category_id'])) {
+                $globalCategory = Category::find($validated['global_category_id']);
+                
+                if (!$globalCategory || !$globalCategory->isGlobal()) {
                     if ($request->expectsJson()) {
                         return response()->json([
                             'success' => false, 
-                            'message' => 'Invalid parent category selected. Please select a main category.'
+                            'message' => 'Invalid global category selected.'
                         ], 422);
                     }
-                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid parent category selected. Please select a main category.');
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Invalid global category selected.');
                 }
-                $validated['type'] = 'sub'; // Category with parent is a sub-category
-            } else {
-                $validated['type'] = 'main'; // Category without parent is a main category
-                $validated['parent_id'] = null; // Ensure parent_id is null
+                
+                // Check if this global category is already being used by this restaurant
+                $existingUsage = Category::where('restaurant_id', $restaurant->id)
+                                        ->where('name', $globalCategory->name)
+                                        ->first();
+                
+                if ($existingUsage) {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => true, 
+                            'message' => 'Global category "' . $globalCategory->name . '" is already available for your restaurant.',
+                            'category' => $existingUsage
+                        ]);
+                    }
+                    return redirect()->route('restaurant.menu', $slug)->with('success', 'Global category "' . $globalCategory->name . '" is already available for your restaurant.');
+                }
+                
+                // Create a restaurant-specific copy of the global category
+                $categoryData = [
+                    'name' => $globalCategory->name,
+                    'type' => $globalCategory->type,
+                    'parent_id' => $globalCategory->parent_id,
+                    'sort_order' => $globalCategory->sort_order,
+                    'is_active' => true,
+                    'restaurant_id' => $restaurant->id,
+                ];
+                
+                // Generate unique slug for the restaurant
+                $baseSlug = \Illuminate\Support\Str::slug($globalCategory->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                
+                while (Category::where('slug', $slug)
+                              ->where('restaurant_id', $restaurant->id)
+                              ->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+                
+                $categoryData['slug'] = $slug;
+                $category = Category::create($categoryData);
+                
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true, 
+                        'message' => 'Global category "' . $globalCategory->name . '" added to your restaurant successfully!',
+                        'category' => $category
+                    ]);
+                }
+                
+                return redirect()->route('restaurant.menu', $slug)->with('success', 'Global category "' . $globalCategory->name . '" added to your restaurant successfully!');
             }
             
-            $validated['restaurant_id'] = $restaurant->id;
-            $validated['is_active'] = $validated['is_active'] ?? true;
+            // Smart category creation with matching
+            $categoryName = trim($validated['name']);
+            $parentId = $validated['parent_id'] ?? null;
+            $forceCreate = $validated['force_create'] ?? false;
             
-            // Generate unique slug for the category
-            $baseSlug = \Illuminate\Support\Str::slug($validated['name']);
-            $slug = $baseSlug;
-            $counter = 1;
+            // Determine category type
+            $type = $parentId ? 'sub' : 'main';
             
-            // Check if slug already exists
-            while (Category::where('slug', $slug)
-                          ->where('restaurant_id', $restaurant->id)
-                          ->exists()) {
-                $slug = $baseSlug . '-' . $counter;
-                $counter++;
+            // If not forcing creation, check for similar existing categories
+            if (!$forceCreate) {
+                $similarCategories = Category::findSimilar($categoryName, $parentId, $type);
+                
+                if ($similarCategories->isNotEmpty()) {
+                    // Check if any similar category can be shared
+                    foreach ($similarCategories as $similarCategory) {
+                        if ($similarCategory->canBeUsedByRestaurant($restaurant->id)) {
+                            // Restaurant can already use this category
+                            if ($request->expectsJson()) {
+                                return response()->json([
+                                    'success' => true,
+                                    'message' => 'Category "' . $similarCategory->name . '" is already available for your restaurant.',
+                                    'category' => $similarCategory,
+                                    'similar_found' => true
+                                ]);
+                            }
+                            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category "' . $similarCategory->name . '" is already available for your restaurant.');
+                        }
+                    }
+                    
+                    // Check if we can share an existing category
+                    $exactMatch = $similarCategories->first(function($cat) use ($categoryName) {
+                        return strtolower(trim($cat->name)) === strtolower($categoryName);
+                    });
+                    
+                    if ($exactMatch) {
+                        // Share the existing category
+                        $exactMatch->addRestaurant($restaurant->id);
+                        
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'message' => 'Category "' . $exactMatch->name . '" is now shared with your restaurant!',
+                                'category' => $exactMatch,
+                                'shared' => true
+                            ]);
+                        }
+                        return redirect()->route('restaurant.menu', $slug)->with('success', 'Category "' . $exactMatch->name . '" is now shared with your restaurant!');
+                    }
+                    
+                    // Show similar categories to user
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Similar categories found. Please choose one or create a new one.',
+                            'similar_categories' => $similarCategories->map(function($cat) {
+                                return [
+                                    'id' => $cat->id,
+                                    'name' => $cat->name,
+                                    'is_shared' => $cat->isShared(),
+                                    'restaurant_count' => $cat->isShared() ? count($cat->restaurant_ids ?? []) : 1
+                                ];
+                            }),
+                            'suggest_sharing' => true
+                        ], 422);
+                    }
+                    
+                    // For non-AJAX requests, redirect with similar categories info
+                    return redirect()->route('restaurant.menu', $slug)->with('similar_categories', $similarCategories);
+                }
             }
             
-            $validated['slug'] = $slug;
-            
-            $category = Category::create($validated);
+            // Create new category (either forced or no similar found)
+            $category = Category::findOrCreateShared($categoryName, $restaurant->id, $parentId, $type);
             
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true, 
-                    'message' => 'Category created successfully!',
-                    'category' => $category
+                    'message' => $category->isShared() ? 
+                        'Category "' . $category->name . '" created and is now available for sharing with other restaurants!' :
+                        'Category "' . $category->name . '" created successfully!',
+                    'category' => $category,
+                    'created' => true
                 ]);
             }
             
-            return redirect()->route('restaurant.menu', $slug)->with('success', 'Category created successfully!');
+            return redirect()->route('restaurant.menu', $slug)->with('success', 
+                $category->isShared() ? 
+                'Category "' . $category->name . '" created and is now available for sharing with other restaurants!' :
+                'Category "' . $category->name . '" created successfully!'
+            );
+            
         } catch (\Exception $e) {
             \Log::error('Error creating category: ' . $e->getMessage());
             
@@ -794,10 +911,10 @@ class MenuController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false, 
-                        'message' => 'Cannot delete category with menu items. Please move or delete the items first.'
-                    ], 400);
+                        'message' => 'Cannot delete category that has menu items. Please move or delete the menu items first.'
+                    ], 422);
                 }
-                return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category with menu items. Please move or delete the items first.');
+                return redirect()->route('restaurant.menu', $slug)->with('error', 'Cannot delete category that has menu items. Please move or delete the menu items first.');
             }
             
             $category->delete();
@@ -821,6 +938,114 @@ class MenuController extends Controller
             }
             
             return redirect()->route('restaurant.menu', $slug)->with('error', 'Error deleting category: ' . $e->getMessage());
+        }
+    }
+
+    public function shareCategory(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories. You need manager privileges.'], 403);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+        }
+        
+        try {
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+            ]);
+            
+            $category = Category::find($validated['category_id']);
+            
+            if (!$category) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Category not found.'
+                ], 404);
+            }
+            
+            // Check if restaurant can already use this category
+            if ($category->canBeUsedByRestaurant($restaurant->id)) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Category "' . $category->name . '" is already available for your restaurant.',
+                    'category' => $category
+                ]);
+            }
+            
+            // Add restaurant to the shared category
+            $category->addRestaurant($restaurant->id);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Category "' . $category->name . '" is now shared with your restaurant!',
+                'category' => $category
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error sharing category: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error sharing category: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function unshareCategory(Request $request, $slug)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories. You need manager privileges.'], 403);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+        }
+        
+        try {
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+            ]);
+            
+            $category = Category::find($validated['category_id']);
+            
+            if (!$category) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Category not found.'
+                ], 404);
+            }
+            
+            // Check if category has menu items for this restaurant
+            $menuItemsCount = $category->menuItems()->where('restaurant_id', $restaurant->id)->count();
+            if ($menuItemsCount > 0) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cannot remove category that has menu items. Please move or delete the menu items first.'
+                ], 422);
+            }
+            
+            // Remove restaurant from the shared category
+            $category->removeRestaurant($restaurant->id);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Category "' . $category->name . '" has been removed from your restaurant.',
+                'category' => $category
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error unsharing category: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error removing category: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
