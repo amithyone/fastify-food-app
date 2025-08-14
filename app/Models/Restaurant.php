@@ -194,6 +194,45 @@ class Restaurant extends Model
         return $subscription && $subscription->canAccessSocialMediaPromotion();
     }
 
+    // Default Image Methods
+    public function hasCustomDefaultImage()
+    {
+        return !empty($this->default_menu_image) && \Storage::disk('public')->exists($this->default_menu_image);
+    }
+
+    public function getDefaultImageUrlAttribute()
+    {
+        if ($this->hasCustomDefaultImage()) {
+            $url = \Storage::disk('public')->url($this->default_menu_image);
+            return \App\Helpers\PWAHelper::fixStorageUrl($url);
+        }
+        
+        // Fallback to system default placeholder
+        $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
+        return \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+    }
+
+    public function getDefaultImageThumbnailUrlAttribute()
+    {
+        if ($this->hasCustomDefaultImage()) {
+            // Try to get thumbnail version
+            $pathInfo = pathinfo($this->default_menu_image);
+            $thumbnailPath = $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['basename'];
+            
+            if (\Storage::disk('public')->exists($thumbnailPath)) {
+                $url = \Storage::disk('public')->url($thumbnailPath);
+                return \App\Helpers\PWAHelper::fixStorageUrl($url);
+            }
+            
+            // If no thumbnail exists, return the main image
+            return $this->default_image_url;
+        }
+        
+        // Fallback to system default placeholder
+        $placeholderUrl = \Storage::disk('public')->url('restaurants/defaults/placeholder-menu-item.jpg');
+        return \App\Helpers\PWAHelper::fixStorageUrl($placeholderUrl);
+    }
+
     public function getVisibleMenuItemsAttribute()
     {
         $subscription = $this->activeSubscription;
