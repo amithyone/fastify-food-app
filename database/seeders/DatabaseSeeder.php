@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             FeaturedRestaurantSeeder::class,
             VideoPackageTemplateSeeder::class,
             SubscriptionPlanSeeder::class,
+            FreeSubscriptionPlanSeeder::class, // Free plan should be seeded after other plans
             ParentCategorySeeder::class,
             AssignParentCategoriesSeeder::class,
         ]);

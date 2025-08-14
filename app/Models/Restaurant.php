@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 
 class Restaurant extends Model
 {
@@ -670,5 +671,41 @@ class Restaurant extends Model
     public function close()
     {
         $this->update(['is_open' => false]);
+    }
+
+    /**
+     * Boot method to automatically create free subscription for new restaurants
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($restaurant) {
+            // Create free subscription for new restaurants
+            $freePlan = \App\Models\SubscriptionPlan::where('slug', 'free')->first();
+            
+            if ($freePlan) {
+                \App\Models\RestaurantSubscription::create([
+                    'restaurant_id' => $restaurant->id,
+                    'plan_type' => 'free',
+                    'status' => 'active',
+                    'menu_item_limit' => $freePlan->menu_item_limit,
+                    'custom_domain_enabled' => $freePlan->custom_domain_enabled,
+                    'unlimited_menu_items' => $freePlan->unlimited_menu_items,
+                    'priority_support' => $freePlan->priority_support,
+                    'advanced_analytics' => $freePlan->advanced_analytics,
+                    'video_packages_enabled' => $freePlan->video_packages_enabled,
+                    'social_media_promotion_enabled' => $freePlan->social_media_promotion_enabled,
+                    'features' => $freePlan->features,
+                    'monthly_fee' => $freePlan->monthly_price,
+                ]);
+
+                \Log::info('Free subscription created for new restaurant', [
+                    'restaurant_id' => $restaurant->id,
+                    'restaurant_name' => $restaurant->name,
+                    'plan_type' => 'free'
+                ]);
+            }
+        });
     }
 }

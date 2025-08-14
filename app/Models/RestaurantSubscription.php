@@ -156,6 +156,11 @@ class RestaurantSubscription extends Model
             return true;
         }
         
+        // Free plan cannot access video packages
+        if ($this->plan_type === 'free') {
+            return false;
+        }
+        
         return $this->video_packages_enabled && $this->isActive();
     }
 
@@ -164,6 +169,11 @@ class RestaurantSubscription extends Model
         // During trial, give access to all features
         if ($this->isTrial()) {
             return true;
+        }
+        
+        // Free plan cannot access social media promotion
+        if ($this->plan_type === 'free') {
+            return false;
         }
         
         return $this->social_media_promotion_enabled && $this->isActive();
@@ -188,6 +198,99 @@ class RestaurantSubscription extends Model
         
         return $this->advanced_analytics && $this->isActive();
     }
+
+    /**
+     * Check if restaurant can create custom categories (Free plan limitation)
+     */
+    public function canCreateCustomCategories()
+    {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
+        // Free plan cannot create custom categories
+        if ($this->plan_type === 'free') {
+            return false;
+        }
+        
+        return $this->isActive();
+    }
+
+    /**
+     * Check if restaurant can create stories (Free plan limitation)
+     */
+    public function canCreateStories()
+    {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
+        // Free plan cannot create stories
+        if ($this->plan_type === 'free') {
+            return false;
+        }
+        
+        return $this->isActive();
+    }
+
+    /**
+     * Check if restaurant can use AI menu generation (Free plan limitation)
+     */
+    public function canUseAIMenuGeneration()
+    {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
+        // Free plan cannot use AI menu generation
+        if ($this->plan_type === 'free') {
+            return false;
+        }
+        
+        return $this->isActive();
+    }
+
+    /**
+     * Check if restaurant can generate multiple QR codes (Free plan limitation)
+     */
+    public function canGenerateMultipleQRCodes()
+    {
+        // During trial, give access to all features
+        if ($this->isTrial()) {
+            return true;
+        }
+        
+        // Free plan limited to 1 QR code
+        if ($this->plan_type === 'free') {
+            return false;
+        }
+        
+        return $this->isActive();
+    }
+
+    /**
+     * Get QR code limit for the current plan
+     */
+    public function getQRCodeLimit()
+    {
+        // During trial, unlimited
+        if ($this->isTrial()) {
+            return 'unlimited';
+        }
+        
+        // Free plan limited to 1 QR code
+        if ($this->plan_type === 'free') {
+            return 1;
+        }
+        
+        // Other plans unlimited
+        return 'unlimited';
+    }
+
+
 
     public function getFormattedPriceAttribute()
     {
