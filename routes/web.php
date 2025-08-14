@@ -176,13 +176,13 @@ Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout.in
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'userOrders'])->name('orders.index');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-    Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('orders.show');
-    Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
+    Route::get('/orders/{orderNumber}', [OrderController::class, 'userOrderShow'])->name('orders.show');
+    Route::get('/orders/{orderNumber}/status', [OrderController::class, 'status'])->name('orders.status');
 });
 
 // Guest Order Routes (no auth required)
 Route::post('/guest/orders', [OrderController::class, 'store'])->name('guest.orders.store');
-Route::get('/guest/orders/{order}', [OrderController::class, 'guestOrderShow'])->name('guest.orders.show');
+Route::get('/guest/orders/{orderNumber}', [OrderController::class, 'guestOrderShow'])->name('guest.orders.show');
 Route::get('/track-order', function () {
     return view('orders.track-form');
 })->name('orders.track-form');

@@ -880,9 +880,9 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                 // For non-transfer payments, redirect to order confirmation
                 const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
                 if (isAuthenticated) {
-                    window.location.href = `/orders/${data.order_id}`;
+                    window.location.href = `/orders/${data.order_number}`;
                 } else {
-                    window.location.href = `/guest/orders/${data.order_id}`;
+                    window.location.href = `/guest/orders/${data.order_number}`;
                 }
             } else {
                 showNotification(data.message || 'Failed to create order', 'error');
@@ -928,9 +928,9 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             // Redirect to order confirmation based on authentication status
             const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
             if (isAuthenticated) {
-                window.location.href = `/orders/${data.order_id}`;
+                window.location.href = `/orders/${data.order_number}`;
             } else {
-                window.location.href = `/guest/orders/${data.order_id}`;
+                window.location.href = `/guest/orders/${data.order_number}`;
             }
         } else {
             alert('Error placing order: ' + data.message);

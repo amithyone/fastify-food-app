@@ -540,14 +540,27 @@ class OrderController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($orderNumber)
     {
-        $order = Order::with('orderItems.menuItem')->findOrFail($id);
+        // Find order by order number or tracking code
+        $order = Order::with('orderItems.menuItem')
+            ->where(function($query) use ($orderNumber) {
+                $query->where('order_number', $orderNumber)
+                      ->orWhere('tracking_code', $orderNumber);
+            })
+            ->first();
+
+        if (!$order) {
+            abort(404, 'Order not found.');
+        }
+
         $user = Auth::user();
         
         // Debug logging
         \Log::info('Order show access attempt', [
             'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'tracking_code' => $order->tracking_code,
             'order_user_id' => $order->user_id,
             'order_restaurant_id' => $order->restaurant_id,
             'auth_check' => Auth::check(),
@@ -558,40 +571,55 @@ class OrderController extends Controller
             'route_name' => request()->route()->getName()
         ]);
         
-        // TEMPORARY WORKAROUND: Allow all authenticated users to view any order
-        // TODO: Remove this workaround once authorization is properly fixed
-        $canAccess = true; // Allow everyone for now
+        // Check if user can access this order
+        $canAccess = false;
         
-        \Log::info('Order show authorization check (WORKAROUND ENABLED)', [
+        if (Auth::check()) {
+            // Authenticated user can access their own orders
+            if ($order->user_id === Auth::id()) {
+                $canAccess = true;
+            }
+            // Admin can access all orders
+            elseif ($user && $user->isAdmin()) {
+                $canAccess = true;
+            }
+            // Restaurant owner can access their restaurant's orders
+            elseif ($user && $user->isRestaurantOwner() && $user->primaryRestaurant && $order->restaurant_id === $user->primaryRestaurant->id) {
+                $canAccess = true;
+            }
+        }
+        
+        \Log::info('Order show authorization check', [
             'order_id' => $order->id,
+            'order_number' => $order->order_number,
             'order_user_id' => $order->user_id,
             'auth_check' => Auth::check(),
             'auth_id' => Auth::id(),
             'user_name' => $user ? $user->name : 'Guest',
-            'can_access' => $canAccess,
-            'note' => 'WORKAROUND: All users allowed'
+            'can_access' => $canAccess
         ]);
         
         if (!$canAccess) {
             \Log::warning('Unauthorized order show access', [
                 'order_id' => $order->id,
+                'order_number' => $order->order_number,
                 'user_id' => $user ? $user->id : null,
                 'order_created_by' => $order->created_by,
                 'route_name' => request()->route()->getName()
             ]);
-            abort(403, 'Unauthorized access to this order. Order created by: ' . ($order->created_by ?? 'Guest') . ', Your ID: ' . Auth::id());
+            abort(403, 'Unauthorized access to this order.');
         }
         
         return view('orders.show', compact('order'));
     }
 
-    public function guestOrderShow($id)
+    public function guestOrderShow($orderNumber)
     {
-        // Find order by ID or tracking code
+        // Find order by order number or tracking code
         $order = Order::with('orderItems.menuItem')
-            ->where(function($query) use ($id) {
-                $query->where('id', $id)
-                      ->orWhere('tracking_code', $id);
+            ->where(function($query) use ($orderNumber) {
+                $query->where('order_number', $orderNumber)
+                      ->orWhere('tracking_code', $orderNumber);
             })
             ->first();
 
@@ -728,9 +756,21 @@ class OrderController extends Controller
         ]);
     }
 
-    public function status($id)
+    public function status($orderNumber)
     {
-        $order = Order::findOrFail($id);
+        // Find order by order number or tracking code
+        $order = Order::where(function($query) use ($orderNumber) {
+            $query->where('order_number', $orderNumber)
+                  ->orWhere('tracking_code', $orderNumber);
+        })->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.'
+            ], 404);
+        }
+
         $user = Auth::user();
         
         // Check if user can view this order
@@ -743,7 +783,10 @@ class OrderController extends Controller
         } elseif ($order->user_id === null) {
             // Guest orders can be viewed by anyone (no private info)
         } else {
-            abort(403, 'Unauthorized access to this order.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to this order.'
+            ], 403);
         }
         
         return response()->json([
