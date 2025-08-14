@@ -21,6 +21,8 @@ class MenuItem extends Model
         'is_available',
         'is_featured',
         'is_available_for_delivery',
+        'is_available_for_pickup',
+        'is_available_for_restaurant',
         'is_vegetarian',
         'is_spicy',
         'restaurant_id'
@@ -31,6 +33,8 @@ class MenuItem extends Model
         'is_available' => 'boolean',
         'is_featured' => 'boolean',
         'is_available_for_delivery' => 'boolean',
+        'is_available_for_pickup' => 'boolean',
+        'is_available_for_restaurant' => 'boolean',
         'is_vegetarian' => 'boolean',
         'is_spicy' => 'boolean',
     ];

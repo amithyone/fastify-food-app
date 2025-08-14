@@ -257,7 +257,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center space-x-1 ml-2">
-                                                    <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image_url }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }}, {{ $item->restaurant_image_id ?? 'null' }})" 
+                                                    <button onclick="editMenuItem({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->description ?? '' }}', {{ $item->category_id ?? 'null' }}, {{ $item->is_available ? 'true' : 'false' }}, '{{ $item->image_url }}', '{{ $item->ingredients ?? '' }}', '{{ $item->allergens ?? '' }}', {{ $item->is_featured ? 'true' : 'false' }}, {{ $item->is_vegetarian ? 'true' : 'false' }}, {{ $item->is_spicy ? 'true' : 'false' }}, {{ $item->restaurant_image_id ?? 'null' }}, {{ $item->is_available_for_delivery ? 'true' : 'false' }}, {{ $item->is_available_for_pickup ? 'true' : 'false' }}, {{ $item->is_available_for_restaurant ? 'true' : 'false' }})" 
                                                             class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded">
                                                         <i class="fas fa-edit text-xs"></i>
                                                     </button>
@@ -792,6 +792,26 @@
                             <input type="checkbox" id="itemSpicy" name="is_spicy" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
                             <label for="itemSpicy" class="ml-2 block text-sm text-gray-900 dark:text-white">Spicy</label>
                         </div>
+                        
+                        <!-- Delivery Method Options -->
+                        <div class="space-y-2 mt-4">
+                            <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Methods</h5>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="itemAvailableForDelivery" name="is_available_for_delivery" value="1" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="itemAvailableForDelivery" class="ml-2 block text-sm text-gray-900 dark:text-white">Available for Delivery</label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="itemAvailableForPickup" name="is_available_for_pickup" value="1" checked class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                <label for="itemAvailableForPickup" class="ml-2 block text-sm text-gray-900 dark:text-white">Available for Pickup</label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="itemAvailableForRestaurant" name="is_available_for_restaurant" value="1" checked class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                                <label for="itemAvailableForRestaurant" class="ml-2 block text-sm text-gray-900 dark:text-white">Available for In-Restaurant</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1277,6 +1297,12 @@ function openMenuItemModal() {
     document.getElementById('itemFeatured').checked = false;
     document.getElementById('itemVegetarian').checked = false;
     document.getElementById('itemSpicy').checked = false;
+    
+    // Set delivery methods to checked by default
+    document.getElementById('itemAvailableForDelivery').checked = true;
+    document.getElementById('itemAvailableForPickup').checked = true;
+    document.getElementById('itemAvailableForRestaurant').checked = true;
+    
     resetImagePreview();
     document.getElementById('menuItemModal').classList.remove('hidden');
 }
@@ -1285,7 +1311,7 @@ function closeMenuItemModal() {
     document.getElementById('menuItemModal').classList.add('hidden');
 }
 
-function editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl = null, ingredients = '', allergens = '', isFeatured = false, isVegetarian = false, isSpicy = false, restaurantImageId = null) {
+function editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl = null, ingredients = '', allergens = '', isFeatured = false, isVegetarian = false, isSpicy = false, restaurantImageId = null, isAvailableForDelivery = true, isAvailableForPickup = true, isAvailableForRestaurant = true) {
     editingMenuItemId = id;
     document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
     document.getElementById('itemName').value = name;
@@ -1298,6 +1324,11 @@ function editMenuItem(id, name, price, description, categoryId, isAvailable, ima
     document.getElementById('itemFeatured').checked = isFeatured;
     document.getElementById('itemVegetarian').checked = isVegetarian;
     document.getElementById('itemSpicy').checked = isSpicy;
+    
+    // Set delivery method checkboxes
+    document.getElementById('itemAvailableForDelivery').checked = isAvailableForDelivery;
+    document.getElementById('itemAvailableForPickup').checked = isAvailableForPickup;
+    document.getElementById('itemAvailableForRestaurant').checked = isAvailableForRestaurant;
     
     // Handle image preview for editing
     if (restaurantImageId && restaurantImageId !== 'null') {
