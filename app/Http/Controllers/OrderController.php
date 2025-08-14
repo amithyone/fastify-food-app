@@ -130,62 +130,111 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         // Debug: Log the incoming request data
-        \Log::info('Order creation request:', [
+        \Log::info('=== ORDER CREATION START ===');
+        \Log::info('Order creation request received:', [
+            'request_method' => $request->method(),
+            'request_url' => $request->url(),
+            'request_headers' => $request->headers->all(),
+            'request_body' => $request->all(),
             'items' => $request->items,
             'customer_info' => $request->customer_info,
-            'payment_method' => $request->payment_method
+            'payment_method' => $request->payment_method,
+            'subtotal' => $request->subtotal,
+            'delivery_fee' => $request->delivery_fee,
+            'total' => $request->total,
+            'auth_check' => Auth::check(),
+            'auth_user_id' => Auth::id(),
+            'session_id' => session()->getId()
         ]);
         
-        $request->validate([
-            'customer_info' => 'required|array',
-            'customer_info.order_type' => 'required|in:delivery,pickup,restaurant,in_restaurant',
-            'payment_method' => 'required|in:cash,card,transfer,wallet',
-            'items' => 'required|array|min:1',
-            'subtotal' => 'required|numeric|min:0',
-            'delivery_fee' => 'required|numeric|min:0',
-            'total' => 'required|numeric|min:0',
-        ]);
+        \Log::info('Starting validation...');
+        
+        try {
+            $request->validate([
+                'customer_info' => 'required|array',
+                'customer_info.order_type' => 'required|in:delivery,pickup,restaurant,in_restaurant',
+                'payment_method' => 'required|in:cash,card,transfer,wallet',
+                'items' => 'required|array|min:1',
+                'subtotal' => 'required|numeric|min:0',
+                'delivery_fee' => 'required|numeric|min:0',
+                'total' => 'required|numeric|min:0',
+            ]);
+            \Log::info('Basic validation passed successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            throw $e;
+        }
 
         // Additional validation based on order type
         $orderType = $request->customer_info['order_type'] ?? 'delivery';
+        \Log::info('Order type validation:', ['order_type' => $orderType, 'customer_info' => $request->customer_info]);
         
-        if ($orderType === 'delivery') {
-            $request->validate([
-                'customer_info.name' => 'required|string|max:255',
-                'customer_info.phone' => 'required|string|max:20',
-                'customer_info.address' => 'required|string',
-                'customer_info.city' => 'required|string|max:100',
-                'customer_info.state' => 'required|string|max:100',
+        try {
+            if ($orderType === 'delivery') {
+                \Log::info('Validating delivery order...');
+                $request->validate([
+                    'customer_info.name' => 'required|string|max:255',
+                    'customer_info.phone' => 'required|string|max:20',
+                    'customer_info.address' => 'required|string',
+                    'customer_info.city' => 'required|string|max:100',
+                    'customer_info.state' => 'required|string|max:100',
+                ]);
+                \Log::info('Delivery validation passed');
+            } elseif ($orderType === 'pickup') {
+                \Log::info('Validating pickup order...');
+                $request->validate([
+                    'customer_info.pickup_name' => 'required|string|max:255',
+                    'customer_info.pickup_phone' => 'required|string|max:20',
+                    'customer_info.pickup_time' => 'required|string',
+                ]);
+                \Log::info('Pickup validation passed');
+            } elseif ($orderType === 'restaurant' || $orderType === 'in_restaurant') {
+                \Log::info('Validating restaurant order...');
+                $request->validate([
+                    'customer_info.table_number' => 'required|string|max:50',
+                ]);
+                \Log::info('Restaurant validation passed');
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Order type validation failed:', [
+                'order_type' => $orderType,
+                'errors' => $e->errors(),
+                'customer_info' => $request->customer_info
             ]);
-        } elseif ($orderType === 'pickup') {
-            $request->validate([
-                'customer_info.pickup_name' => 'required|string|max:255',
-                'customer_info.pickup_phone' => 'required|string|max:20',
-                'customer_info.pickup_time' => 'required|string',
-            ]);
-        } elseif ($orderType === 'restaurant' || $orderType === 'in_restaurant') {
-            $request->validate([
-                'customer_info.table_number' => 'required|string|max:50',
-            ]);
+            throw $e;
         }
 
         try {
+            \Log::info('Starting database transaction...');
             DB::beginTransaction();
             
-            \Log::info('Starting order creation transaction');
+            \Log::info('Database transaction started successfully');
 
             // Get restaurant_id from the first cart item (all items in cart should be from same restaurant)
             $restaurantId = null;
+            \Log::info('Looking up restaurant ID from items:', ['items_count' => count($request->items)]);
+            
             if (!empty($request->items)) {
                 // Find the menu item to get its restaurant_id
-                $firstMenuItem = MenuItem::find($request->items[0]['id']);
+                $firstItem = $request->items[0];
+                \Log::info('First item data:', $firstItem);
+                
+                $firstMenuItem = MenuItem::find($firstItem['id']);
                 if ($firstMenuItem) {
                     $restaurantId = $firstMenuItem->restaurant_id;
-                    \Log::info('Found restaurant ID:', ['restaurant_id' => $restaurantId]);
+                    \Log::info('Found restaurant ID:', ['restaurant_id' => $restaurantId, 'menu_item' => $firstMenuItem->toArray()]);
+                } else {
+                    \Log::error('Menu item not found:', ['item_id' => $firstItem['id']]);
                 }
+            } else {
+                \Log::error('No items in request');
             }
 
             if (!$restaurantId) {
+                \Log::error('No restaurant found for order items');
                 throw new \Exception('No restaurant found for order items');
             }
 
@@ -338,9 +387,19 @@ class OrderController extends Controller
                 $orderData['created_by'] = Auth::id();
             }
 
-            $order = Order::create($orderData);
-
-            \Log::info('Order created successfully:', ['order_id' => $order->id, 'order_number' => $order->order_number]);
+            \Log::info('Attempting to create order with data:', $orderData);
+            
+            try {
+                $order = Order::create($orderData);
+                \Log::info('Order created successfully:', ['order_id' => $order->id, 'order_number' => $order->order_number]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to create order:', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'order_data' => $orderData
+                ]);
+                throw $e;
+            }
 
             // Generate tracking code for guest orders (non-authenticated users)
             if (!Auth::check()) {
@@ -451,6 +510,7 @@ class OrderController extends Controller
             DB::commit();
             
             \Log::info('Order creation transaction committed successfully');
+            \Log::info('=== ORDER CREATION SUCCESS ===');
 
             return response()->json([
                 'success' => true,
@@ -463,7 +523,16 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            \Log::error('Order creation failed: ' . $e->getMessage());
+            \Log::error('=== ORDER CREATION FAILED ===');
+            \Log::error('Order creation failed:', [
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'error_trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+                'auth_check' => Auth::check(),
+                'auth_user_id' => Auth::id()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to place order. Please try again. Error: ' . $e->getMessage()
