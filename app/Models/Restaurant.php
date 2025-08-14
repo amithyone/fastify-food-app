@@ -203,9 +203,9 @@ class Restaurant extends Model
     // Default Image Methods
     public function hasCustomDefaultImage()
     {
-        // Check if restaurant has premium subscription that allows custom placeholder images
+        // Check if restaurant has premium subscription or trial that allows custom placeholder images
         $subscription = $this->activeSubscription;
-        if (!$subscription || $subscription->plan_type !== 'premium') {
+        if (!$subscription || ($subscription->plan_type !== 'premium' && !$subscription->isTrial())) {
             return false;
         }
         
