@@ -59,10 +59,6 @@ class RestaurantMenuManager {
         console.log('Current page URL:', window.location.href);
         console.log('Document title:', document.title);
         
-        // Handle different URL structures:
-        // /restaurant/menu -> restaurant slug is in pathParts[2] (menu)
-        // /restaurant-slug/menu -> restaurant slug is in pathParts[1]
-        
         let restaurantSlug;
         
         // First, try to get from data attribute (most reliable)
@@ -83,9 +79,14 @@ class RestaurantMenuManager {
             console.log(`Element ${index}:`, el.getAttribute('data-restaurant-slug'));
         });
         
-        if (pathParts[1] === 'restaurant' && pathParts[2] === 'menu') {
-            // URL is /restaurant/menu, we need to get the actual restaurant slug
-            // Fallback: try to get from the page title or other elements
+        // If we can't get it from data attribute, try to extract from URL
+        // The URL should be /restaurant/{slug}/menu or similar
+        if (pathParts[1] === 'restaurant' && pathParts[2]) {
+            // URL is /restaurant/{slug}/something
+            restaurantSlug = pathParts[2];
+            console.log('Extracted restaurant slug from URL path:', restaurantSlug);
+        } else {
+            // Fallback: try to get from the page title
             const pageTitle = document.title;
             console.log('Page title:', pageTitle);
             if (pageTitle.includes(' - Dashboard')) {
@@ -94,14 +95,9 @@ class RestaurantMenuManager {
                 restaurantSlug = restaurantName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                 console.log('Extracted restaurant slug from title:', restaurantSlug);
             } else {
-                // Last resort: use a default or throw error
                 console.error('Could not determine restaurant slug from URL or page elements:', window.location.pathname);
                 throw new Error('Restaurant slug not found');
             }
-        } else {
-            // URL is /restaurant-slug/menu
-            restaurantSlug = pathParts[1];
-            console.log('Extracted restaurant slug from URL path:', restaurantSlug);
         }
         
         if (!restaurantSlug) {
