@@ -1208,9 +1208,14 @@ class MenuController extends Controller
         try {
             $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
             
-            // Simplified authentication check - allow if user is logged in
+            // Check if user is authenticated and has access to this restaurant
             if (!Auth::check()) {
                 return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+            }
+            
+            // Check if user has access to this restaurant
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories.'], 403);
             }
             
             // Get subcategories for the parent category

@@ -50,6 +50,19 @@ class RestaurantMenuManager {
         console.log('Restaurant menu manager initialized');
     }
 
+    getRestaurantSlug() {
+        // Get the restaurant slug from the current URL
+        const pathParts = window.location.pathname.split('/');
+        const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+        
+        if (!restaurantSlug) {
+            console.error('Could not determine restaurant slug from URL:', window.location.pathname);
+            throw new Error('Restaurant slug not found in URL');
+        }
+        
+        return restaurantSlug;
+    }
+
     // Category Management Functions
     openCategoryModal(parentId = null, parentName = null) {
         console.log('Opening category modal:', { parentId, parentName });
@@ -96,9 +109,7 @@ class RestaurantMenuManager {
 
     async loadExistingSubCategories(parentId) {
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            const restaurantSlug = this.getRestaurantSlug();
             
             console.log('Loading subcategories for parent ID:', parentId);
             console.log('Restaurant slug:', restaurantSlug);
@@ -127,7 +138,23 @@ class RestaurantMenuManager {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Response text:', errorText);
+                
+                // Handle specific error cases
+                if (response.status === 404) {
+                    console.warn('Subcategories endpoint not found - this might be normal if no subcategories exist');
+                    this.displayExistingSubCategories([]);
+                    return;
+                }
+                
                 throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+            }
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const responseText = await response.text();
+                console.error('Non-JSON response received:', responseText);
+                throw new Error(`Server returned non-JSON response (${response.status}): ${responseText.substring(0, 200)}`);
             }
             
             const data = await response.json();
@@ -340,6 +367,8 @@ class RestaurantMenuManager {
         submitBtn.disabled = true;
         
         try {
+            console.log('Submitting menu item:', { url, method, isEdit });
+            
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -348,7 +377,19 @@ class RestaurantMenuManager {
                 body: formData
             });
             
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const responseText = await response.text();
+                console.error('Non-JSON response received:', responseText);
+                throw new Error(`Server returned non-JSON response (${response.status}): ${responseText.substring(0, 200)}`);
+            }
+            
             const data = await response.json();
+            console.log('Response data:', data);
             
             if (data.success) {
                 this.showNotification(`Menu item ${isEdit ? 'updated' : 'saved'} successfully!`, 'success');
@@ -359,7 +400,7 @@ class RestaurantMenuManager {
             }
         } catch (error) {
             console.error(`Error ${isEdit ? 'updating' : 'saving'} menu item:`, error);
-            this.showNotification(`Error ${isEdit ? 'updating' : 'saving'} menu item. Please try again.`, 'error');
+            this.showNotification(`Error ${isEdit ? 'updating' : 'saving'} menu item: ${error.message}`, 'error');
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -394,9 +435,7 @@ class RestaurantMenuManager {
     // Image Management Functions
     async loadRestaurantImages() {
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            const restaurantSlug = this.getRestaurantSlug();
             
             const response = await fetch(`/${restaurantSlug}/images`);
             const data = await response.json();
@@ -416,9 +455,7 @@ class RestaurantMenuManager {
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 modal-overlay';
         modal.id = 'imageSelectorModal';
         
-        // Get the restaurant slug from the current URL
-        const pathParts = window.location.pathname.split('/');
-        const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+        const restaurantSlug = this.getRestaurantSlug();
         
         let imagesHtml = '';
         if (images.length > 0) {
