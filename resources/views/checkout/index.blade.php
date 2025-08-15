@@ -1045,5 +1045,8 @@ document.addEventListener('change', function(e) {
         }
     }
 });
+
+// Pass QR table number to JavaScript
+window.qrTableNumber = '{{ $qrTableNumber ?? "" }}';
 </script>
 @endsection 

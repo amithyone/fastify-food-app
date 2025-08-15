@@ -4,6 +4,9 @@ import Alpine from 'alpinejs';
 // Import PWA utilities
 import './pwa';
 
+// Import checkout module
+import './checkout';
+
 window.Alpine = Alpine;
 
 Alpine.start();
