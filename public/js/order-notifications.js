@@ -78,7 +78,7 @@ class OrderNotificationSystem {
     initNotificationSound() {
         try {
             // Create audio element for notification sound
-            this.notificationSound = new Audio('/sounds/order-notification.mp3');
+            this.notificationSound = new Audio('/sounds/notification.mp3');
             this.notificationSound.preload = 'auto';
             
             // Set volume to a reasonable level
