@@ -104,6 +104,12 @@ class RestaurantDeliverySettingController extends Controller
      */
     public function updateMenuItemDeliveryMethods(Request $request, $slug)
     {
+        \Log::info('Menu item delivery methods update request', [
+            'slug' => $slug,
+            'user_id' => Auth::id(),
+            'request_data' => $request->all()
+        ]);
+        
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         
         // Check if user can manage this restaurant
@@ -122,11 +128,29 @@ class RestaurantDeliverySettingController extends Controller
 
         DB::beginTransaction();
         try {
+            \Log::info('Processing menu items', [
+                'count' => count($request->menu_items),
+                'menu_items' => $request->menu_items
+            ]);
+            
             foreach ($request->menu_items as $menuItemData) {
                 $menuItem = MenuItem::find($menuItemData['id']);
                 
+                \Log::info('Processing menu item', [
+                    'menu_item_id' => $menuItemData['id'],
+                    'menu_item_found' => $menuItem ? 'yes' : 'no',
+                    'menu_item_restaurant_id' => $menuItem ? $menuItem->restaurant_id : 'N/A',
+                    'target_restaurant_id' => $restaurant->id,
+                    'delivery_methods' => $menuItemData['delivery_methods'] ?? []
+                ]);
+                
                 // Ensure this menu item belongs to the restaurant
                 if ($menuItem->restaurant_id !== $restaurant->id) {
+                    \Log::warning('Menu item does not belong to restaurant', [
+                        'menu_item_id' => $menuItemData['id'],
+                        'menu_item_restaurant_id' => $menuItem->restaurant_id,
+                        'target_restaurant_id' => $restaurant->id
+                    ]);
                     continue;
                 }
 
@@ -154,10 +178,17 @@ class RestaurantDeliverySettingController extends Controller
                     }
                 }
                 
+                \Log::info('Updating menu item delivery settings', [
+                    'menu_item_id' => $menuItem->id,
+                    'update_data' => $updateData
+                ]);
+                
                 $menuItem->update($updateData);
             }
 
             DB::commit();
+            
+            \Log::info('Menu item delivery methods updated successfully');
 
             return response()->json([
                 'success' => true,

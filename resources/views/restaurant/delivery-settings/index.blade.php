@@ -316,13 +316,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveMenuItemSettings').addEventListener('click', function() {
         const menuItems = [];
         
+        console.log('Starting to save menu item settings...');
+        
         document.querySelectorAll('[data-menu-item-id]').forEach(container => {
             const menuItemId = container.dataset.menuItemId;
             const deliveryMethods = [];
             
+            console.log('Processing menu item:', menuItemId);
+            
             container.querySelectorAll('.menu-item-method-checkbox').forEach(checkbox => {
-                const method = checkbox.name.match(/\[([^\]]+)\]$/)[1];
+                // Extract method name from checkbox name: menu_items[19][delivery_methods][delivery][enabled]
+                const methodMatch = checkbox.name.match(/\[delivery_methods\]\[([^\]]+)\]/);
+                const method = methodMatch ? methodMatch[1] : 'delivery';
                 const additionalFeeInput = checkbox.closest('.border').querySelector('input[type="number"]');
+                
+                console.log('Checkbox:', checkbox.name, 'Method:', method, 'Checked:', checkbox.checked);
                 
                 deliveryMethods.push({
                     method: method,
@@ -337,6 +345,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
+        console.log('Menu items data to send:', menuItems);
+        
         fetch('{{ route("restaurant.delivery-settings.menu-items", $restaurant->slug) }}', {
             method: 'POST',
             headers: {
@@ -345,8 +355,15 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({ menu_items: menuItems })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (data.success) {
                 // Show success message
                 const successDiv = document.createElement('div');
@@ -371,12 +388,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     successDiv.remove();
                 }, 3000);
             } else {
+                console.error('Server error:', data.message);
                 alert('Error: ' + data.message);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Error saving menu item settings');
+            console.error('Fetch error:', error);
+            alert('Error saving menu item settings: ' + error.message);
         });
     });
 });
