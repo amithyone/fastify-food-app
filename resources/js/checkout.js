@@ -128,6 +128,9 @@ class CheckoutManager {
         if (this.pickupCustomerForm) {
             this.pickupCustomerForm.style.display = 'none';
         }
+        
+        // Remove required attributes from all fields to prevent validation errors
+        this.removeAllRequiredAttributes();
     }
 
     showRestaurantMode() {
@@ -140,6 +143,9 @@ class CheckoutManager {
         if (this.restaurantInfoSection) {
             this.restaurantInfoSection.style.display = 'block';
         }
+        
+        // Remove required from all fields first
+        this.removeAllRequiredAttributes();
         
         // Make table number required
         const tableNumber = document.getElementById('tableNumber');
@@ -165,14 +171,21 @@ class CheckoutManager {
             this.pickupCustomerForm.style.display = 'block';
         }
         
+        // Remove required from all fields first
+        this.removeAllRequiredAttributes();
+        
         // Make pickup fields required
         const pickupPhone = document.getElementById('pickupPhoneOnly');
         const pickupName = document.getElementById('pickupName');
+        const pickupTime = document.getElementById('pickupTime');
         if (pickupPhone) {
             pickupPhone.setAttribute('required', 'required');
         }
         if (pickupName) {
             pickupName.setAttribute('required', 'required');
+        }
+        if (pickupTime) {
+            pickupTime.setAttribute('required', 'required');
         }
         
         // Update delivery fee to 0 for pickup orders
@@ -193,6 +206,9 @@ class CheckoutManager {
             this.deliveryCustomerForm.style.display = 'block';
         }
         
+        // Remove required from all fields first
+        this.removeAllRequiredAttributes();
+        
         // Make delivery fields required
         const deliveryName = document.getElementById('deliveryName');
         const deliveryPhone = document.getElementById('deliveryPhone');
@@ -201,6 +217,20 @@ class CheckoutManager {
         }
         if (deliveryPhone) {
             deliveryPhone.setAttribute('required', 'required');
+        }
+        
+        // Make address fields required
+        const address = document.getElementById('address');
+        const city = document.getElementById('city');
+        const state = document.getElementById('state');
+        if (address) {
+            address.setAttribute('required', 'required');
+        }
+        if (city) {
+            city.setAttribute('required', 'required');
+        }
+        if (state) {
+            state.setAttribute('required', 'required');
         }
         
         // Update delivery fee to normal amount for delivery orders
@@ -382,6 +412,36 @@ class CheckoutManager {
         setTimeout(() => {
             notification.remove();
         }, 3000);
+    }
+
+    // Remove required attributes from all form fields to prevent validation errors
+    removeAllRequiredAttributes() {
+        console.log('Removing required attributes from all fields');
+        
+        // Get all form fields that might have required attributes
+        const allFields = [
+            'tableNumber',
+            'deliveryName', 'deliveryPhone', 'deliveryEmail',
+            'pickupPhoneOnly', 'pickupName', 'pickupTime',
+            'address', 'city', 'state', 'postal_code'
+        ];
+        
+        allFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.removeAttribute('required');
+                console.log(`Removed required from ${fieldId}`);
+            }
+        });
+        
+        // Also remove from any other input elements in the form
+        const form = document.getElementById('checkoutForm');
+        if (form) {
+            const allInputs = form.querySelectorAll('input, select, textarea');
+            allInputs.forEach(input => {
+                input.removeAttribute('required');
+            });
+        }
     }
 
     // Update delivery fee and total
