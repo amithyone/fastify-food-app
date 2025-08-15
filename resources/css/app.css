@@ -27,3 +27,6 @@
 .offline-mode .offline-disabled {
     @apply opacity-50 pointer-events-none;
 }
+
+/* Import restaurant menu styles */
+@import './restaurant-menu.css';

@@ -7,6 +7,9 @@ import './pwa';
 // Import checkout module
 import './checkout';
 
+// Import restaurant menu module
+import './restaurant-menu';
+
 window.Alpine = Alpine;
 
 Alpine.start();
