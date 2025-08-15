@@ -54,34 +54,44 @@ class RestaurantMenuManager {
         // Get the restaurant slug from the current URL
         const pathParts = window.location.pathname.split('/');
         
+        console.log('Current URL pathname:', window.location.pathname);
+        console.log('Path parts:', pathParts);
+        
         // Handle different URL structures:
         // /restaurant/menu -> restaurant slug is in pathParts[2] (menu)
         // /restaurant-slug/menu -> restaurant slug is in pathParts[1]
         
         let restaurantSlug;
         
+        // First, try to get from data attribute (most reliable)
+        const restaurantElement = document.querySelector('[data-restaurant-slug]');
+        if (restaurantElement) {
+            restaurantSlug = restaurantElement.getAttribute('data-restaurant-slug');
+            console.log('Found restaurant slug from data attribute:', restaurantSlug);
+            if (restaurantSlug && restaurantSlug.trim() !== '') {
+                return restaurantSlug;
+            }
+        }
+        
         if (pathParts[1] === 'restaurant' && pathParts[2] === 'menu') {
             // URL is /restaurant/menu, we need to get the actual restaurant slug
-            // This might be stored in a data attribute or we need to extract it differently
-            const restaurantElement = document.querySelector('[data-restaurant-slug]');
-            if (restaurantElement) {
-                restaurantSlug = restaurantElement.getAttribute('data-restaurant-slug');
+            // Fallback: try to get from the page title or other elements
+            const pageTitle = document.title;
+            console.log('Page title:', pageTitle);
+            if (pageTitle.includes(' - Dashboard')) {
+                // Extract restaurant name from title and convert to slug
+                const restaurantName = pageTitle.replace(' - Dashboard', '');
+                restaurantSlug = restaurantName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                console.log('Extracted restaurant slug from title:', restaurantSlug);
             } else {
-                // Fallback: try to get from the page title or other elements
-                const pageTitle = document.title;
-                if (pageTitle.includes(' - Dashboard')) {
-                    // Extract restaurant name from title and convert to slug
-                    const restaurantName = pageTitle.replace(' - Dashboard', '');
-                    restaurantSlug = restaurantName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-                } else {
-                    // Last resort: use a default or throw error
-                    console.error('Could not determine restaurant slug from URL or page elements:', window.location.pathname);
-                    throw new Error('Restaurant slug not found');
-                }
+                // Last resort: use a default or throw error
+                console.error('Could not determine restaurant slug from URL or page elements:', window.location.pathname);
+                throw new Error('Restaurant slug not found');
             }
         } else {
             // URL is /restaurant-slug/menu
             restaurantSlug = pathParts[1];
+            console.log('Extracted restaurant slug from URL path:', restaurantSlug);
         }
         
         if (!restaurantSlug) {
@@ -89,6 +99,7 @@ class RestaurantMenuManager {
             throw new Error('Restaurant slug not found in URL');
         }
         
+        console.log('Final restaurant slug:', restaurantSlug);
         return restaurantSlug;
     }
 
