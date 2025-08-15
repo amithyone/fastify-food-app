@@ -47,7 +47,7 @@
     </style>
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @assets
 </head>
 <body class="font-sans antialiased h-full">
     <!-- PWA Loading Screen -->

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Fastify'),
+    'name' => env('APP_NAME', 'Laravel'),
 
     /*
     |--------------------------------------------------------------------------
@@ -27,6 +27,18 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Asset Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This value determines how assets are loaded. Set to 'vite' for development
+    | or 'built' for production with pre-built assets.
+    |
+    */
+
+    'asset_mode' => env('ASSET_MODE', 'built'),
 
     /*
     |--------------------------------------------------------------------------
