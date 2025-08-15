@@ -122,13 +122,13 @@
                                                 @if($category->restaurant_id == $restaurant->id)
                                                     {{-- Only show edit button for categories created by this restaurant --}}
                                                     <button onclick="editCategory({{ $category->id }}, '{{ $category->name }}', '{{ $category->parent_id }}')" class="text-gray-400 hover:text-blue-600" title="Edit category">
-                                                        <i class="fas fa-edit text-xs"></i>
-                                                    </button>
+                                                    <i class="fas fa-edit text-xs"></i>
+                                                </button>
                                                     @if(!$category->isShared())
                                                         {{-- Only show delete for non-shared categories created by this restaurant --}}
                                                         <button onclick="deleteCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600" title="Delete category">
-                                                            <i class="fas fa-trash text-xs"></i>
-                                                        </button>
+                                                    <i class="fas fa-trash text-xs"></i>
+                                                </button>
                                                     @else
                                                         {{-- For shared categories, only allow removal from this restaurant --}}
                                                         <button onclick="deactivateCategory({{ $category->id }})" class="text-gray-400 hover:text-red-600" title="Remove from this restaurant">
@@ -397,10 +397,10 @@
                 
                 <!-- Existing Sub-Category Selection -->
                 <div id="existingCategoryForm">
-                    <div class="mb-4">
+                <div class="mb-4">
                         <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
                         <select id="categoryParent" name="parent_id_existing" 
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select a parent category</option>
                             @foreach($globalCategories as $parentCategory)
                                 <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }} (Global)</option>
@@ -410,9 +410,9 @@
                             <i class="fas fa-info-circle mr-1"></i>
                             Select the main category under which you want to add a sub-category
                         </p>
-                    </div>
+                </div>
                     
-                    <div class="mb-4">
+                <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available Sub-Categories</label>
                         <div id="existingSubCategoriesList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-3">
                             <div class="text-center text-gray-500 dark:text-gray-400 py-4">
@@ -443,17 +443,17 @@
                     <div class="mb-4">
                         <label for="newCategoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
                         <select id="newCategoryParent" name="parent_id_new"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select a parent category</option>
-                            @foreach($globalCategories as $parentCategory)
+                        @foreach($globalCategories as $parentCategory)
                                 <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }} (Global)</option>
-                            @endforeach
-                        </select>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            <i class="fas fa-info-circle mr-1"></i>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
                             Required: Select the main category under which to create this sub-category
-                        </p>
-                    </div>
+                    </p>
+                </div>
                     
                     <!-- Force Create Option -->
                     <div class="mb-4">
@@ -718,4 +718,4 @@
 </div>
 
 
-@endsection
+@endsection 
