@@ -190,7 +190,7 @@ function closeStatusModal() {
 }
 
 function viewOrderDetails(orderId) {
-    window.open(`/orders/${orderId}`, '_blank');
+    window.location.href = `/orders/${orderId}`;
 }
 
 document.getElementById('statusForm').addEventListener('submit', function(e) {

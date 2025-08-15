@@ -170,8 +170,12 @@
         
         // Redirect to order details
         const restaurantSlug = document.querySelector('[data-restaurant-slug]')?.getAttribute('data-restaurant-slug');
-        if (restaurantSlug) {
+        if (restaurantSlug && restaurantSlug.trim() !== '') {
             window.location.href = `/${restaurantSlug}/orders/${orderId}`;
+        } else {
+            console.error('Restaurant slug not found for order notification');
+            // Fallback to a safe redirect
+            window.location.href = `/orders/${orderId}`;
         }
     }
 

@@ -16,7 +16,7 @@ $maxWidth = [
 
 <div
     x-data="{
-        show: false,
+        show: {{ $show ? 'true' : 'false' }},
         focusables() {
             // All focusable element types...
             let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
@@ -32,7 +32,6 @@ $maxWidth = [
         prevFocusableIndex() { return Math.max(0, this.focusables().indexOf(document.activeElement)) -1 },
     }"
     x-init="
-        show = {{ $show ? 'true' : 'false' }};
         $watch('show', value => {
             if (value) {
                 document.body.classList.add('overflow-y-hidden');
