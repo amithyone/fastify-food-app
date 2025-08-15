@@ -365,28 +365,48 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Response data:', data);
             if (data.success) {
-                // Show success message
-                const successDiv = document.createElement('div');
-                successDiv.className = 'mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4';
-                successDiv.innerHTML = `
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-check-circle text-green-400"></i>
+                try {
+                    // Show success message
+                    const successDiv = document.createElement('div');
+                    successDiv.className = 'mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4';
+                    successDiv.innerHTML = `
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-check-circle text-green-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                                    ${data.message}
+                                </p>
+                            </div>
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-green-800 dark:text-green-200">
-                                ${data.message}
-                            </p>
-                        </div>
-                    </div>
-                `;
-                
-                document.querySelector('.max-w-7xl').insertBefore(successDiv, document.querySelector('.grid'));
-                
-                // Remove success message after 3 seconds
-                setTimeout(() => {
-                    successDiv.remove();
-                }, 3000);
+                    `;
+                    
+                    // Insert success message after the header section
+                    const headerSection = document.querySelector('.mb-8');
+                    if (headerSection && headerSection.parentNode) {
+                        headerSection.parentNode.insertBefore(successDiv, headerSection.nextSibling);
+                    } else {
+                        // Fallback: insert at the beginning of the container
+                        const container = document.querySelector('.max-w-7xl');
+                        if (container) {
+                            container.insertBefore(successDiv, container.firstChild);
+                        }
+                    }
+                    
+                    // Remove success message after 3 seconds
+                    setTimeout(() => {
+                        if (successDiv && successDiv.parentNode) {
+                            successDiv.remove();
+                        }
+                    }, 3000);
+                    
+                    console.log('Success message displayed');
+                } catch (insertError) {
+                    console.error('Error inserting success message:', insertError);
+                    // Fallback: just show an alert
+                    alert('Success: ' + data.message);
+                }
             } else {
                 console.error('Server error:', data.message);
                 alert('Error: ' + data.message);
