@@ -53,7 +53,7 @@
         <div class="flex flex-col lg:flex-row gap-6 w-full">
             
             <!-- Left Column: Category Management Widget (32% width) -->
-            <div class="w-full lg:w-1/3 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div class="w-full lg:w-1/3 bg-white dark:bg-gray-800 rounded-lg shadow" style="flex: 0 0 32%;">
                 <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-semibold text-gray-900 dark:text-white">Categories</h2>
@@ -198,7 +198,7 @@
             </div>
 
             <!-- Right Column: Menu Items Management (68% width) -->
-            <div class="w-full lg:w-2/3 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div class="w-full lg:w-2/3 bg-white dark:bg-gray-800 rounded-lg shadow" style="flex: 0 0 68%;">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Menu Items ({{ $menuItems->count() }})</h2>
