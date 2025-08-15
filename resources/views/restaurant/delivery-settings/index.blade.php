@@ -402,10 +402,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 3000);
                     
                     console.log('Success message displayed');
+                    
+                    // Refresh the page after 1 second to show updated values
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 } catch (insertError) {
                     console.error('Error inserting success message:', insertError);
-                    // Fallback: just show an alert
+                    // Fallback: just show an alert and refresh
                     alert('Success: ' + data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 }
             } else {
                 console.error('Server error:', data.message);
