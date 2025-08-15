@@ -50,10 +50,10 @@
         @endif
 
         <!-- Two-Column Layout: Category Management (32%) + Menu Management (68%) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" style="display: grid; grid-template-columns: 32% 68%; gap: 1.5rem; width: 100%;">
+        <div class="flex flex-col lg:flex-row gap-6 w-full">
             
             <!-- Left Column: Category Management Widget (32% width) -->
-            <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow" style="width: 100%; min-width: 100%; max-width: 100%;">
+            <div class="w-full lg:w-1/3 bg-white dark:bg-gray-800 rounded-lg shadow">
                 <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-semibold text-gray-900 dark:text-white">Categories</h2>
@@ -198,7 +198,7 @@
             </div>
 
             <!-- Right Column: Menu Items Management (68% width) -->
-            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow" style="width: 100%; min-width: 100%; max-width: 100%;">
+            <div class="w-full lg:w-2/3 bg-white dark:bg-gray-800 rounded-lg shadow">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Menu Items ({{ $menuItems->count() }})</h2>
