@@ -59,6 +59,20 @@ class FeaturedRestaurant extends Model
                     ->where(function($q) use ($now) {
                         $q->whereNull('featured_until')
                           ->orWhere('featured_until', '>=', $now);
+                    })
+                    ->whereIn('id', function($subquery) use ($now) {
+                        $subquery->selectRaw('MAX(id)')
+                                ->from('featured_restaurants')
+                                ->where('is_active', true)
+                                ->where(function($q) use ($now) {
+                                    $q->whereNull('featured_from')
+                                      ->orWhere('featured_from', '<=', $now);
+                                })
+                                ->where(function($q) use ($now) {
+                                    $q->whereNull('featured_until')
+                                      ->orWhere('featured_until', '>=', $now);
+                                })
+                                ->groupBy('restaurant_id');
                     });
     }
 
