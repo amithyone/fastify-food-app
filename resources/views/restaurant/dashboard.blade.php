@@ -1674,6 +1674,4 @@ function submitPromotion(event) {
 }
 </script>
 
-<!-- Order Notification System -->
-<script src="{{ asset('js/order-notifications.js') }}"></script>
 @endsection 
