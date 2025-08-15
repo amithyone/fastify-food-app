@@ -100,7 +100,16 @@ class RestaurantMenuManager {
             const pathParts = window.location.pathname.split('/');
             const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
             
+            console.log('Loading subcategories for parent ID:', parentId);
+            console.log('Restaurant slug:', restaurantSlug);
+            console.log('Full URL:', `/${restaurantSlug}/categories/${parentId}/subcategories`);
+            
             const response = await fetch(`/${restaurantSlug}/categories/${parentId}/subcategories`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
             
             if (data.success) {
@@ -237,32 +246,50 @@ class RestaurantMenuManager {
         // Set editing state
         this.editingMenuItemId = id;
         
-        // Populate form fields
-        document.getElementById('menuItemId').value = id;
-        document.getElementById('menuItemName').value = name;
-        document.getElementById('menuItemPrice').value = price;
-        document.getElementById('menuItemDescription').value = description || '';
-        document.getElementById('menuItemCategory').value = categoryId || '';
-        document.getElementById('menuItemAvailable').checked = isAvailable;
-        document.getElementById('menuItemFeatured').checked = isFeatured;
-        document.getElementById('menuItemVegetarian').checked = isVegetarian;
-        document.getElementById('menuItemSpicy').checked = isSpicy;
-        document.getElementById('menuItemIngredients').value = ingredients || '';
-        document.getElementById('menuItemAllergens').value = allergens || '';
-        document.getElementById('isDelivery').checked = isDelivery;
-        document.getElementById('isPickup').checked = isPickup;
-        document.getElementById('isRestaurant').checked = isRestaurant;
+        // Populate form fields - using correct element IDs from the form
+        const nameElement = document.getElementById('itemName');
+        const priceElement = document.getElementById('itemPrice');
+        const descriptionElement = document.getElementById('itemDescription');
+        const categoryElement = document.getElementById('itemCategory');
+        const availableElement = document.getElementById('itemAvailable');
+        const featuredElement = document.getElementById('itemFeatured');
+        const vegetarianElement = document.getElementById('itemVegetarian');
+        const spicyElement = document.getElementById('itemSpicy');
+        const ingredientsElement = document.getElementById('itemIngredients');
+        const allergensElement = document.getElementById('itemAllergens');
+        const deliveryElement = document.getElementById('itemAvailableForDelivery');
+        const pickupElement = document.getElementById('itemAvailableForPickup');
+        const restaurantElement = document.getElementById('itemAvailableForRestaurant');
+        
+        // Check if elements exist before setting values
+        if (nameElement) nameElement.value = name;
+        if (priceElement) priceElement.value = price;
+        if (descriptionElement) descriptionElement.value = description || '';
+        if (categoryElement) categoryElement.value = categoryId || '';
+        if (availableElement) availableElement.checked = isAvailable;
+        if (featuredElement) featuredElement.checked = isFeatured;
+        if (vegetarianElement) vegetarianElement.checked = isVegetarian;
+        if (spicyElement) spicyElement.checked = isSpicy;
+        if (ingredientsElement) ingredientsElement.value = ingredients || '';
+        if (allergensElement) allergensElement.value = allergens || '';
+        if (deliveryElement) deliveryElement.checked = isDelivery;
+        if (pickupElement) pickupElement.checked = isPickup;
+        if (restaurantElement) restaurantElement.checked = isRestaurant;
         
         // Set image if exists
         if (imageUrl && imageUrl !== 'null') {
-            document.getElementById('selectedImagePath').value = imageUrl;
-            document.getElementById('selectedImageText').textContent = 'Current image';
+            const selectedImagePath = document.getElementById('selectedImagePath');
+            const selectedImageText = document.getElementById('selectedImageText');
+            if (selectedImagePath) selectedImagePath.value = imageUrl;
+            if (selectedImageText) selectedImageText.textContent = 'Current image';
             this.setImagePreview(imageUrl);
         }
         
         // Update modal title and button
-        document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
-        document.getElementById('menuItemSubmitBtn').textContent = 'Update Item';
+        const modalTitle = document.getElementById('menuItemModalTitle');
+        const submitBtn = document.querySelector('#menuItemForm button[type="submit"]');
+        if (modalTitle) modalTitle.textContent = 'Edit Menu Item';
+        if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Update Item';
         
         this.openMenuItemModal();
     }
@@ -317,14 +344,20 @@ class RestaurantMenuManager {
         }
         
         // Reset image selection
-        document.getElementById('selectedImageId').value = '';
-        document.getElementById('selectedImagePath').value = '';
-        document.getElementById('selectedImageText').textContent = 'Choose from uploaded images';
+        const selectedImageId = document.getElementById('selectedImageId');
+        const selectedImagePath = document.getElementById('selectedImagePath');
+        const selectedImageText = document.getElementById('selectedImageText');
+        
+        if (selectedImageId) selectedImageId.value = '';
+        if (selectedImagePath) selectedImagePath.value = '';
+        if (selectedImageText) selectedImageText.textContent = 'Choose from uploaded images';
         this.resetImagePreview();
         
         // Reset modal title and button
-        document.getElementById('menuItemModalTitle').textContent = 'Add Menu Item';
-        document.getElementById('menuItemSubmitBtn').textContent = 'Add Item';
+        const modalTitle = document.getElementById('menuItemModalTitle');
+        const submitBtn = document.querySelector('#menuItemForm button[type="submit"]');
+        if (modalTitle) modalTitle.textContent = 'Add Menu Item';
+        if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Item';
         
         // Reset editing state
         this.editingMenuItemId = null;
