@@ -48,6 +48,7 @@
 
     <!-- Scripts -->
     @assets
+    @livewireStyles
 </head>
 <body class="font-sans antialiased h-full">
     <!-- PWA Loading Screen -->
@@ -342,5 +343,6 @@
     </script>
 
     @stack('scripts')
+    @livewireScripts
 </body>
 </html>

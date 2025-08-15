@@ -48,6 +48,9 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <!-- Order Notifications -->
+                    <livewire:order-notifications :restaurant-slug="$restaurant->slug" />
+                    
                     <!-- Online Status Indicator -->
                     <div class="flex items-center space-x-2">
                         <span id="onlineStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
