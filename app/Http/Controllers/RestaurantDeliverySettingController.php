@@ -41,7 +41,7 @@ class RestaurantDeliverySettingController extends Controller
             ]);
         }
 
-        $menuItems = $restaurant->menuItems()->with(['deliveryMethods', 'restaurant'])->get();
+        $menuItems = $restaurant->menuItems()->with(['restaurant'])->get();
 
         return view('restaurant.delivery-settings.index', compact('restaurant', 'deliverySetting', 'menuItems'));
     }
@@ -130,19 +130,31 @@ class RestaurantDeliverySettingController extends Controller
                     continue;
                 }
 
-                // Delete existing delivery methods for this menu item
-                $menuItem->deliveryMethods()->delete();
-
-                // Create new delivery methods
+                // Update menu item delivery settings using direct fields
+                $updateData = [
+                    'is_available_for_delivery' => false,
+                    'is_available_for_pickup' => false,
+                    'is_available_for_restaurant' => false
+                ];
+                
                 foreach ($menuItemData['delivery_methods'] as $methodData) {
-                    MenuItemDeliveryMethod::create([
-                        'menu_item_id' => $menuItem->id,
-                        'delivery_method' => $methodData['method'],
-                        'enabled' => $methodData['enabled'] ?? false,
-                        'additional_fee' => $methodData['additional_fee'] ?? 0,
-                        'notes' => $methodData['notes'] ?? null
-                    ]);
+                    $method = $methodData['method'];
+                    $enabled = $methodData['enabled'] ?? false;
+                    
+                    switch ($method) {
+                        case 'delivery':
+                            $updateData['is_available_for_delivery'] = $enabled;
+                            break;
+                        case 'pickup':
+                            $updateData['is_available_for_pickup'] = $enabled;
+                            break;
+                        case 'in_restaurant':
+                            $updateData['is_available_for_restaurant'] = $enabled;
+                            break;
+                    }
                 }
+                
+                $menuItem->update($updateData);
             }
 
             DB::commit();
@@ -187,7 +199,7 @@ class RestaurantDeliverySettingController extends Controller
     public function apiMenuItemDeliveryMethods($slug)
     {
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
-        $menuItems = $restaurant->menuItems()->with(['deliveryMethods', 'restaurant'])->get();
+        $menuItems = $restaurant->menuItems()->with(['restaurant'])->get();
 
         return response()->json([
             'success' => true,
@@ -203,14 +215,23 @@ class RestaurantDeliverySettingController extends Controller
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
         $menuItem = $restaurant->menuItems()->findOrFail($menuItemId);
         
-        $deliveryMethodRecord = $menuItem->deliveryMethods()
-            ->where('delivery_method', $deliveryMethod)
-            ->first();
+        $available = false;
+        switch ($deliveryMethod) {
+            case 'delivery':
+                $available = $menuItem->is_available_for_delivery;
+                break;
+            case 'pickup':
+                $available = $menuItem->is_available_for_pickup;
+                break;
+            case 'in_restaurant':
+                $available = $menuItem->is_available_for_restaurant;
+                break;
+        }
 
         return response()->json([
             'success' => true,
-            'available' => $deliveryMethodRecord ? $deliveryMethodRecord->enabled : false,
-            'additional_fee' => $deliveryMethodRecord ? $deliveryMethodRecord->additional_fee : 0
+            'available' => $available,
+            'additional_fee' => 0 // No additional fees in new system
         ]);
     }
 }

@@ -213,38 +213,86 @@
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                @foreach(['delivery', 'pickup', 'in_restaurant'] as $method)
-                                @php
-                                    $methodRecord = $menuItem->deliveryMethods->where('delivery_method', $method)->first();
-                                    $isEnabled = $methodRecord ? $methodRecord->enabled : false;
-                                    $additionalFee = $methodRecord ? $methodRecord->additional_fee : 0;
-                                @endphp
+                                <!-- Delivery -->
                                 <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
                                     <div class="flex items-center justify-between mb-2">
                                         <label class="flex items-center">
                                             <input type="checkbox" 
-                                                   name="menu_items[{{ $menuItem->id }}][delivery_methods][{{ $method }}][enabled]" 
+                                                   name="menu_items[{{ $menuItem->id }}][delivery_methods][delivery][enabled]" 
                                                    value="1" 
-                                                   {{ $isEnabled ? 'checked' : '' }}
+                                                   {{ $menuItem->is_available_for_delivery ? 'checked' : '' }}
                                                    class="mr-2 text-orange-500 focus:ring-orange-500 menu-item-method-checkbox">
                                             <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                                {{ ucfirst($method) }}
+                                                Delivery
                                             </span>
                                         </label>
                                     </div>
                                     <div class="space-y-2">
                                         <input type="number" 
-                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][{{ $method }}][additional_fee]" 
-                                               value="{{ $additionalFee }}" 
+                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][delivery][additional_fee]" 
+                                               value="0" 
                                                step="0.01" min="0" 
                                                placeholder="Additional fee"
                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
                                         <input type="hidden" 
-                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][{{ $method }}][method]" 
-                                               value="{{ $method }}">
+                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][delivery][method]" 
+                                               value="delivery">
                                     </div>
                                 </div>
-                                @endforeach
+                                
+                                <!-- Pickup -->
+                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" 
+                                                   name="menu_items[{{ $menuItem->id }}][delivery_methods][pickup][enabled]" 
+                                                   value="1" 
+                                                   {{ $menuItem->is_available_for_pickup ? 'checked' : '' }}
+                                                   class="mr-2 text-orange-500 focus:ring-orange-500 menu-item-method-checkbox">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">
+                                                Pickup
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <input type="number" 
+                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][pickup][additional_fee]" 
+                                               value="0" 
+                                               step="0.01" min="0" 
+                                               placeholder="Additional fee"
+                                               class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                                        <input type="hidden" 
+                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][pickup][method]" 
+                                               value="pickup">
+                                    </div>
+                                </div>
+                                
+                                <!-- In Restaurant -->
+                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" 
+                                                   name="menu_items[{{ $menuItem->id }}][delivery_methods][in_restaurant][enabled]" 
+                                                   value="1" 
+                                                   {{ $menuItem->is_available_for_restaurant ? 'checked' : '' }}
+                                                   class="mr-2 text-orange-500 focus:ring-orange-500 menu-item-method-checkbox">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">
+                                                In Restaurant
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <input type="number" 
+                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][in_restaurant][additional_fee]" 
+                                               value="0" 
+                                               step="0.01" min="0" 
+                                               placeholder="Additional fee"
+                                               class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                                        <input type="hidden" 
+                                               name="menu_items[{{ $menuItem->id }}][delivery_methods][in_restaurant][method]" 
+                                               value="in_restaurant">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endforeach
