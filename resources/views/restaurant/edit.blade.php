@@ -53,6 +53,28 @@
                     </div>
                 </div>
 
+                <!-- Restaurant Slug -->
+                <div>
+                    <label for="slug" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Restaurant URL Slug *
+                    </label>
+                    <input type="text" id="slug" name="slug" value="{{ $restaurant->slug }}" required
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="my-restaurant-name"
+                        pattern="[a-z0-9-]+"
+                        title="Only lowercase letters, numbers, and hyphens are allowed">
+                    <p class="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <strong>Warning:</strong> Changing your restaurant slug will break existing QR codes. You'll need to regenerate them after saving.
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        This will be your restaurant's URL: <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">{{ config('app.url') }}/restaurant/<span id="slug-preview">{{ $restaurant->slug }}</span></code>
+                    </p>
+                    @error('slug')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div>
                     <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Description
@@ -397,6 +419,13 @@ document.getElementById('theme_color').addEventListener('input', function(e) {
 
 document.getElementById('secondary_color').addEventListener('input', function(e) {
     e.target.nextElementSibling.value = e.target.value;
+});
+
+// Update slug preview in real-time
+document.getElementById('slug').addEventListener('input', function(e) {
+    const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    e.target.value = slug;
+    document.getElementById('slug-preview').textContent = slug;
 });
 </script>
 @endsection 

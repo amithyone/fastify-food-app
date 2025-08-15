@@ -273,6 +273,7 @@ class RestaurantController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|regex:/^[a-z0-9-]+$/|unique:restaurants,slug,' . $restaurant->id,
             'description' => 'nullable|string',
             'whatsapp_number' => 'required|string|max:20',
             'phone_number' => 'nullable|string|max:20',
@@ -341,9 +342,22 @@ class RestaurantController extends Controller
                 ]);
             }
 
+            // Check if slug is being changed
+            $slugChanged = false;
+            if ($request->slug !== $restaurant->slug) {
+                $slugChanged = true;
+                \Log::info('Restaurant slug being changed', [
+                    'restaurant_id' => $restaurant->id,
+                    'old_slug' => $restaurant->slug,
+                    'new_slug' => $request->slug,
+                    'user_id' => Auth::id()
+                ]);
+            }
+
             // Update restaurant
             $updateData = [
                 'name' => $request->name,
+                'slug' => $request->slug,
                 'description' => $request->description,
                 'whatsapp_number' => $request->whatsapp_number,
                 'phone_number' => $request->phone_number,
@@ -375,8 +389,14 @@ class RestaurantController extends Controller
 
             $restaurant->update($updateData);
 
+            // Prepare success message
+            $successMessage = 'Restaurant updated successfully!';
+            if ($slugChanged) {
+                $successMessage .= ' Your restaurant slug has changed. Please regenerate your QR codes as the old ones will no longer work.';
+            }
+
             return redirect()->route('restaurant.dashboard', $restaurant->slug)
-                ->with('success', 'Restaurant updated successfully!');
+                ->with('success', $successMessage);
 
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to update restaurant. Please try again.']);
