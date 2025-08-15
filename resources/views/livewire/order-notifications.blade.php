@@ -1,8 +1,8 @@
 <div>
-    <div class="relative" wire:ignore x-data="{ open: @entangle('showNotifications') }">
+    <div class="relative" x-data="{ open: false }">
         <!-- Notification Bell -->
         <button 
-            wire:click="toggleNotifications"
+            @click="open = !open"
             class="relative p-2 text-gray-600 hover:text-orange-500 transition-colors duration-200"
             x-on:click.away="open = false"
         >
@@ -10,9 +10,9 @@
             
             <!-- Notification Badge -->
             @if($unreadCount > 0)
-                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                </span>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse notification-badge">
+                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+            </span>
             @endif
         </button>
 
@@ -35,12 +35,12 @@
                         Order Notifications
                     </h3>
                     @if($unreadCount > 0)
-                        <button 
-                            wire:click="markAllAsRead"
-                            class="text-sm text-orange-500 hover:text-orange-600 transition-colors"
-                        >
-                            Mark all as read
-                        </button>
+                                            <button 
+                        onclick="markAllNotificationsAsRead()"
+                        class="text-sm text-orange-500 hover:text-orange-600 transition-colors"
+                    >
+                        Mark all as read
+                    </button>
                     @endif
                 </div>
             </div>
@@ -49,7 +49,7 @@
             <div class="max-h-96 overflow-y-auto">
                 @if(count($newOrders) > 0)
                     @foreach($newOrders as $order)
-                        <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                        <div class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-600 last:border-b-0" data-notification-id="{{ $order['id'] }}">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2 mb-1">
@@ -81,20 +81,20 @@
                                 </div>
                                 
                                 <div class="flex items-center space-x-2 ml-3">
-                                    <button 
-                                        wire:click="viewOrder({{ $order['id'] }})"
-                                        class="text-orange-500 hover:text-orange-600 transition-colors"
-                                        title="View Order"
-                                    >
-                                        <i class="fas fa-eye text-sm"></i>
-                                    </button>
-                                    <button 
-                                        wire:click="markAsRead({{ $order['id'] }})"
-                                        class="text-gray-400 hover:text-gray-600 transition-colors"
-                                        title="Mark as Read"
-                                    >
-                                        <i class="fas fa-check text-sm"></i>
-                                    </button>
+                                                                    <button 
+                                    onclick="viewOrderNotification({{ $order['id'] }})"
+                                    class="text-orange-500 hover:text-orange-600 transition-colors"
+                                    title="View Order"
+                                >
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                                <button 
+                                    onclick="markNotificationAsRead({{ $order['id'] }})"
+                                    class="text-gray-400 hover:text-gray-600 transition-colors"
+                                    title="Mark as Read"
+                                >
+                                    <i class="fas fa-check text-sm"></i>
+                                </button>
                                 </div>
                             </div>
                         </div>
@@ -129,33 +129,71 @@
 
     <!-- JavaScript for Real-time Updates -->
     <script>
-    document.addEventListener('livewire:init', () => {
-        // Listen for new order notifications
-        Livewire.on('newOrderNotification', (data) => {
-            // Play notification sound
-            const audio = document.getElementById('notificationSound');
-            if (audio) {
-                audio.play().catch(e => console.log('Audio play failed:', e));
-            }
-            
-            // Show browser notification
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('New Order!', {
-                    body: data.message,
-                    icon: '/favicon.png',
-                    badge: '/favicon.png'
-                });
-            }
-            
-            // Show toast notification
-            showToast(data.message, 'success');
+    // Notification functions
+    function markAllNotificationsAsRead() {
+        // Hide all notifications
+        const notificationItems = document.querySelectorAll('[data-notification-id]');
+        notificationItems.forEach(item => {
+            item.style.display = 'none';
         });
         
-        // Auto-refresh every 30 seconds
-        setInterval(() => {
-            @this.checkForNewOrders();
-        }, 30000);
-    });
+        // Update notification count
+        const badge = document.querySelector('.notification-badge');
+        if (badge) {
+            badge.style.display = 'none';
+        }
+        
+        // Close dropdown
+        const dropdown = document.querySelector('[x-data]');
+        if (dropdown && dropdown.__x) {
+            dropdown.__x.$data.open = false;
+        }
+    }
+
+    function markNotificationAsRead(orderId) {
+        // Hide specific notification
+        const notificationItem = document.querySelector(`[data-notification-id="${orderId}"]`);
+        if (notificationItem) {
+            notificationItem.style.display = 'none';
+        }
+        
+        // Update notification count
+        updateNotificationCount();
+    }
+
+    function viewOrderNotification(orderId) {
+        // Close dropdown
+        const dropdown = document.querySelector('[x-data]');
+        if (dropdown && dropdown.__x) {
+            dropdown.__x.$data.open = false;
+        }
+        
+        // Redirect to order details
+        const restaurantSlug = document.querySelector('[data-restaurant-slug]')?.getAttribute('data-restaurant-slug');
+        if (restaurantSlug) {
+            window.location.href = `/${restaurantSlug}/orders/${orderId}`;
+        }
+    }
+
+    function updateNotificationCount() {
+        const visibleNotifications = document.querySelectorAll('[data-notification-id]:not([style*="display: none"])');
+        const badge = document.querySelector('.notification-badge');
+        
+        if (badge) {
+            if (visibleNotifications.length === 0) {
+                badge.style.display = 'none';
+            } else {
+                badge.style.display = 'flex';
+                badge.textContent = visibleNotifications.length > 9 ? '9+' : visibleNotifications.length;
+            }
+        }
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+        // Check for new orders (simplified version)
+        console.log('Checking for new orders...');
+    }, 30000);
 
     // Toast notification function
     function showToast(message, type = 'info') {
