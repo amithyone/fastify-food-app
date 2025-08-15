@@ -54,6 +54,9 @@ class RestaurantMenuManager {
     openCategoryModal(parentId = null, parentName = null) {
         console.log('Opening category modal:', { parentId, parentName });
         
+        // Reset editing state for new category
+        this.editingCategoryId = null;
+        
         if (parentId && parentName) {
             document.getElementById('categoryModalTitle').textContent = `Add Sub-Category to ${parentName}`;
             document.getElementById('categoryParent').value = parentId;
@@ -149,16 +152,19 @@ class RestaurantMenuManager {
         const submitBtn = event.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        // Determine if this is an edit or create operation
+        const isEdit = this.editingCategoryId !== null;
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit 
+            ? `/${this.getRestaurantSlug()}/categories/${this.editingCategoryId}`
+            : `/${this.getRestaurantSlug()}/categories`;
+        
+        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${isEdit ? 'Updating...' : 'Creating...'}`;
         submitBtn.disabled = true;
         
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
-            
-            const response = await fetch(`/${restaurantSlug}/categories`, {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
@@ -168,19 +174,25 @@ class RestaurantMenuManager {
             const data = await response.json();
             
             if (data.success) {
-                this.showNotification('Category created successfully!', 'success');
+                this.showNotification(`Category ${isEdit ? 'updated' : 'created'} successfully!`, 'success');
                 this.closeCategoryModal();
                 window.location.reload();
             } else {
-                this.showNotification(data.message || 'Failed to create category', 'error');
+                this.showNotification(data.message || `Failed to ${isEdit ? 'update' : 'create'} category`, 'error');
             }
         } catch (error) {
-            console.error('Error creating category:', error);
-            this.showNotification('Error creating category. Please try again.', 'error');
+            console.error(`Error ${isEdit ? 'updating' : 'creating'} category:`, error);
+            this.showNotification(`Error ${isEdit ? 'updating' : 'creating'} category. Please try again.`, 'error');
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }
+    }
+
+    // Helper method to get restaurant slug
+    getRestaurantSlug() {
+        const pathParts = window.location.pathname.split('/');
+        return pathParts[1]; // Assuming URL is /restaurant-slug/menu
     }
 
     resetCategoryForm() {
@@ -193,11 +205,24 @@ class RestaurantMenuManager {
                 <p>Select a parent category to see available sub-categories</p>
             </div>
         `;
+        
+        // Reset editing state
+        this.editingCategoryId = null;
+        
+        // Reset modal title
+        const modalTitle = document.getElementById('categoryModalTitle');
+        if (modalTitle) {
+            modalTitle.textContent = 'Add Sub-Category';
+        }
     }
 
     // Menu Item Management Functions
     openMenuItemModal() {
         console.log('Opening menu item modal');
+        
+        // Reset editing state for new menu item
+        this.editingMenuItemId = null;
+        
         this.menuItemModal.classList.remove('hidden');
     }
 
@@ -208,6 +233,9 @@ class RestaurantMenuManager {
 
     editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl, ingredients, allergens, isFeatured, isVegetarian, isSpicy, restaurantImageId, isDelivery, isPickup, isRestaurant) {
         console.log('Editing menu item:', { id, name, price });
+        
+        // Set editing state
+        this.editingMenuItemId = id;
         
         // Populate form fields
         document.getElementById('menuItemId').value = id;
@@ -246,16 +274,19 @@ class RestaurantMenuManager {
         const submitBtn = event.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        // Determine if this is an edit or create operation
+        const isEdit = this.editingMenuItemId !== null;
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit 
+            ? `/${this.getRestaurantSlug()}/menu/${this.editingMenuItemId}`
+            : `/${this.getRestaurantSlug()}/menu`;
+        
+        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${isEdit ? 'Updating...' : 'Saving...'}`;
         submitBtn.disabled = true;
         
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
-            
-            const response = await fetch(`/${restaurantSlug}/menu`, {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
@@ -265,15 +296,15 @@ class RestaurantMenuManager {
             const data = await response.json();
             
             if (data.success) {
-                this.showNotification('Menu item saved successfully!', 'success');
+                this.showNotification(`Menu item ${isEdit ? 'updated' : 'saved'} successfully!`, 'success');
                 this.closeMenuItemModal();
                 window.location.reload();
             } else {
-                this.showNotification(data.message || 'Failed to save menu item', 'error');
+                this.showNotification(data.message || `Failed to ${isEdit ? 'update' : 'save'} menu item`, 'error');
             }
         } catch (error) {
-            console.error('Error saving menu item:', error);
-            this.showNotification('Error saving menu item. Please try again.', 'error');
+            console.error(`Error ${isEdit ? 'updating' : 'saving'} menu item:`, error);
+            this.showNotification(`Error ${isEdit ? 'updating' : 'saving'} menu item. Please try again.`, 'error');
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -294,6 +325,9 @@ class RestaurantMenuManager {
         // Reset modal title and button
         document.getElementById('menuItemModalTitle').textContent = 'Add Menu Item';
         document.getElementById('menuItemSubmitBtn').textContent = 'Add Item';
+        
+        // Reset editing state
+        this.editingMenuItemId = null;
     }
 
     // Image Management Functions
@@ -537,6 +571,55 @@ class RestaurantMenuManager {
             this.showNotification('Error updating menu item status. Please try again.', 'error');
         }
     }
+
+    // Category Management Methods
+    editCategory(categoryId, categoryName, parentId) {
+        console.log('Editing category:', { categoryId, categoryName, parentId });
+        
+        // Populate form fields
+        document.getElementById('categoryName').value = categoryName;
+        document.getElementById('categoryParent').value = parentId || '';
+        document.getElementById('newCategoryParent').value = parentId || '';
+        
+        // Update modal title
+        document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+        
+        // Store the category ID for update
+        this.editingCategoryId = categoryId;
+        
+        this.openCategoryModal();
+    }
+
+    async deactivateCategory(categoryId) {
+        if (!confirm('Are you sure you want to remove this category from your restaurant?')) return;
+        
+        try {
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/categories/deactivate`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category_id: categoryId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showNotification('Category removed from restaurant successfully!', 'success');
+                window.location.reload();
+            } else {
+                this.showNotification(data.message || 'Failed to remove category', 'error');
+            }
+        } catch (error) {
+            console.error('Error removing category:', error);
+            this.showNotification('Error removing category. Please try again.', 'error');
+        }
+    }
 }
 
 // Initialize restaurant menu manager when DOM is loaded
@@ -604,6 +687,58 @@ window.clearSelectedImage = function() {
     if (window.restaurantMenuManager) {
         window.restaurantMenuManager.clearSelectedImage();
     }
+};
+
+// Additional functions needed for the menu page
+window.editCategory = function(categoryId, categoryName, parentId) {
+    if (window.restaurantMenuManager) {
+        window.restaurantMenuManager.editCategory(categoryId, categoryName, parentId);
+    }
+};
+
+window.deactivateCategory = function(categoryId) {
+    if (window.restaurantMenuManager) {
+        window.restaurantMenuManager.deactivateCategory(categoryId);
+    }
+};
+
+window.openImageSelector = function() {
+    if (window.restaurantMenuManager) {
+        window.restaurantMenuManager.loadRestaurantImages();
+    }
+};
+
+window.closeSimilarCategoriesModal = function() {
+    const modal = document.getElementById('similarCategoriesModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+};
+
+window.forceCreateCategory = function() {
+    // This function would handle forcing category creation
+    console.log('Force create category function called');
+    // Implementation would go here
+};
+
+window.addQuickNote = function() {
+    const modal = document.getElementById('quickNoteModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+};
+
+window.closeQuickNoteModal = function() {
+    const modal = document.getElementById('quickNoteModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+};
+
+window.saveQuickNote = function() {
+    // This function would handle saving quick notes
+    console.log('Save quick note function called');
+    // Implementation would go here
 };
 
 // Export for use in other modules
