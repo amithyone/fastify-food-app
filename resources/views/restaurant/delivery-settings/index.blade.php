@@ -347,11 +347,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Menu items data to send:', menuItems);
         
+        // Get CSRF token with fallback
+        let csrfTokenValue = '';
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        
+        if (csrfToken && csrfToken.getAttribute('content')) {
+            csrfTokenValue = csrfToken.getAttribute('content');
+            console.log('CSRF token found in meta tag');
+        } else {
+            // Fallback: use the token directly from Blade
+            csrfTokenValue = '{{ csrf_token() }}';
+            console.log('CSRF token from Blade fallback');
+        }
+        
+        if (!csrfTokenValue) {
+            console.error('CSRF token is empty');
+            alert('Error: CSRF token is empty. Please refresh the page and try again.');
+            return;
+        }
+        
+        console.log('CSRF token length:', csrfTokenValue.length);
+        console.log('Fetch URL:', '{{ route("restaurant.delivery-settings.menu-items", $restaurant->slug) }}');
+        
         fetch('{{ route("restaurant.delivery-settings.menu-items", $restaurant->slug) }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': csrfTokenValue
             },
             body: JSON.stringify({ menu_items: menuItems })
         })
@@ -422,7 +444,21 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Fetch error:', error);
-            alert('Error saving menu item settings: ' + error.message);
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            
+            let errorMessage = 'Error saving menu item settings: ';
+            
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage += 'Network error - please check your internet connection and try again.';
+            } else if (error.name === 'SyntaxError') {
+                errorMessage += 'Invalid response from server - please try again.';
+            } else {
+                errorMessage += error.message;
+            }
+            
+            alert(errorMessage);
         });
     });
 });
