@@ -595,6 +595,7 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/menu/{item}/edit', [MenuController::class, 'restaurantEdit'])->name('restaurant.menu.edit');
     Route::put('/{slug}/menu/{item}', [MenuController::class, 'restaurantUpdate'])->name('restaurant.menu.update');
     Route::delete('/{slug}/menu/{item}', [MenuController::class, 'restaurantDestroy'])->name('restaurant.menu.destroy');
+    Route::post('/{slug}/menu/{item}/toggle-status', [MenuController::class, 'toggleMenuItemStatus'])->name('restaurant.menu.toggle-status');
     
     // Restaurant Category Management
     Route::post('/{slug}/categories', [MenuController::class, 'storeCategory'])->name('restaurant.categories.store');
@@ -603,6 +604,7 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::post('/{slug}/categories/share', [MenuController::class, 'shareCategory'])->name('restaurant.categories.share');
     Route::post('/{slug}/categories/unshare', [MenuController::class, 'unshareCategory'])->name('restaurant.categories.unshare');
     Route::post('/{slug}/categories/deactivate', [MenuController::class, 'deactivateCategory'])->name('restaurant.categories.deactivate');
+    Route::get('/{slug}/categories/{parentId}/subcategories', [MenuController::class, 'getSubcategories'])->name('restaurant.categories.subcategories');
     
     // Restaurant Image Management
     Route::get('/{slug}/images', [RestaurantImageController::class, 'index'])->name('restaurant.images.index');

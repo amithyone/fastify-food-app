@@ -93,7 +93,11 @@ class RestaurantMenuManager {
 
     async loadExistingSubCategories(parentId) {
         try {
-            const response = await fetch(`/api/categories/${parentId}/subcategories`);
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/categories/${parentId}/subcategories`);
             const data = await response.json();
             
             if (data.success) {
@@ -103,6 +107,8 @@ class RestaurantMenuManager {
             }
         } catch (error) {
             console.error('Error loading sub-categories:', error);
+            // Fallback: show empty state
+            this.displayExistingSubCategories([]);
         }
     }
 
@@ -147,7 +153,11 @@ class RestaurantMenuManager {
         submitBtn.disabled = true;
         
         try {
-            const response = await fetch('/restaurant/categories', {
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/categories`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -240,7 +250,11 @@ class RestaurantMenuManager {
         submitBtn.disabled = true;
         
         try {
-            const response = await fetch('/restaurant/menu-items', {
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/menu`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -285,7 +299,11 @@ class RestaurantMenuManager {
     // Image Management Functions
     async loadRestaurantImages() {
         try {
-            const response = await fetch('/restaurant/images');
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/images`);
             const data = await response.json();
             
             if (data.success) {
@@ -302,6 +320,10 @@ class RestaurantMenuManager {
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 modal-overlay';
         modal.id = 'imageSelectorModal';
+        
+        // Get the restaurant slug from the current URL
+        const pathParts = window.location.pathname.split('/');
+        const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
         
         let imagesHtml = '';
         if (images.length > 0) {
@@ -326,7 +348,7 @@ class RestaurantMenuManager {
                     <i class="fas fa-images text-4xl text-gray-400 mb-4"></i>
                     <p class="text-gray-500">No images available</p>
                     <p class="text-sm text-gray-400">Upload some images first</p>
-                    <a href="/restaurant/images" class="inline-block mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    <a href="/${restaurantSlug}/images" class="inline-block mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
                         <i class="fas fa-upload mr-2"></i>Upload Images
                     </a>
                 </div>
@@ -433,7 +455,11 @@ class RestaurantMenuManager {
         if (!confirm('Are you sure you want to delete this category?')) return;
         
         try {
-            const response = await fetch(`/restaurant/categories/${categoryId}`, {
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/categories/${categoryId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -458,7 +484,11 @@ class RestaurantMenuManager {
         if (!confirm('Are you sure you want to delete this menu item?')) return;
         
         try {
-            const response = await fetch(`/restaurant/menu-items/${itemId}`, {
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/menu/${itemId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -481,7 +511,11 @@ class RestaurantMenuManager {
 
     async toggleItemStatus(itemId, newStatus) {
         try {
-            const response = await fetch(`/restaurant/menu-items/${itemId}/toggle-status`, {
+            // Get the restaurant slug from the current URL
+            const pathParts = window.location.pathname.split('/');
+            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            
+            const response = await fetch(`/${restaurantSlug}/menu/${itemId}/toggle-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

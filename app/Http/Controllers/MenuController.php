@@ -1202,4 +1202,90 @@ class MenuController extends Controller
             ], 500);
         }
     }
+
+    public function getSubcategories(Request $request, $slug, $parentId)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories.'], 403);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+        }
+        
+        try {
+            // Get subcategories for the parent category
+            $subcategories = Category::where('parent_id', $parentId)
+                ->where('type', 'sub')
+                ->with(['menuItems' => function($query) use ($restaurant) {
+                    $query->where('restaurant_id', $restaurant->id);
+                }])
+                ->get()
+                ->map(function($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'restaurant_count' => $category->isShared() ? count($category->restaurant_ids ?? []) : 1,
+                        'is_shared' => $category->isShared(),
+                        'menu_items_count' => $category->menuItems->count()
+                    ];
+                });
+            
+            return response()->json([
+                'success' => true,
+                'subcategories' => $subcategories
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error getting subcategories: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error loading subcategories: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function toggleMenuItemStatus(Request $request, $slug, $item)
+    {
+        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+        
+        if (Auth::check()) {
+            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant menu items.'], 403);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Please login to access the restaurant menu items.'], 401);
+        }
+        
+        try {
+            $validated = $request->validate([
+                'is_available' => 'required|boolean',
+            ]);
+            
+            $menuItem = MenuItem::where('id', $item)
+                ->where('restaurant_id', $restaurant->id)
+                ->firstOrFail();
+            
+            $menuItem->update([
+                'is_available' => $validated['is_available']
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item status updated successfully.',
+                'menu_item' => $menuItem
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error toggling menu item status: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error updating menu item status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
