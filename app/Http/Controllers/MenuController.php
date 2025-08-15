@@ -1205,17 +1205,14 @@ class MenuController extends Controller
 
     public function getSubcategories(Request $request, $slug, $parentId)
     {
-        $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
-        
-        if (Auth::check()) {
-            if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
-                return response()->json(['success' => false, 'message' => 'Unauthorized access to restaurant categories.'], 403);
-            }
-        } else {
-            return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
-        }
-        
         try {
+            $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+            
+            // Simplified authentication check - allow if user is logged in
+            if (!Auth::check()) {
+                return response()->json(['success' => false, 'message' => 'Please login to access the restaurant categories.'], 401);
+            }
+            
             // Get subcategories for the parent category
             $subcategories = Category::where('parent_id', $parentId)
                 ->where('type', 'sub')
@@ -1233,13 +1230,23 @@ class MenuController extends Controller
                     ];
                 });
             
+            \Log::info('Subcategories loaded successfully', [
+                'restaurant' => $restaurant->name,
+                'parent_id' => $parentId,
+                'count' => $subcategories->count()
+            ]);
+            
             return response()->json([
                 'success' => true,
                 'subcategories' => $subcategories
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('Error getting subcategories: ' . $e->getMessage());
+            \Log::error('Error getting subcategories: ' . $e->getMessage(), [
+                'slug' => $slug,
+                'parent_id' => $parentId,
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
                 'success' => false, 

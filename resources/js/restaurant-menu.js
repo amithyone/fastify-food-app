@@ -104,18 +104,40 @@ class RestaurantMenuManager {
             console.log('Restaurant slug:', restaurantSlug);
             console.log('Full URL:', `/${restaurantSlug}/categories/${parentId}/subcategories`);
             
-            const response = await fetch(`/${restaurantSlug}/categories/${parentId}/subcategories`);
+            // Add CSRF token and proper headers
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            };
+            
+            if (csrfToken) {
+                headers['X-CSRF-TOKEN'] = csrfToken;
+            }
+            
+            const response = await fetch(`/${restaurantSlug}/categories/${parentId}/subcategories`, {
+                method: 'GET',
+                headers: headers,
+                credentials: 'same-origin'
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('Response text:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
             }
             
             const data = await response.json();
+            console.log('Response data:', data);
             
             if (data.success) {
                 this.displayExistingSubCategories(data.subcategories);
             } else {
                 console.error('Failed to load sub-categories:', data.message);
+                this.displayExistingSubCategories([]);
             }
         } catch (error) {
             console.error('Error loading sub-categories:', error);
@@ -126,9 +148,15 @@ class RestaurantMenuManager {
 
     displayExistingSubCategories(subcategories) {
         const container = document.getElementById('existingSubCategoriesList');
+        
+        if (!container) {
+            console.error('Container element "existingSubCategoriesList" not found');
+            return;
+        }
+        
         let html = '';
         
-        if (subcategories.length > 0) {
+        if (subcategories && subcategories.length > 0) {
             subcategories.forEach(category => {
                 html += `
                     <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
