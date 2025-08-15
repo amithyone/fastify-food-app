@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             FreeSubscriptionPlanSeeder::class, // Free plan should be seeded after other plans
             ParentCategorySeeder::class,
             AssignParentCategoriesSeeder::class,
+            PopulateDeliverySettingsSeeder::class, // Populate delivery settings for existing restaurants
         ]);
     }
 }
