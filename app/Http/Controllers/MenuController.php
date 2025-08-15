@@ -264,6 +264,8 @@ class MenuController extends Controller
                 'is_available' => 'nullable',
                 'is_featured' => 'nullable',
                 'is_available_for_delivery' => 'nullable',
+                'is_available_for_pickup' => 'nullable',
+                'is_available_for_restaurant' => 'nullable',
                 'is_vegetarian' => 'nullable',
                 'is_spicy' => 'nullable',
                 'ingredients' => 'nullable|string|max:500',
@@ -287,6 +289,8 @@ class MenuController extends Controller
             $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';
             $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
             $validated['is_available_for_delivery'] = $request->has('is_available_for_delivery') || $request->input('is_available_for_delivery') === 'on';
+            $validated['is_available_for_pickup'] = $request->has('is_available_for_pickup') || $request->input('is_available_for_pickup') === 'on';
+            $validated['is_available_for_restaurant'] = $request->has('is_available_for_restaurant') || $request->input('is_available_for_restaurant') === 'on';
             $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             
@@ -446,6 +450,9 @@ class MenuController extends Controller
                 'category_id' => 'nullable|exists:categories,id',
                 'is_available' => 'nullable',
                 'is_featured' => 'nullable',
+                'is_available_for_delivery' => 'nullable',
+                'is_available_for_pickup' => 'nullable',
+                'is_available_for_restaurant' => 'nullable',
                 'is_vegetarian' => 'nullable',
                 'is_spicy' => 'nullable',
                 'ingredients' => 'nullable|string|max:500',
@@ -458,6 +465,9 @@ class MenuController extends Controller
             // Set default values for boolean fields
             $validated['is_available'] = $request->has('is_available') || $request->input('is_available') === 'on';
             $validated['is_featured'] = $request->has('is_featured') || $request->input('is_featured') === 'on';
+            $validated['is_available_for_delivery'] = $request->has('is_available_for_delivery') || $request->input('is_available_for_delivery') === 'on';
+            $validated['is_available_for_pickup'] = $request->has('is_available_for_pickup') || $request->input('is_available_for_pickup') === 'on';
+            $validated['is_available_for_restaurant'] = $request->has('is_available_for_restaurant') || $request->input('is_available_for_restaurant') === 'on';
             $validated['is_vegetarian'] = $request->has('is_vegetarian') || $request->input('is_vegetarian') === 'on';
             $validated['is_spicy'] = $request->has('is_spicy') || $request->input('is_spicy') === 'on';
             

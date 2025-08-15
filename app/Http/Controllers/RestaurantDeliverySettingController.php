@@ -78,7 +78,21 @@ class RestaurantDeliverySettingController extends Controller
             $deliverySetting->restaurant_id = $restaurant->id;
         }
 
-        $deliverySetting->fill($request->all());
+        // Handle checkbox values properly
+        $data = $request->all();
+        
+        // Ensure boolean fields are properly set
+        $data['delivery_enabled'] = $request->has('delivery_enabled') || $request->input('delivery_enabled') === '1';
+        $data['pickup_enabled'] = $request->has('pickup_enabled') || $request->input('pickup_enabled') === '1';
+        $data['in_restaurant_enabled'] = $request->has('in_restaurant_enabled') || $request->input('in_restaurant_enabled') === '1';
+        
+        \Log::info('Delivery settings update', [
+            'restaurant_id' => $restaurant->id,
+            'request_data' => $request->all(),
+            'processed_data' => $data
+        ]);
+        
+        $deliverySetting->fill($data);
         $deliverySetting->save();
 
         return redirect()->route('restaurant.delivery-settings.index', $restaurant->slug)
