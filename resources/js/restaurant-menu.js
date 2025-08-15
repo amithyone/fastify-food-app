@@ -56,6 +56,8 @@ class RestaurantMenuManager {
         
         console.log('Current URL pathname:', window.location.pathname);
         console.log('Path parts:', pathParts);
+        console.log('Current page URL:', window.location.href);
+        console.log('Document title:', document.title);
         
         // Handle different URL structures:
         // /restaurant/menu -> restaurant slug is in pathParts[2] (menu)
@@ -65,6 +67,7 @@ class RestaurantMenuManager {
         
         // First, try to get from data attribute (most reliable)
         const restaurantElement = document.querySelector('[data-restaurant-slug]');
+        console.log('Restaurant element found:', restaurantElement);
         if (restaurantElement) {
             restaurantSlug = restaurantElement.getAttribute('data-restaurant-slug');
             console.log('Found restaurant slug from data attribute:', restaurantSlug);
@@ -72,6 +75,13 @@ class RestaurantMenuManager {
                 return restaurantSlug;
             }
         }
+        
+        // Debug: Check all data attributes on the page
+        const allDataElements = document.querySelectorAll('[data-restaurant-slug]');
+        console.log('All elements with data-restaurant-slug:', allDataElements);
+        allDataElements.forEach((el, index) => {
+            console.log(`Element ${index}:`, el.getAttribute('data-restaurant-slug'));
+        });
         
         if (pathParts[1] === 'restaurant' && pathParts[2] === 'menu') {
             // URL is /restaurant/menu, we need to get the actual restaurant slug

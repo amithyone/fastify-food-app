@@ -1206,6 +1206,20 @@ class MenuController extends Controller
     public function getSubcategories(Request $request, $slug, $parentId)
     {
         try {
+            \Log::info('getSubcategories called', [
+                'slug' => $slug,
+                'parent_id' => $parentId,
+                'url' => $request->url(),
+                'path' => $request->path()
+            ]);
+            
+            // Debug: Check what restaurants exist
+            $allRestaurants = Restaurant::select('id', 'name', 'slug')->get();
+            \Log::info('Available restaurants', [
+                'restaurants' => $allRestaurants->toArray(),
+                'searching_for_slug' => $slug
+            ]);
+            
             $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
             
             // Check if user is authenticated and has access to this restaurant
