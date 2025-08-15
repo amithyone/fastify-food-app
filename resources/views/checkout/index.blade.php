@@ -153,18 +153,6 @@
                         </p>
                     </div>
                 </div>
-                
-                <!-- Restaurant form - only table number and optional phone -->
-                <div id="restaurantCustomerForm" style="display: none;">
-                    <div>
-                        <label for="restaurantPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number (Optional)</label>
-                        <input type="tel" id="restaurantPhone" name="restaurantPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number (optional)">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Optional - for order updates or contact if needed
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -561,15 +549,19 @@ document.addEventListener('DOMContentLoaded', function() {
         restaurantOption.classList.remove('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
         
         if (isRestaurant) {
-            // Restaurant mode - show restaurant section
+            // Restaurant mode - show restaurant section, hide customer info
             restaurantInfoSection.style.display = 'block';
             restaurantInfoSection.style.maxHeight = '1000px';
             restaurantInfoSection.style.overflow = 'visible';
             restaurantInfoSection.style.opacity = '1';
             restaurantInfoSection.style.marginBottom = '24px';
             
-            // Change section title to "Table Information"
-            document.getElementById('customerInfoTitle').textContent = 'Table Information';
+            // Hide customer information section completely for restaurant orders
+            customerInfoSection.style.display = 'none';
+            customerInfoSection.style.maxHeight = '0px';
+            customerInfoSection.style.overflow = 'hidden';
+            customerInfoSection.style.opacity = '0';
+            customerInfoSection.style.marginBottom = '0px';
             
             // Add required attribute to table number
             document.getElementById('tableNumber').setAttribute('required', 'required');
@@ -577,32 +569,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Setup QR code and check for simplified form
             setupQRCode();
             
-            // Show restaurant customer form (only optional phone)
-            console.log('Showing restaurant customer form');
-            document.getElementById('deliveryCustomerForm').style.display = 'none';
-            document.getElementById('pickupCustomerForm').style.display = 'none';
-            document.getElementById('restaurantCustomerForm').style.display = 'block';
-            
-            // Remove required from restaurant phone (it's optional)
-            const restaurantPhone = document.getElementById('restaurantPhone');
-            if (restaurantPhone) {
-                restaurantPhone.removeAttribute('required');
-            }
-            
             // Update delivery fee to 0
             updateDeliveryFee(0);
             
             // Update option styling
             restaurantOption.classList.add('bg-orange-50', 'dark:bg-orange-900/20', 'border-orange-500', 'dark:border-orange-400');
             
-            console.log('Restaurant mode - restaurant section shown');
+            console.log('Restaurant mode - only table information shown, customer info hidden');
         } else if (isPickup) {
-            // Pickup mode - show pickup section
+            // Pickup mode - show pickup section and customer info
             pickupInfoSection.style.display = 'block';
             pickupInfoSection.style.maxHeight = '1000px';
             pickupInfoSection.style.overflow = 'visible';
             pickupInfoSection.style.opacity = '1';
             pickupInfoSection.style.marginBottom = '24px';
+            
+            // Show customer information section for pickup
+            customerInfoSection.style.display = 'block';
+            customerInfoSection.style.maxHeight = '1000px';
+            customerInfoSection.style.overflow = 'visible';
+            customerInfoSection.style.opacity = '1';
+            customerInfoSection.style.marginBottom = '24px';
             
             // Change section title back to "Customer Information"
             document.getElementById('customerInfoTitle').textContent = 'Customer Information';
@@ -610,7 +597,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show pickup customer form (only phone number)
             console.log('Showing pickup customer form');
             document.getElementById('deliveryCustomerForm').style.display = 'none';
-            document.getElementById('restaurantCustomerForm').style.display = 'none';
             document.getElementById('pickupCustomerForm').style.display = 'block';
             
             // Add required attributes to pickup fields
@@ -626,14 +612,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log('Pickup mode - pickup section shown');
         } else {
-            // Delivery mode - show delivery sections, hide restaurant section
+            // Delivery mode - show delivery sections and customer info, hide restaurant section
+            
+            // Show customer information section for delivery
+            customerInfoSection.style.display = 'block';
+            customerInfoSection.style.maxHeight = '1000px';
+            customerInfoSection.style.overflow = 'visible';
+            customerInfoSection.style.opacity = '1';
+            customerInfoSection.style.marginBottom = '24px';
             
             // Change section title back to "Customer Information"
             document.getElementById('customerInfoTitle').textContent = 'Customer Information';
             
             // Show delivery customer form (full form)
             document.getElementById('pickupCustomerForm').style.display = 'none';
-            document.getElementById('restaurantCustomerForm').style.display = 'none';
             document.getElementById('deliveryCustomerForm').style.display = 'block';
             
             // Add required attributes to delivery fields
@@ -803,7 +795,7 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                 in_restaurant: true,
                 table_number: formData.get('tableNumber'),
                 restaurant_notes: formData.get('restaurantNotes'),
-                phone: formData.get('restaurantPhone') || 'N/A', // Optional phone
+                phone: 'N/A', // No phone for restaurant orders
                 name: 'Table ' + formData.get('tableNumber') // Use table number as name
             };
         } else {
@@ -813,7 +805,7 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                 in_restaurant: true,
                 table_number: formData.get('tableNumber'),
                 restaurant_notes: formData.get('restaurantNotes'),
-                phone: formData.get('restaurantPhone') || 'N/A', // Optional phone
+                phone: 'N/A', // No phone for restaurant orders
                 name: 'Table ' + formData.get('tableNumber') // Use table number as name
             };
         }
