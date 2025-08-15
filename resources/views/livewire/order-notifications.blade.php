@@ -1,5 +1,5 @@
 <div>
-    <div class="relative" x-data="{ open: @entangle('showNotifications') }">
+    <div class="relative" wire:ignore x-data="{ open: @entangle('showNotifications') }">
         <!-- Notification Bell -->
         <button 
             wire:click="toggleNotifications"

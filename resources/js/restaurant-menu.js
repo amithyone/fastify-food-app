@@ -53,7 +53,36 @@ class RestaurantMenuManager {
     getRestaurantSlug() {
         // Get the restaurant slug from the current URL
         const pathParts = window.location.pathname.split('/');
-        const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+        
+        // Handle different URL structures:
+        // /restaurant/menu -> restaurant slug is in pathParts[2] (menu)
+        // /restaurant-slug/menu -> restaurant slug is in pathParts[1]
+        
+        let restaurantSlug;
+        
+        if (pathParts[1] === 'restaurant' && pathParts[2] === 'menu') {
+            // URL is /restaurant/menu, we need to get the actual restaurant slug
+            // This might be stored in a data attribute or we need to extract it differently
+            const restaurantElement = document.querySelector('[data-restaurant-slug]');
+            if (restaurantElement) {
+                restaurantSlug = restaurantElement.getAttribute('data-restaurant-slug');
+            } else {
+                // Fallback: try to get from the page title or other elements
+                const pageTitle = document.title;
+                if (pageTitle.includes(' - Dashboard')) {
+                    // Extract restaurant name from title and convert to slug
+                    const restaurantName = pageTitle.replace(' - Dashboard', '');
+                    restaurantSlug = restaurantName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                } else {
+                    // Last resort: use a default or throw error
+                    console.error('Could not determine restaurant slug from URL or page elements:', window.location.pathname);
+                    throw new Error('Restaurant slug not found');
+                }
+            }
+        } else {
+            // URL is /restaurant-slug/menu
+            restaurantSlug = pathParts[1];
+        }
         
         if (!restaurantSlug) {
             console.error('Could not determine restaurant slug from URL:', window.location.pathname);

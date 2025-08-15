@@ -65,6 +65,13 @@ class CheckoutManager {
     }
 
     initializeOnLoad() {
+        // Check if we're on the checkout page
+        const checkoutForm = document.getElementById('checkoutForm');
+        if (!checkoutForm) {
+            console.log('Not on checkout page - skipping checkout initialization');
+            return;
+        }
+        
         // Initialize theme
         this.initializeTheme();
         
