@@ -124,32 +124,44 @@
             <h2 id="customerInfoTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Customer Information</h2>
             
             <div class="space-y-4">
-                <!-- Full form for delivery/pickup -->
-                <div id="fullCustomerForm">
+                <!-- Full form for delivery -->
+                <div id="deliveryCustomerForm" style="display: none;">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
-                        <input type="text" id="name" name="name" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                        <label for="deliveryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
+                        <input type="text" id="deliveryName" name="deliveryName" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
                     </div>
                     
                     <div>
-                        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
-                        <input type="tel" id="phone" name="phone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                        <label for="deliveryPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
+                        <input type="tel" id="deliveryPhone" name="deliveryPhone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
                     </div>
                     
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email (Optional)</label>
-                        <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
+                        <label for="deliveryEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email (Optional)</label>
+                        <input type="email" id="deliveryEmail" name="deliveryEmail" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
                     </div>
                 </div>
                 
-                <!-- Simplified form for restaurant dining -->
-                <div id="restaurantCustomerForm" style="display: none;">
+                <!-- Pickup form - only phone number -->
+                <div id="pickupCustomerForm" style="display: none;">
                     <div>
-                        <label for="restaurantName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name (Optional)</label>
-                        <input type="text" id="restaurantName" name="restaurantName" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Your name (optional)">
+                        <label for="pickupPhoneOnly" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number *</label>
+                        <input type="tel" id="pickupPhoneOnly" name="pickupPhoneOnly" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number to contact when order is ready">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
-                            Optional - for order identification
+                            Required - to contact you when your order is ready
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Restaurant form - only table number and optional phone -->
+                <div id="restaurantCustomerForm" style="display: none;">
+                    <div>
+                        <label for="restaurantPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number (Optional)</label>
+                        <input type="tel" id="restaurantPhone" name="restaurantPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number (optional)">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Optional - for order updates or contact if needed
                         </p>
                     </div>
                 </div>
@@ -185,11 +197,10 @@
                 <div>
                     <label for="pickupName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name for Pickup *</label>
                     <input type="text" id="pickupName" name="pickupName" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Full name to call when order is ready">
-                </div>
-                
-                <div>
-                    <label for="pickupPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number for Pickup *</label>
-                    <input type="tel" id="pickupPhone" name="pickupPhone" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-white" placeholder="Phone number to contact">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Required - to call your name when order is ready
+                    </p>
                 </div>
                 
                 <div>
@@ -566,10 +577,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Setup QR code and check for simplified form
             setupQRCode();
             
-            // Always show simplified customer form for restaurant orders
-            console.log('Showing simplified restaurant form');
-            document.getElementById('fullCustomerForm').style.display = 'none';
+            // Show restaurant customer form (only optional phone)
+            console.log('Showing restaurant customer form');
+            document.getElementById('deliveryCustomerForm').style.display = 'none';
+            document.getElementById('pickupCustomerForm').style.display = 'none';
             document.getElementById('restaurantCustomerForm').style.display = 'block';
+            
+            // Remove required from restaurant phone (it's optional)
+            const restaurantPhone = document.getElementById('restaurantPhone');
+            if (restaurantPhone) {
+                restaurantPhone.removeAttribute('required');
+            }
             
             // Update delivery fee to 0
             updateDeliveryFee(0);
@@ -589,16 +607,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Change section title back to "Customer Information"
             document.getElementById('customerInfoTitle').textContent = 'Customer Information';
             
-            // Show full customer form for pickup
-            console.log('Showing full customer form for pickup');
-            document.getElementById('fullCustomerForm').style.display = 'block';
+            // Show pickup customer form (only phone number)
+            console.log('Showing pickup customer form');
+            document.getElementById('deliveryCustomerForm').style.display = 'none';
             document.getElementById('restaurantCustomerForm').style.display = 'none';
-            document.getElementById('name').setAttribute('required', 'required');
-            document.getElementById('phone').setAttribute('required', 'required');
+            document.getElementById('pickupCustomerForm').style.display = 'block';
             
             // Add required attributes to pickup fields
+            document.getElementById('pickupPhoneOnly').setAttribute('required', 'required');
             document.getElementById('pickupName').setAttribute('required', 'required');
-            document.getElementById('pickupPhone').setAttribute('required', 'required');
             document.getElementById('pickupTime').setAttribute('required', 'required');
             
             // Update delivery fee to 0
@@ -614,11 +631,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Change section title back to "Customer Information"
             document.getElementById('customerInfoTitle').textContent = 'Customer Information';
             
-            // Show full customer form for delivery
-            document.getElementById('fullCustomerForm').style.display = 'block';
+            // Show delivery customer form (full form)
+            document.getElementById('pickupCustomerForm').style.display = 'none';
             document.getElementById('restaurantCustomerForm').style.display = 'none';
-            document.getElementById('name').setAttribute('required', 'required');
-            document.getElementById('phone').setAttribute('required', 'required');
+            document.getElementById('deliveryCustomerForm').style.display = 'block';
+            
+            // Add required attributes to delivery fields
+            document.getElementById('deliveryName').setAttribute('required', 'required');
+            document.getElementById('deliveryPhone').setAttribute('required', 'required');
             
             addressSection.style.maxHeight = '1000px';
             addressSection.style.overflow = 'visible';
@@ -633,8 +653,8 @@ document.addEventListener('DOMContentLoaded', function() {
             restaurantInfoSection.style.marginBottom = '0px';
             
             // Add required attributes back to delivery sections
-            document.querySelectorAll('#customerInfoSection input[type="text"], #customerInfoSection input[type="tel"], #addressSection input[type="text"]').forEach(input => {
-                if (input.id !== 'email' && input.id !== 'postal_code' && input.id !== 'instructions') {
+            document.querySelectorAll('#addressSection input[type="text"]').forEach(input => {
+                if (input.id !== 'postal_code' && input.id !== 'instructions') {
                     input.setAttribute('required', 'required');
                 }
             });
@@ -777,13 +797,13 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         // Check if we're using the simplified restaurant form
         const qrTableNumber = '{{ $qrTableNumber ?? "" }}';
         if (qrTableNumber) {
-            // Use simplified form data
+            // Use simplified form data with QR code
             customerInfo = {
                 order_type: orderType,
                 in_restaurant: true,
                 table_number: formData.get('tableNumber'),
                 restaurant_notes: formData.get('restaurantNotes'),
-                phone: formData.get('restaurantPhone'), // Use restaurant phone
+                phone: formData.get('restaurantPhone') || 'N/A', // Optional phone
                 name: 'Table ' + formData.get('tableNumber') // Use table number as name
             };
         } else {
@@ -793,19 +813,16 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
                 in_restaurant: true,
                 table_number: formData.get('tableNumber'),
                 restaurant_notes: formData.get('restaurantNotes'),
-                name: formData.get('restaurantName') || 'Restaurant Customer',
-                phone: 'N/A' // No phone required for restaurant orders
+                phone: formData.get('restaurantPhone') || 'N/A', // Optional phone
+                name: 'Table ' + formData.get('tableNumber') // Use table number as name
             };
         }
     } else if (pickupRadio.checked) {
         orderType = 'pickup';
         customerInfo = {
             order_type: orderType,
-            name: formData.get('name'),
-            phone: formData.get('phone'),
-            email: formData.get('email'),
+            phone: formData.get('pickupPhoneOnly'), // Only phone number required
             pickup_name: formData.get('pickupName'),
-            pickup_phone: formData.get('pickupPhone'),
             pickup_time: formData.get('pickupTime'),
             custom_pickup_datetime: formData.get('customPickupDateTime'),
             pickup_notes: formData.get('pickupNotes')
@@ -814,9 +831,9 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         orderType = 'delivery';
         customerInfo = {
             order_type: orderType,
-            name: formData.get('name'),
-            phone: formData.get('phone'),
-            email: formData.get('email'),
+            name: formData.get('deliveryName'),
+            phone: formData.get('deliveryPhone'),
+            email: formData.get('deliveryEmail'),
             address: formData.get('address'),
             city: formData.get('city'),
             state: formData.get('state'),
@@ -1037,4 +1054,5 @@ document.addEventListener('change', function(e) {
     }
 });
 </script>
+@endsection 
 @endsection 
