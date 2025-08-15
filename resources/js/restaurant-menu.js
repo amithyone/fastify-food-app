@@ -153,7 +153,7 @@ class RestaurantMenuManager {
             
             console.log('Loading subcategories for parent ID:', parentId);
             console.log('Restaurant slug:', restaurantSlug);
-            console.log('Full URL:', `/${restaurantSlug}/categories/${parentId}/subcategories`);
+            console.log('Full URL:', `/restaurant/${restaurantSlug}/categories/${parentId}/subcategories`);
             
             // Add CSRF token and proper headers
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -166,7 +166,7 @@ class RestaurantMenuManager {
                 headers['X-CSRF-TOKEN'] = csrfToken;
             }
             
-            const response = await fetch(`/${restaurantSlug}/categories/${parentId}/subcategories`, {
+            const response = await fetch(`/restaurant/${restaurantSlug}/categories/${parentId}/subcategories`, {
                 method: 'GET',
                 headers: headers,
                 credentials: 'same-origin'
@@ -477,7 +477,7 @@ class RestaurantMenuManager {
         try {
             const restaurantSlug = this.getRestaurantSlug();
             
-            const response = await fetch(`/${restaurantSlug}/images`);
+            const response = await fetch(`/restaurant/${restaurantSlug}/images`);
             const data = await response.json();
             
             if (data.success) {
@@ -631,7 +631,7 @@ class RestaurantMenuManager {
             const pathParts = window.location.pathname.split('/');
             const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
             
-            const response = await fetch(`/${restaurantSlug}/categories/${categoryId}`, {
+            const response = await fetch(`/restaurant/${restaurantSlug}/categories/${categoryId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -660,7 +660,7 @@ class RestaurantMenuManager {
             const pathParts = window.location.pathname.split('/');
             const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
             
-            const response = await fetch(`/${restaurantSlug}/menu/${itemId}`, {
+            const response = await fetch(`/restaurant/${restaurantSlug}/menu/${itemId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -687,7 +687,7 @@ class RestaurantMenuManager {
             const pathParts = window.location.pathname.split('/');
             const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
             
-            const response = await fetch(`/${restaurantSlug}/menu/${itemId}/toggle-status`, {
+            const response = await fetch(`/restaurant/${restaurantSlug}/menu/${itemId}/toggle-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -736,7 +736,7 @@ class RestaurantMenuManager {
             const pathParts = window.location.pathname.split('/');
             const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
             
-            const response = await fetch(`/${restaurantSlug}/categories/deactivate`, {
+            const response = await fetch(`/restaurant/${restaurantSlug}/categories/deactivate`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
