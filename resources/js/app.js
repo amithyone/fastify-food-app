@@ -1,5 +1,4 @@
 import './bootstrap';
-import Alpine from 'alpinejs';
 
 // Import PWA utilities
 import './pwa';
@@ -9,10 +8,6 @@ import './checkout';
 
 // Import restaurant menu module
 import './restaurant-menu';
-
-window.Alpine = Alpine;
-
-Alpine.start();
 
 // PWA Installation and Management
 document.addEventListener('DOMContentLoaded', function() {
