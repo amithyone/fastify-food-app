@@ -78,6 +78,9 @@ class CheckoutManager {
         this.loadCart();
         this.updateCartCount();
         this.loadWalletBalance();
+        
+        // Setup form submission
+        this.handleFormSubmission();
     }
 
     handleOrderTypeChange() {
@@ -143,6 +146,9 @@ class CheckoutManager {
         if (tableNumber) {
             tableNumber.setAttribute('required', 'required');
         }
+        
+        // Update delivery fee to 0 for restaurant orders
+        this.updateDeliveryFee(0);
     }
 
     showPickupMode() {
@@ -168,6 +174,9 @@ class CheckoutManager {
         if (pickupName) {
             pickupName.setAttribute('required', 'required');
         }
+        
+        // Update delivery fee to 0 for pickup orders
+        this.updateDeliveryFee(0);
     }
 
     showDeliveryMode() {
@@ -193,6 +202,9 @@ class CheckoutManager {
         if (deliveryPhone) {
             deliveryPhone.setAttribute('required', 'required');
         }
+        
+        // Update delivery fee to normal amount for delivery orders
+        this.updateDeliveryFee(500);
     }
 
     setupQRCode() {
@@ -370,6 +382,188 @@ class CheckoutManager {
         setTimeout(() => {
             notification.remove();
         }, 3000);
+    }
+
+    // Update delivery fee and total
+    updateDeliveryFee(fee) {
+        console.log('Updating delivery fee to:', fee);
+        
+        const deliveryFeeElement = document.getElementById('deliveryFee');
+        const totalElement = document.getElementById('total');
+        const subtotalElement = document.getElementById('subtotal');
+        
+        if (deliveryFeeElement) {
+            deliveryFeeElement.textContent = `₦${fee}`;
+        }
+        
+        // Update total
+        if (subtotalElement && totalElement) {
+            const subtotal = parseFloat(subtotalElement.textContent.replace('₦', '').replace(',', '')) || 0;
+            const newTotal = subtotal + fee;
+            totalElement.textContent = `₦${newTotal.toLocaleString()}`;
+        }
+        
+        console.log('Delivery fee updated, new total calculated');
+    }
+
+    // Handle form submission
+    handleFormSubmission() {
+        const form = document.getElementById('checkoutForm');
+        if (!form) {
+            console.error('Checkout form not found');
+            return;
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log('Form submission started');
+            
+            // Get form data
+            const formData = new FormData(form);
+            const orderData = this.buildOrderData(formData);
+            
+            // Submit order
+            this.submitOrder(orderData);
+        });
+    }
+
+    buildOrderData(formData) {
+        const orderType = this.getSelectedOrderType();
+        const customerInfo = this.buildCustomerInfo(formData, orderType);
+        
+        return {
+            items: this.getCartItems(),
+            customer_info: customerInfo,
+            payment_method: formData.get('payment_method'),
+            subtotal: this.getSubtotal(),
+            delivery_fee: this.getDeliveryFee(),
+            total: this.getTotal()
+        };
+    }
+
+    getSelectedOrderType() {
+        if (this.restaurantRadio && this.restaurantRadio.checked) return 'restaurant';
+        if (this.pickupRadio && this.pickupRadio.checked) return 'pickup';
+        if (this.deliveryRadio && this.deliveryRadio.checked) return 'delivery';
+        return 'delivery'; // default
+    }
+
+    buildCustomerInfo(formData, orderType) {
+        if (orderType === 'restaurant') {
+            return {
+                order_type: orderType,
+                in_restaurant: true,
+                table_number: formData.get('tableNumber'),
+                restaurant_notes: formData.get('restaurantNotes'),
+                phone: 'N/A',
+                name: 'Table ' + formData.get('tableNumber')
+            };
+        } else if (orderType === 'pickup') {
+            return {
+                order_type: orderType,
+                phone: formData.get('pickupPhoneOnly'),
+                pickup_name: formData.get('pickupName'),
+                pickup_time: formData.get('pickupTime'),
+                custom_pickup_datetime: formData.get('customPickupDateTime'),
+                pickup_notes: formData.get('pickupNotes')
+            };
+        } else {
+            return {
+                order_type: orderType,
+                name: formData.get('deliveryName'),
+                phone: formData.get('deliveryPhone'),
+                email: formData.get('deliveryEmail'),
+                address: formData.get('address'),
+                city: formData.get('city'),
+                state: formData.get('state'),
+                postal_code: formData.get('postal_code'),
+                instructions: formData.get('instructions'),
+                in_restaurant: false
+            };
+        }
+    }
+
+    getCartItems() {
+        // Get cart items from localStorage or session
+        try {
+            return JSON.parse(localStorage.getItem('cart') || '[]');
+        } catch (error) {
+            console.error('Error parsing cart items:', error);
+            return [];
+        }
+    }
+
+    getSubtotal() {
+        const subtotalElement = document.getElementById('subtotal');
+        if (subtotalElement) {
+            return parseFloat(subtotalElement.textContent.replace('₦', '').replace(',', '')) || 0;
+        }
+        return 0;
+    }
+
+    getDeliveryFee() {
+        const deliveryFeeElement = document.getElementById('deliveryFee');
+        if (deliveryFeeElement) {
+            return parseFloat(deliveryFeeElement.textContent.replace('₦', '')) || 0;
+        }
+        return 0;
+    }
+
+    getTotal() {
+        const totalElement = document.getElementById('total');
+        if (totalElement) {
+            return parseFloat(totalElement.textContent.replace('₦', '').replace(',', '')) || 0;
+        }
+        return 0;
+    }
+
+    submitOrder(orderData) {
+        console.log('Submitting order:', orderData);
+        
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Order...';
+        submitBtn.disabled = true;
+        
+        // Determine endpoint based on authentication
+        const isAuthenticated = window.isAuthenticated || false;
+        const endpoint = isAuthenticated ? '/orders' : '/guest/orders';
+        
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Order response:', data);
+            
+            if (data.success) {
+                // Handle bank transfer payment
+                if (orderData.payment_method === 'transfer') {
+                    this.initializeBankTransferPayment(data.order_id || data.order?.id, data.total || orderData.total);
+                } else {
+                    // Redirect to order confirmation
+                    const redirectUrl = isAuthenticated ? 
+                        `/orders/${data.order_number}` : 
+                        `/guest/orders/${data.order_number}`;
+                    window.location.href = redirectUrl;
+                }
+            } else {
+                this.showNotification(data.message || 'Failed to create order', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Order submission error:', error);
+            this.showNotification('Error placing order. Please try again.', 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
     }
 }
 

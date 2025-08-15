@@ -1046,7 +1046,8 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// Pass QR table number to JavaScript
+// Pass data to JavaScript
 window.qrTableNumber = '{{ $qrTableNumber ?? "" }}';
+window.isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
 </script>
 @endsection 
