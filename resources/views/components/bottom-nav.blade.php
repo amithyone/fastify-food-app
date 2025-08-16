@@ -34,7 +34,7 @@
         
         // Determine menu URL
         if ($currentRestaurant) {
-            $menuUrl = route('menu.index', $currentRestaurant->slug);
+            $menuUrl = route('menu.restaurant', $currentRestaurant->slug);
             $isRestaurantMenu = true;
         } else {
             $menuUrl = route('menu.index');
