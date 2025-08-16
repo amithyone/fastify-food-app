@@ -623,7 +623,9 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
             'message' => 'Debug route working',
             'slug' => $slug,
             'user_id' => Auth::id(),
-            'authenticated' => Auth::check()
+            'authenticated' => Auth::check(),
+            'session_id' => session()->getId(),
+            'csrf_token' => csrf_token()
         ]);
     })->name('restaurant.images.debug');
     

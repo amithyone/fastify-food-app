@@ -143,7 +143,15 @@ class RestaurantImageController extends Controller
         ]);
         
         try {
-            $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
+            $restaurant = Restaurant::where('slug', $slug)->first();
+            
+            if (!$restaurant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Restaurant not found.',
+                    'error' => 'restaurant_not_found'
+                ], 404);
+            }
             
             \Log::info('Restaurant found', [
                 'restaurant_id' => $restaurant->id,
@@ -152,7 +160,7 @@ class RestaurantImageController extends Controller
             
             // Check authorization
             $canAccess = \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
-            $isAdmin = Auth::user()->isAdmin();
+            $isAdmin = Auth::check() ? Auth::user()->isAdmin() : false;
             
             \Log::info('Authorization check', [
                 'can_access' => $canAccess,

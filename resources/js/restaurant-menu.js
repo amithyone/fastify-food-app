@@ -169,10 +169,28 @@ class RestaurantMenuManager {
             // Show upload section, hide existing section
             if (uploadSection) uploadSection.style.display = 'block';
             if (existingSection) existingSection.style.display = 'none';
+            
+            // Clear existing image selection when switching to upload
+            const selectedImageId = document.getElementById('selectedImageId');
+            const selectedImagePath = document.getElementById('selectedImagePath');
+            const selectedImageText = document.getElementById('selectedImageText');
+            
+            if (selectedImageId) selectedImageId.value = '';
+            if (selectedImagePath) selectedImagePath.value = '';
+            if (selectedImageText) selectedImageText.textContent = 'Choose from uploaded images';
+            
+            // Reset image preview
+            this.resetImagePreview();
         } else if (source === 'existing') {
             // Show existing section, hide upload section
             if (uploadSection) uploadSection.style.display = 'none';
             if (existingSection) existingSection.style.display = 'block';
+            
+            // Clear uploaded image when switching to existing
+            const imageInput = document.getElementById('image');
+            if (imageInput) {
+                imageInput.value = '';
+            }
         }
     }
 
@@ -491,6 +509,10 @@ class RestaurantMenuManager {
         event.preventDefault();
         
         const formData = new FormData(event.target);
+        
+        // Clean up form data to prevent image duplication
+        this.cleanupImageFormData(formData);
+        
         const submitBtn = event.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         
@@ -590,7 +612,7 @@ class RestaurantMenuManager {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                 },
-                credentials: 'same-origin'
+                credentials: 'include'
             });
             
             console.log('Response status:', response.status);
@@ -700,9 +722,23 @@ class RestaurantMenuManager {
     }
 
     selectImageFromModal(imageUrl, imageId, originalName) {
+        // Set the selected image data
         document.getElementById('selectedImageId').value = imageId;
         document.getElementById('selectedImagePath').value = imageUrl;
         document.getElementById('selectedImageText').textContent = originalName;
+        
+        // Clear any uploaded image to prevent duplication
+        const imageInput = document.getElementById('image');
+        if (imageInput) {
+            imageInput.value = '';
+        }
+        
+        // Set image source to "existing"
+        const existingRadio = document.querySelector('input[name="image_source"][value="existing"]');
+        if (existingRadio) {
+            existingRadio.checked = true;
+            this.handleImageSourceChange({ target: { value: 'existing' } });
+        }
         
         this.setImagePreview(imageUrl);
         this.closeImageSelectorModal();
@@ -748,6 +784,21 @@ class RestaurantMenuManager {
         document.getElementById('selectedImagePath').value = '';
         document.getElementById('selectedImageText').textContent = 'Choose from uploaded images';
         this.resetImagePreview();
+    }
+
+    cleanupImageFormData(formData) {
+        const imageSource = formData.get('image_source');
+        
+        if (imageSource === 'existing') {
+            // If using existing image, remove any uploaded image data
+            formData.delete('image');
+        } else if (imageSource === 'upload') {
+            // If uploading new image, remove any existing image data
+            formData.delete('selected_image_id');
+            formData.delete('selected_image_path');
+        }
+        
+        console.log('Cleaned form data - image source:', imageSource);
     }
 
     // Utility Functions

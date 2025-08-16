@@ -297,6 +297,10 @@ class MenuController extends Controller
             // Handle image upload or selection, otherwise use restaurant default if available
             $imageSource = $request->input('image_source', 'upload');
             
+            // Clear any existing image data first
+            $validated['image'] = null;
+            $validated['restaurant_image_id'] = null;
+            
             if ($imageSource === 'upload' && $request->hasFile('image')) {
                 \Log::info('Image upload detected', [
                     'file_name' => $request->file('image')->getClientOriginalName(),
@@ -481,6 +485,10 @@ class MenuController extends Controller
             
             // Handle image upload or selection
             $imageSource = $request->input('image_source', 'upload');
+            
+            // Clear any existing image data first
+            $validated['image'] = null;
+            $validated['restaurant_image_id'] = null;
             
             if ($imageSource === 'upload' && $request->hasFile('image')) {
                 \Log::info('Image upload detected for update', [
