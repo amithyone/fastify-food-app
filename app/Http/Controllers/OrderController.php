@@ -36,6 +36,14 @@ class OrderController extends Controller
         $cartItems = [];
         $total = 0;
 
+        // Log cart data for debugging
+        \Log::info('Checkout cart data:', [
+            'session_cart' => $cart,
+            'session_id' => session()->getId(),
+            'auth_check' => Auth::check(),
+            'user_id' => Auth::id()
+        ]);
+
         foreach ($cart as $restaurantId => $items) {
             $restaurant = Restaurant::find($restaurantId);
             if ($restaurant) {
@@ -87,8 +95,11 @@ class OrderController extends Controller
                 'cart_data' => $cart
             ]);
             
-            // Redirect to home page with error message
-            return redirect()->route('home')->with('error', 'Your cart is empty. Please add some items before proceeding to checkout.');
+            // For guest users, don't redirect immediately - let them see the checkout page
+            // The JavaScript will handle the empty cart validation
+            if (Auth::check()) {
+                return redirect()->route('home')->with('error', 'Your cart is empty. Please add some items before proceeding to checkout.');
+            }
         }
 
         // Get QR code information from session
@@ -149,6 +160,7 @@ class OrderController extends Controller
             'request_headers' => $request->headers->all(),
             'request_body' => $request->all(),
             'items' => $request->items,
+            'items_count' => is_array($request->items) ? count($request->items) : 'not_array',
             'customer_info' => $request->customer_info,
             'payment_method' => $request->payment_method,
             'subtotal' => $request->subtotal,
@@ -156,34 +168,91 @@ class OrderController extends Controller
             'total' => $request->total,
             'auth_check' => Auth::check(),
             'auth_user_id' => Auth::id(),
-            'session_id' => session()->getId()
+            'session_id' => session()->getId(),
+            'session_cart' => Session::get('cart', [])
         ]);
         
         \Log::info('Starting validation...');
         
-        try {
-            $request->validate([
-                'customer_info' => 'required|array',
-                'customer_info.order_type' => 'required|in:delivery,pickup,restaurant,in_restaurant',
-                'payment_method' => 'required|in:cash,card,transfer,wallet',
-                'items' => 'required|array|min:1',
-                'subtotal' => 'required|numeric|min:0',
-                'delivery_fee' => 'required|numeric|min:0',
-                'total' => 'required|numeric|min:0',
-            ]);
-            \Log::info('Basic validation passed successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation failed:', [
-                'errors' => $e->errors(),
-                'request_data' => $request->all()
+        // Check if items are empty and try to get them from session
+        $items = $request->items;
+        if (empty($items) || !is_array($items) || count($items) === 0) {
+            \Log::warning('Items array is empty, attempting to get from session cart');
+            
+            $sessionCart = Session::get('cart', []);
+            $items = [];
+            
+            foreach ($sessionCart as $restaurantId => $cartItems) {
+                foreach ($cartItems as $itemId => $quantity) {
+                    $menuItem = MenuItem::find($itemId);
+                    if ($menuItem && $menuItem->is_available) {
+                        $items[] = [
+                            'id' => $menuItem->id,
+                            'name' => $menuItem->name,
+                            'price' => $menuItem->price,
+                            'quantity' => $quantity
+                        ];
+                    }
+                }
+            }
+            
+            \Log::info('Items from session cart:', [
+                'session_cart' => $sessionCart,
+                'processed_items' => $items,
+                'items_count' => count($items)
             ]);
             
-            // Return a more user-friendly error response
-            return response()->json([
-                'success' => false,
-                'message' => 'Please ensure you have items in your cart before placing an order.',
-                'errors' => $e->errors()
-            ], 422);
+            // If we still don't have items, proceed with validation
+            if (empty($items)) {
+                try {
+                    $request->validate([
+                        'customer_info' => 'required|array',
+                        'customer_info.order_type' => 'required|in:delivery,pickup,restaurant,in_restaurant',
+                        'payment_method' => 'required|in:cash,card,transfer,wallet',
+                        'items' => 'required|array|min:1',
+                        'subtotal' => 'required|numeric|min:0',
+                        'delivery_fee' => 'required|numeric|min:0',
+                        'total' => 'required|numeric|min:0',
+                    ]);
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    \Log::error('Validation failed:', [
+                        'errors' => $e->errors(),
+                        'request_data' => $request->all()
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Please ensure you have items in your cart before placing an order.',
+                        'errors' => $e->errors()
+                    ], 422);
+                }
+            } else {
+                \Log::info('Successfully retrieved items from session cart');
+            }
+        } else {
+            try {
+                $request->validate([
+                    'customer_info' => 'required|array',
+                    'customer_info.order_type' => 'required|in:delivery,pickup,restaurant,in_restaurant',
+                    'payment_method' => 'required|in:cash,card,transfer,wallet',
+                    'items' => 'required|array|min:1',
+                    'subtotal' => 'required|numeric|min:0',
+                    'delivery_fee' => 'required|numeric|min:0',
+                    'total' => 'required|numeric|min:0',
+                ]);
+                \Log::info('Basic validation passed successfully');
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Validation failed:', [
+                    'errors' => $e->errors(),
+                    'request_data' => $request->all()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please ensure you have items in your cart before placing an order.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
         }
 
         // Additional validation based on order type
@@ -233,11 +302,11 @@ class OrderController extends Controller
 
             // Get restaurant_id from the first cart item (all items in cart should be from same restaurant)
             $restaurantId = null;
-            \Log::info('Looking up restaurant ID from items:', ['items_count' => count($request->items)]);
+            \Log::info('Looking up restaurant ID from items:', ['items_count' => count($items)]);
             
-            if (!empty($request->items)) {
+            if (!empty($items)) {
                 // Find the menu item to get its restaurant_id
-                $firstItem = $request->items[0];
+                $firstItem = $items[0];
                 \Log::info('First item data:', $firstItem);
                 
                 $firstMenuItem = MenuItem::find($firstItem['id']);
@@ -258,7 +327,7 @@ class OrderController extends Controller
 
             // Calculate subtotal from items
             $subtotal = 0;
-            foreach ($request->items as $item) {
+            foreach ($items as $item) {
                 $subtotal += $item['price'] * $item['quantity'];
             }
 
@@ -440,7 +509,7 @@ class OrderController extends Controller
             }
 
             // Create order items
-            foreach ($request->items as $item) {
+            foreach ($items as $item) {
                 // Debug: Log each item
                 \Log::info('Processing order item:', $item);
                 
