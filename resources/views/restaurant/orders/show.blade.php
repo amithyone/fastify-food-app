@@ -29,6 +29,11 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button onclick="quickStatusUpdate()" 
+                        class="inline-flex items-center px-4 py-2 border border-orange-300 dark:border-orange-600 text-sm font-medium rounded-lg text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-800/20 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <i class="fas fa-edit mr-2"></i>
+                        Quick Update
+                    </button>
                     <a href="{{ route('restaurant.orders', $restaurant->slug) }}" 
                         class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md">
                         <i class="fas fa-arrow-left mr-2"></i>
@@ -241,13 +246,113 @@
     </div>
 </div>
 
+<!-- Quick Status Update Modal -->
+<div id="quickStatusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Status Update</h3>
+            <form id="quickStatusForm">
+                @csrf
+                <div class="mb-4">
+                    <label for="quickStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                    <select id="quickStatus" name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                        <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>🕐 Pending</option>
+                        <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>✅ Confirmed</option>
+                        <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>👨‍🍳 Preparing</option>
+                        <option value="ready" {{ $order->status === 'ready' ? 'selected' : '' }}>🚀 Ready</option>
+                        <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>📦 Delivered</option>
+                        <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="quickStatusNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Note (Optional)</label>
+                    <textarea id="quickStatusNote" name="status_note" rows="2" 
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                              placeholder="Quick note..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeQuickStatusModal()" 
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600">
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+function quickStatusUpdate() {
+    document.getElementById('quickStatusModal').classList.remove('hidden');
+}
+
+function closeQuickStatusModal() {
+    document.getElementById('quickStatusModal').classList.add('hidden');
+}
+
+document.getElementById('quickStatusForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    // Determine which route to use based on the current URL
+    const currentUrl = window.location.pathname;
+    let statusUrl;
+    
+    if (currentUrl.includes('/orders/') && currentUrl.includes('/view')) {
+        // Alternative route
+        statusUrl = `{{ route('restaurant.orders.status.alternative', $order->id) }}`;
+    } else {
+        // Standard route
+        statusUrl = `{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => $order->id]) }}`;
+    }
+    
+    fetch(statusUrl, {
+        method: 'PUT',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            closeQuickStatusModal();
+            location.reload();
+        } else {
+            alert('Failed to update order status: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update order status. Please try again.');
+    });
+});
 document.getElementById('statusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
     
-    fetch(`{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => $order->id]) }}`, {
+    // Determine which route to use based on the current URL
+    const currentUrl = window.location.pathname;
+    let statusUrl;
+    
+    if (currentUrl.includes('/orders/') && currentUrl.includes('/view')) {
+        // Alternative route
+        statusUrl = `{{ route('restaurant.orders.status.alternative', $order->id) }}`;
+    } else {
+        // Standard route
+        statusUrl = `{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => $order->id]) }}`;
+    }
+    
+    fetch(statusUrl, {
         method: 'PUT',
         body: formData
     })

@@ -645,6 +645,7 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::get('/{slug}/orders/{order}', [OrderController::class, 'restaurantOrderShow'])->name('restaurant.orders.show');
     Route::get('/orders/{order}/view', [OrderController::class, 'restaurantOrderShowAlternative'])->name('restaurant.orders.show.alternative');
     Route::put('/{slug}/orders/{order}/status', [OrderController::class, 'restaurantOrderStatus'])->name('restaurant.orders.status');
+    Route::put('/orders/{order}/status', [OrderController::class, 'restaurantOrderStatusAlternative'])->name('restaurant.orders.status.alternative');
     
     // Restaurant Order Tracking
     Route::get('/{slug}/track', [OrderController::class, 'restaurantTrackForm'])->name('restaurant.track-form');

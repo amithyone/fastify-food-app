@@ -1083,7 +1083,76 @@ class OrderController extends Controller
             'order_restaurant_id' => $order->restaurant_id,
         ]);
         
-        return view('restaurant.orders.show', compact('order'));
+        // Get the restaurant from the order
+        $restaurant = $order->restaurant;
+        
+        return view('restaurant.orders.show', compact('order', 'restaurant'));
+    }
+
+    /**
+     * Alternative method for restaurant managers to update order status
+     */
+    public function restaurantOrderStatusAlternative(Request $request, $orderId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled',
+            'status_note' => 'nullable|string|max:500'
+        ]);
+
+        $order = Order::findOrFail($orderId);
+        $user = Auth::user();
+        
+        \Log::info('Alternative restaurant order status update attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'order_id' => $order->id,
+            'order_restaurant_id' => $order->restaurant_id,
+            'new_status' => $request->status,
+            'status_note' => $request->status_note,
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $order->restaurant_id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        if (!$canAccess && !$isAdmin) {
+            \Log::warning('Unauthorized alternative restaurant order status update', [
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'order_restaurant_id' => $order->restaurant_id,
+            ]);
+            return response()->json(['success' => false, 'message' => 'Unauthorized access to this order.'], 403);
+        }
+
+        $oldStatus = $order->status;
+        
+        // Update order status
+        $order->update([
+            'status' => $request->status,
+            'status_note' => $request->status_note,
+            'status_updated_at' => now(),
+            'status_updated_by' => $user->id
+        ]);
+
+        // Handle earnings calculation based on order status change
+        $order->restaurant->handleOrderStatusChange($order, $oldStatus, $request->status);
+
+        \Log::info('Alternative restaurant order status updated successfully', [
+            'user_id' => $user->id,
+            'order_id' => $order->id,
+            'old_status' => $oldStatus,
+            'new_status' => $request->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order status updated successfully',
+            'order' => $order->fresh()
+        ]);
     }
 
     public function restaurantOrderStatus(Request $request, $slug, $order)
