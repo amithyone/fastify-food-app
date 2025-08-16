@@ -422,18 +422,33 @@ document.getElementById('quickStatusForm').addEventListener('submit', function(e
         statusUrl = `{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => $order->id]) }}`;
     }
     
+    console.log('Submitting status update to:', statusUrl);
+    console.log('Form data:', Object.fromEntries(formData));
+    
     fetch(statusUrl, {
         method: 'PUT',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
         if (response.ok) {
             return response.json();
         } else {
-            throw new Error('Network response was not ok');
+            return response.text().then(text => {
+                console.error('Response text:', text);
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            });
         }
     })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             closeQuickStatusModal();
             location.reload();
@@ -442,8 +457,9 @@ document.getElementById('quickStatusForm').addEventListener('submit', function(e
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to update order status. Please try again.');
+        console.error('Error details:', error);
+        console.error('Error message:', error.message);
+        alert('Failed to update order status. Please try again later. Error: ' + error.message);
     });
 });
 document.getElementById('statusForm').addEventListener('submit', function(e) {
@@ -463,18 +479,33 @@ document.getElementById('statusForm').addEventListener('submit', function(e) {
         statusUrl = `{{ route('restaurant.orders.status', ['slug' => $restaurant->slug, 'order' => $order->id]) }}`;
     }
     
+    console.log('Submitting status update to:', statusUrl);
+    console.log('Form data:', Object.fromEntries(formData));
+    
     fetch(statusUrl, {
         method: 'PUT',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
         body: formData
     })
     .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
         if (response.ok) {
             return response.json();
         } else {
-            throw new Error('Network response was not ok');
+            return response.text().then(text => {
+                console.error('Response text:', text);
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            });
         }
     })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             location.reload();
         } else {
@@ -482,8 +513,9 @@ document.getElementById('statusForm').addEventListener('submit', function(e) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to update order status. Please try again.');
+        console.error('Error details:', error);
+        console.error('Error message:', error.message);
+        alert('Failed to update order status. Please try again later. Error: ' + error.message);
     });
 });
 </script>
