@@ -40,7 +40,11 @@ class RestaurantImageController extends Controller
         
         // Check authorization
         if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant images.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to restaurant images.',
+                'error' => 'unauthorized'
+            ], 403);
         }
         
         $request->validate([
@@ -161,7 +165,11 @@ class RestaurantImageController extends Controller
                     'user_id' => Auth::id(),
                     'restaurant_id' => $restaurant->id
                 ]);
-                abort(403, 'Unauthorized access to restaurant images.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to restaurant images.',
+                    'error' => 'unauthorized'
+                ], 403);
             }
             
             $images = $restaurant->images()->unused()->orderBy('created_at', 'desc')->get();
@@ -216,7 +224,11 @@ class RestaurantImageController extends Controller
         
         // Check authorization
         if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
-            abort(403, 'Unauthorized access to restaurant images.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to restaurant images.',
+                'error' => 'unauthorized'
+            ], 403);
         }
         
         try {
@@ -269,7 +281,11 @@ class RestaurantImageController extends Controller
         
         // Auth check
         if (!\App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager') && !Auth::user()->isAdmin()) {
-            abort(403, 'Unauthorized');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to restaurant images.',
+                'error' => 'unauthorized'
+            ], 403);
         }
         
         // Subscription check: allow premium or trial

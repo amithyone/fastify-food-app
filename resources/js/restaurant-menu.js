@@ -582,16 +582,25 @@ class RestaurantMenuManager {
         try {
             const restaurantSlug = this.getRestaurantSlug();
             
-            const response = await fetch(`/restaurant/${restaurantSlug}/images`);
+            const response = await fetch(`/restaurant/${restaurantSlug}/images/get`);
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response. Please check authentication.');
+            }
+            
             const data = await response.json();
             
             if (data.success) {
                 this.showImageSelectorModal(data.images);
             } else {
                 console.error('Failed to load images:', data.message);
+                alert('Failed to load images: ' + data.message);
             }
         } catch (error) {
             console.error('Error loading images:', error);
+            alert('Error loading images: ' + error.message);
         }
     }
 
