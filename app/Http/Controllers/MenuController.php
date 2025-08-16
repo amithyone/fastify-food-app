@@ -352,8 +352,8 @@ class MenuController extends Controller
                 }
             }
 
-            // If no image provided, use restaurant default if available
-            if (empty($validated['image']) && $restaurant->default_menu_image) {
+            // If no image provided and no restaurant image selected, use restaurant default if available
+            if (empty($validated['image']) && empty($validated['restaurant_image_id']) && $restaurant->default_menu_image) {
                 $validated['image'] = $restaurant->default_menu_image;
                 \Log::info('Using restaurant default menu image for new item', [
                     'restaurant_id' => $restaurant->id,
