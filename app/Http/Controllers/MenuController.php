@@ -679,7 +679,7 @@ class MenuController extends Controller
             ]);
             
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                'name' => 'nullable|string|max:255', // Make name nullable since it's not needed for existing categories
                 'parent_id' => 'required|exists:categories,id', // Make parent_id required for managers
                 'use_existing_category' => 'nullable|boolean',
                 'existing_category_id' => 'nullable|exists:categories,id',
@@ -701,6 +701,16 @@ class MenuController extends Controller
             
             // If user wants to use an existing sub-category
             if (!empty($validated['use_existing_category']) && !empty($validated['existing_category_id'])) {
+                // Validate that name is not required when using existing category
+                if (empty($validated['existing_category_id'])) {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'Please select an existing sub-category.'
+                        ], 422);
+                    }
+                    return redirect()->route('restaurant.menu', $slug)->with('error', 'Please select an existing sub-category.');
+                }
                 $existingCategory = Category::find($validated['existing_category_id']);
                 
                 if (!$existingCategory || $existingCategory->type !== 'sub') {
