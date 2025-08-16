@@ -1044,11 +1044,16 @@ function recognizeFood() {
             // Populate form with AI results
             document.getElementById('menuName').value = data.food_name;
             document.getElementById('menuDescription').value = data.description;
-            document.getElementById('menuPrice').value = data.suggested_price;
-            document.getElementById('menuIngredients').value = data.ingredients;
-            document.getElementById('menuAllergens').value = data.allergens;
-            document.getElementById('menuIsVegetarian').checked = data.is_vegetarian;
-            document.getElementById('menuIsSpicy').checked = data.is_spicy;
+            document.getElementById('menuPrice').value = data.suggested_price || '';
+            document.getElementById('menuIngredients').value = data.ingredients || '';
+            document.getElementById('menuAllergens').value = data.allergens || '';
+            document.getElementById('menuIsVegetarian').checked = data.is_vegetarian || false;
+            document.getElementById('menuIsSpicy').checked = data.is_spicy || false;
+            
+            // Set default delivery options based on AI recognition
+            document.getElementById('menuIsAvailableForDelivery').checked = true;
+            document.getElementById('menuIsAvailableForPickup').checked = true;
+            document.getElementById('menuIsAvailableForRestaurant').checked = true;
             
             // Show confidence level
             document.getElementById('confidenceLevel').textContent = data.confidence + '%';
@@ -1101,7 +1106,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Menu item added successfully!');
+                    alert('Menu item added successfully! 🎉\n\nAI Recognition: ' + data.food_name + '\nConfidence: ' + data.confidence + '%\nService Used: ' + data.service_used);
                     closeAIMenuModal();
                     window.location.reload();
                 } else {
@@ -1299,7 +1304,12 @@ function submitCorrectionToServer(correctionData) {
 <x-modal name="ai-menu-modal" maxWidth="md">
     <div class="p-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">AI Food Recognition</h3>
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">AI Food Recognition</h3>
+            </div>
             <button onclick="closeAIMenuModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -1391,81 +1401,133 @@ function submitCorrectionToServer(correctionData) {
             
             <!-- Menu Item Details -->
             <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
-                <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Menu Item Details</h4>
+                <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Menu Item Details</h4>
                 
-                <div class="space-y-1">
-                    <label for="menuName" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
-                    <input type="text" id="menuName" name="name" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label for="menuName" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
+                        <input type="text" id="menuName" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                               placeholder="Enter item name">
+                    </div>
+                    
+                    <div>
+                        <label for="menuCategory" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Category *</label>
+                        <select id="menuCategory" name="category_id" required
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm">
+                            <option value="">Select Category</option>
+                            @foreach($restaurant->categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="space-y-1">
-                    <label for="menuCategory" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Category</label>
-                    <select id="menuCategory" name="category_id" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
-                        <option value="">Select Category</option>
-                        @foreach($restaurant->categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label for="menuPrice" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Price (₦) *</label>
+                        <input type="number" id="menuPrice" name="price" required min="0" step="0.01"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                               placeholder="1000.00">
+                        <p class="text-xs text-gray-500 mt-1">Enter price in Naira</p>
+                    </div>
+                    
+                    <div>
+                        <label for="menuImage" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Item Image</label>
+                        <input type="file" id="menuImage" name="image" accept="image/*"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Optional: Upload a better image</p>
+                    </div>
                 </div>
                 
-                <div class="space-y-1">
-                    <label for="menuPrice" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Price (₦)</label>
-                    <input type="number" id="menuPrice" name="price" required min="0"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
+                <div class="mt-3">
+                    <label for="menuDescription" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                    <textarea id="menuDescription" name="description" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                              placeholder="Describe your menu item..."></textarea>
                 </div>
                 
-                <div class="space-y-1">
-                    <label for="menuDescription" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
-                    <textarea id="menuDescription" name="description" rows="2"
-                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"></textarea>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label for="menuIngredients" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ingredients</label>
+                        <input type="text" id="menuIngredients" name="ingredients"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                               placeholder="e.g., Rice, tomatoes, peppers, onions">
+                    </div>
+                    
+                    <div>
+                        <label for="menuAllergens" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Allergens</label>
+                        <input type="text" id="menuAllergens" name="allergens"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                               placeholder="e.g., Nuts, dairy, gluten">
+                    </div>
                 </div>
                 
-                <div class="space-y-1">
-                    <label for="menuIngredients" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Ingredients</label>
-                    <input type="text" id="menuIngredients" name="ingredients"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
-                </div>
-                
-                <div class="space-y-1">
-                    <label for="menuAllergens" class="block text-xs font-medium text-gray-700 dark:text-gray-300">Allergens</label>
-                    <input type="text" id="menuAllergens" name="allergens"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
-                </div>
-                
-                <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
-                    <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Options</h5>
-                    <div class="flex items-center space-x-3">
+                <!-- Item Options -->
+                <div class="mt-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                    <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Item Options</h5>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div class="flex items-center">
                             <input type="checkbox" id="menuIsVegetarian" name="is_vegetarian" value="1"
-                                   class="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                            <label for="menuIsVegetarian" class="ml-1 block text-xs text-gray-900 dark:text-white">Vegetarian</label>
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="menuIsVegetarian" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Vegetarian</label>
                         </div>
                         
                         <div class="flex items-center">
                             <input type="checkbox" id="menuIsSpicy" name="is_spicy" value="1"
-                                   class="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                            <label for="menuIsSpicy" class="ml-1 block text-xs text-gray-900 dark:text-white">Spicy</label>
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="menuIsSpicy" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Spicy</label>
                         </div>
                         
                         <div class="flex items-center">
                             <input type="checkbox" id="menuIsAvailable" name="is_available" value="1" checked
-                                   class="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                            <label for="menuIsAvailable" class="ml-1 block text-xs text-gray-900 dark:text-white">Available</label>
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="menuIsAvailable" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Available</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsFeatured" name="is_featured" value="1"
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="menuIsFeatured" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Featured</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delivery Options -->
+                <div class="mt-4 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Options</h5>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsAvailableForDelivery" name="is_available_for_delivery" value="1" checked
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="menuIsAvailableForDelivery" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Available for Delivery</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsAvailableForPickup" name="is_available_for_pickup" value="1" checked
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="menuIsAvailableForPickup" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Available for Pickup</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="menuIsAvailableForRestaurant" name="is_available_for_restaurant" value="1" checked
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="menuIsAvailableForRestaurant" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Available in Restaurant</label>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="flex justify-end space-x-2 pt-3">
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button type="button" onclick="closeAIMenuModal()" 
-                        class="px-2 py-1 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm">
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-medium">
                     Cancel
                 </button>
                 <button type="submit" 
-                        class="px-2 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
-                    Add Menu Item
+                        class="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm font-medium shadow-lg">
+                    <i class="fas fa-plus mr-2"></i>Add Menu Item
                 </button>
             </div>
         </form>
