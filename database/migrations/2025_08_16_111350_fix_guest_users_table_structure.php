@@ -3,46 +3,118 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::table('guest_users', function (Blueprint $table) {
-            // Drop existing indexes first
-            $table->dropIndex(['email', 'is_active']);
-            $table->dropIndex(['session_token', 'session_expires_at']);
+            // Check and drop composite indexes if they exist
+            $indexes = $this->getIndexes('guest_users');
             
-            // Modify email column to 191 characters
-            $table->string('email', 191)->change();
+            if (in_array('guest_users_email_is_active_index', $indexes)) {
+                $table->dropIndex(['email', 'is_active']);
+            }
             
-            // Modify session_token column to 191 characters
-            $table->string('session_token', 191)->change();
+            if (in_array('guest_users_session_token_session_expires_at_index', $indexes)) {
+                $table->dropIndex(['session_token', 'session_expires_at']);
+            }
             
-            // Add single column indexes
-            $table->index('email');
-            $table->index('is_active');
-            $table->index('session_token');
-            $table->index('session_expires_at');
+            // Modify email column to 191 characters (only if needed)
+            $columns = $this->getColumns('guest_users');
+            if (isset($columns['email']) && $columns['email'] !== 'varchar(191)') {
+                $table->string('email', 191)->change();
+            }
+            
+            // Modify session_token column to 191 characters (only if needed)
+            if (isset($columns['session_token']) && $columns['session_token'] !== 'varchar(191)') {
+                $table->string('session_token', 191)->change();
+            }
+            
+            // Add single column indexes only if they don't exist
+            if (!in_array('guest_users_email_index', $indexes)) {
+                $table->index('email');
+            }
+            
+            if (!in_array('guest_users_is_active_index', $indexes)) {
+                $table->index('is_active');
+            }
+            
+            if (!in_array('guest_users_session_token_index', $indexes)) {
+                $table->index('session_token');
+            }
+            
+            if (!in_array('guest_users_session_expires_at_index', $indexes)) {
+                $table->index('session_expires_at');
+            }
         });
+    }
+    
+    private function getIndexes($tableName)
+    {
+        $indexes = [];
+        $results = DB::select("SHOW INDEX FROM {$tableName}");
+        
+        foreach ($results as $result) {
+            $indexes[] = $result->Key_name;
+        }
+        
+        return array_unique($indexes);
+    }
+    
+    private function getColumns($tableName)
+    {
+        $columns = [];
+        $results = DB::select("DESCRIBE {$tableName}");
+        
+        foreach ($results as $result) {
+            $columns[$result->Field] = $result->Type;
+        }
+        
+        return $columns;
     }
 
     public function down(): void
     {
         Schema::table('guest_users', function (Blueprint $table) {
-            // Drop single column indexes
-            $table->dropIndex(['email']);
-            $table->dropIndex(['is_active']);
-            $table->dropIndex(['session_token']);
-            $table->dropIndex(['session_expires_at']);
+            // Check and drop single column indexes if they exist
+            $indexes = $this->getIndexes('guest_users');
             
-            // Revert column lengths
-            $table->string('email', 255)->change();
-            $table->string('session_token', 255)->change();
+            if (in_array('guest_users_email_index', $indexes)) {
+                $table->dropIndex(['email']);
+            }
             
-            // Re-add composite indexes
-            $table->index(['email', 'is_active']);
-            $table->index(['session_token', 'session_expires_at']);
+            if (in_array('guest_users_is_active_index', $indexes)) {
+                $table->dropIndex(['is_active']);
+            }
+            
+            if (in_array('guest_users_session_token_index', $indexes)) {
+                $table->dropIndex(['session_token']);
+            }
+            
+            if (in_array('guest_users_session_expires_at_index', $indexes)) {
+                $table->dropIndex(['session_expires_at']);
+            }
+            
+            // Revert column lengths (only if needed)
+            $columns = $this->getColumns('guest_users');
+            if (isset($columns['email']) && $columns['email'] === 'varchar(191)') {
+                $table->string('email', 255)->change();
+            }
+            
+            if (isset($columns['session_token']) && $columns['session_token'] === 'varchar(191)') {
+                $table->string('session_token', 255)->change();
+            }
+            
+            // Re-add composite indexes only if they don't exist
+            if (!in_array('guest_users_email_is_active_index', $indexes)) {
+                $table->index(['email', 'is_active']);
+            }
+            
+            if (!in_array('guest_users_session_token_session_expires_at_index', $indexes)) {
+                $table->index(['session_token', 'session_expires_at']);
+            }
         });
     }
 };
