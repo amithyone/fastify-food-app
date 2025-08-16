@@ -184,6 +184,10 @@
                                         class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
                                         View
                                     </a>
+                                    <a href="{{ route('restaurant.orders.show.alternative', $order->id) }}" 
+                                        class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 mr-3">
+                                        Alt View
+                                    </a>
                                     <button onclick="updateOrderStatus({{ $order->id }}, '{{ $order->status }}')" 
                                         class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
                                         Update

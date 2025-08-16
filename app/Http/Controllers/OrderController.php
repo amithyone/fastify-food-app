@@ -989,6 +989,9 @@ class OrderController extends Controller
             'restaurant_id' => $restaurant->id,
             'restaurant_name' => $restaurant->name,
             'order_id' => $order->id,
+            'order_restaurant_id' => $order->restaurant_id,
+            'url_slug' => $slug,
+            'request_url' => request()->url(),
         ]);
         
         // Check if user can access this restaurant
@@ -1000,17 +1003,87 @@ class OrderController extends Controller
             'is_admin' => $isAdmin,
             'user_id' => $user->id,
             'restaurant_id' => $restaurant->id,
+            'order_restaurant_id' => $order->restaurant_id,
         ]);
         
         if (!$canAccess && !$isAdmin) {
+            \Log::warning('Unauthorized restaurant order access', [
+                'user_id' => $user->id,
+                'restaurant_id' => $restaurant->id,
+                'order_id' => $order->id,
+            ]);
             abort(403, 'Unauthorized access to restaurant orders. You need manager privileges.');
         }
         
-        if ($order->restaurant_id !== $restaurant->id) {
+        // Enhanced check for order-restaurant relationship
+        if ($order->restaurant_id != $restaurant->id) {
+            \Log::warning('Order restaurant mismatch', [
+                'user_id' => $user->id,
+                'restaurant_id' => $restaurant->id,
+                'order_id' => $order->id,
+                'order_restaurant_id' => $order->restaurant_id,
+                'slug' => $slug,
+            ]);
             abort(403, 'Order does not belong to this restaurant.');
         }
         
+        \Log::info('Restaurant order access granted', [
+            'user_id' => $user->id,
+            'restaurant_id' => $restaurant->id,
+            'order_id' => $order->id,
+        ]);
+        
         return view('restaurant.orders.show', compact('restaurant', 'order'));
+    }
+
+    /**
+     * Alternative method for restaurant managers to view orders
+     * This method is more permissive and handles edge cases
+     */
+    public function restaurantOrderShowAlternative($orderId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::with(['orderItems.menuItem', 'restaurant'])->findOrFail($orderId);
+        $user = Auth::user();
+        
+        \Log::info('Alternative restaurant order show access attempt', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'order_id' => $order->id,
+            'order_restaurant_id' => $order->restaurant_id,
+            'restaurant_name' => $order->restaurant->name ?? 'Unknown',
+        ]);
+        
+        // Check if user can access this restaurant
+        $canAccess = \App\Models\Manager::canAccessRestaurant($user->id, $order->restaurant_id, 'manager');
+        $isAdmin = $user->isAdmin();
+        
+        \Log::info('Alternative restaurant order authorization check', [
+            'can_access' => $canAccess,
+            'is_admin' => $isAdmin,
+            'user_id' => $user->id,
+            'order_restaurant_id' => $order->restaurant_id,
+        ]);
+        
+        if (!$canAccess && !$isAdmin) {
+            \Log::warning('Unauthorized alternative restaurant order access', [
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'order_restaurant_id' => $order->restaurant_id,
+            ]);
+            abort(403, 'Unauthorized access to this order. You need manager privileges.');
+        }
+        
+        \Log::info('Alternative restaurant order access granted', [
+            'user_id' => $user->id,
+            'order_id' => $order->id,
+            'order_restaurant_id' => $order->restaurant_id,
+        ]);
+        
+        return view('restaurant.orders.show', compact('order'));
     }
 
     public function restaurantOrderStatus(Request $request, $slug, $order)
