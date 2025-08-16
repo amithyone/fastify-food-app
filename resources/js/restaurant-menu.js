@@ -101,10 +101,24 @@ class RestaurantMenuManager {
         if (type === 'existing') {
             existingForm.style.display = 'block';
             customForm.style.display = 'none';
+            // Remove required from hidden form fields
+            this.removeRequiredFromHiddenFields(customForm);
         } else {
             existingForm.style.display = 'none';
             customForm.style.display = 'block';
+            // Remove required from hidden form fields
+            this.removeRequiredFromHiddenFields(existingForm);
         }
+    }
+
+    removeRequiredFromHiddenFields(formElement) {
+        if (!formElement) return;
+        
+        // Remove required attribute from all input fields in the hidden form
+        const requiredFields = formElement.querySelectorAll('input[required], select[required], textarea[required]');
+        requiredFields.forEach(field => {
+            field.removeAttribute('required');
+        });
     }
 
     handleParentCategoryChange(event) {
@@ -218,6 +232,14 @@ class RestaurantMenuManager {
 
     async handleCategorySubmit(event) {
         event.preventDefault();
+        
+        // Remove required attributes from hidden form fields before submission
+        const categoryType = document.querySelector('input[name="category_type"]:checked')?.value;
+        if (categoryType === 'existing') {
+            this.removeRequiredFromHiddenFields(document.getElementById('customCategoryForm'));
+        } else if (categoryType === 'custom') {
+            this.removeRequiredFromHiddenFields(document.getElementById('existingCategoryForm'));
+        }
         
         const formData = new FormData(event.target);
         const submitBtn = event.target.querySelector('button[type="submit"]');
