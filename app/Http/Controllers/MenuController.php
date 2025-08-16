@@ -25,6 +25,11 @@ class MenuController extends Controller
         if ($slug) {
             // Restaurant-specific menu
             $restaurant = Restaurant::where('slug', $slug)->where('is_active', true)->firstOrFail();
+            
+            // Store restaurant context in session for navigation
+            session(['current_restaurant_id' => $restaurant->id]);
+            session(['current_restaurant_slug' => $restaurant->slug]);
+            
             $categories = $restaurant->categories()->with('menuItems')->where('is_active', true)->get();
             $menuItems = $restaurant->menuItems()->with(['category', 'restaurant'])->where('is_available', true)->get();
             

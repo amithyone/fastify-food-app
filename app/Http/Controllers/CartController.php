@@ -65,6 +65,11 @@ class CartController extends Controller
         ]);
 
         $menuItem = MenuItem::findOrFail($request->menu_item_id);
+        
+        // Store restaurant context in session for navigation
+        session(['current_restaurant_id' => $menuItem->restaurant_id]);
+        session(['current_restaurant_slug' => $menuItem->restaurant->slug]);
+        
         $cart = Session::get('cart', []);
 
         // Initialize restaurant cart if not exists

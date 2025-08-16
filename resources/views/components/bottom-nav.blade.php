@@ -21,6 +21,15 @@
         } elseif (session('qr_restaurant_id')) {
             // We're in a QR code context
             $currentRestaurant = \App\Models\Restaurant::find(session('qr_restaurant_id'));
+        } elseif (session('current_restaurant_id')) {
+            // We have a current restaurant in session
+            $currentRestaurant = \App\Models\Restaurant::find(session('current_restaurant_id'));
+        } elseif (session('current_restaurant_slug')) {
+            // We have a current restaurant slug in session
+            $currentRestaurant = \App\Models\Restaurant::where('slug', session('current_restaurant_slug'))->first();
+        } elseif (request()->has('restaurant')) {
+            // Restaurant passed as query parameter
+            $currentRestaurant = \App\Models\Restaurant::where('slug', request()->get('restaurant'))->first();
         }
         
         // Determine menu URL
