@@ -273,19 +273,39 @@ class RestaurantMenuManager {
         submitBtn.disabled = true;
         
         try {
+            // Debug: Log the form data being sent
+            console.log('Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+            console.log('URL:', url);
+            console.log('Method:', method);
+            
             const response = await fetch(url, {
                 method: method,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: formData
             });
             
             // Check if response is JSON
             const contentType = response.headers.get('content-type');
+            console.log('Response status:', response.status);
+            console.log('Response content-type:', contentType);
+            
             if (!contentType || !contentType.includes('application/json')) {
                 const responseText = await response.text();
                 console.error('Non-JSON response received:', responseText);
+                console.error('Full response URL:', response.url);
+                
+                // Check if it's an authentication redirect
+                if (responseText.includes('login') || responseText.includes('Login') || response.status === 302) {
+                    throw new Error('Authentication required. Please refresh the page and try again.');
+                }
+                
                 throw new Error(`Server returned non-JSON response (${response.status}): ${responseText.substring(0, 200)}`);
             }
             
