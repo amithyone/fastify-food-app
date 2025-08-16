@@ -419,8 +419,13 @@ class RestaurantMenuManager {
     openMenuItemModal() {
         console.log('Opening menu item modal');
         
-        // Reset editing state for new menu item
-        this.editingMenuItemId = null;
+        // Only reset editing state if not currently editing
+        if (!this.editingMenuItemId) {
+            console.log('Opening modal for new item - resetting editing state');
+            this.resetMenuItemForm();
+        } else {
+            console.log('Opening modal for editing item - keeping editingMenuItemId:', this.editingMenuItemId);
+        }
         
         this.menuItemModal.classList.remove('hidden');
     }
@@ -433,8 +438,12 @@ class RestaurantMenuManager {
     editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl, ingredients, allergens, isFeatured, isVegetarian, isSpicy, restaurantImageId, isDelivery, isPickup, isRestaurant) {
         console.log('Editing menu item:', { id, name, price, imageUrl });
         
+        // Clear any existing editing state first
+        this.editingMenuItemId = null;
+        
         // Set editing state
         this.editingMenuItemId = id;
+        console.log('Set editingMenuItemId to:', this.editingMenuItemId);
         
         // Populate form fields - using correct element IDs from the form
         const nameElement = document.getElementById('itemName');
@@ -531,6 +540,14 @@ class RestaurantMenuManager {
         const url = isEdit 
             ? `/restaurant/${this.getRestaurantSlug()}/menu/${this.editingMenuItemId}`
             : `/restaurant/${this.getRestaurantSlug()}/menu`;
+        
+        console.log('Form submission details:', {
+            isEdit,
+            editingMenuItemId: this.editingMenuItemId,
+            method,
+            url,
+            formAction: event.target.action
+        });
         
         // Add _method field for PUT requests (Laravel requirement)
         if (isEdit) {
