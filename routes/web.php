@@ -18,6 +18,7 @@ use App\Http\Controllers\RestaurantStatusController;
 use App\Http\Controllers\RestaurantDeliverySettingController;
 use App\Http\Controllers\BankTransferPaymentController;
 use App\Http\Controllers\GuestSessionController;
+use App\Http\Controllers\GuestUserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\ManagerDashboardController;
@@ -725,6 +726,24 @@ Route::prefix('bank-transfer')->name('bank-transfer.')->group(function () {
 Route::prefix('guest-session')->name('guest-session.')->group(function () {
     Route::get('/{sessionId}', [GuestSessionController::class, 'show'])->name('show');
     Route::get('/{sessionId}/orders', [GuestSessionController::class, 'orders'])->name('orders');
+});
+
+// Guest User Routes (email + QR code system)
+Route::prefix('guest')->name('guest.')->group(function () {
+    // Email collection after order
+    Route::get('/collect-email/{orderId}', [GuestUserController::class, 'showEmailCollection'])->name('collect-email');
+    Route::post('/collect-email/{orderId}', [GuestUserController::class, 'collectEmail'])->name('collect-email');
+    
+    // Guest login and authentication
+    Route::get('/login', [GuestUserController::class, 'showLogin'])->name('login');
+    Route::post('/login', [GuestUserController::class, 'login'])->name('login');
+    Route::get('/login/magic/{token}', [GuestUserController::class, 'magicLogin'])->name('login.magic');
+    Route::post('/login/qr', [GuestUserController::class, 'qrLogin'])->name('login.qr');
+    
+    // Guest dashboard and order management
+    Route::get('/dashboard', [GuestUserController::class, 'dashboard'])->name('dashboard');
+    Route::get('/orders/{orderId}', [GuestUserController::class, 'showOrder'])->name('orders.show');
+    Route::post('/logout', [GuestUserController::class, 'logout'])->name('logout');
 });
 
 // WhatsApp Webhook Routes

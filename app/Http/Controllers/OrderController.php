@@ -611,14 +611,23 @@ class OrderController extends Controller
             \Log::info('Order creation transaction committed successfully');
             \Log::info('=== ORDER CREATION SUCCESS ===');
 
-            return response()->json([
+            // Determine response based on user authentication
+            $response = [
                 'success' => true,
                 'message' => 'Order placed successfully!',
                 'order_number' => $order->order_number ?? 'ORD-' . $order->id,
                 'order_id' => $order->id,
                 'order' => $order,
                 'total' => $charges['total']
-            ]);
+            ];
+
+            // For guest users, add email collection redirect
+            if (!Auth::check()) {
+                $response['redirect_url'] = route('guest.collect-email', $order->id);
+                $response['message'] = 'Order placed successfully! Please provide your email to track your order.';
+            }
+
+            return response()->json($response);
 
         } catch (\Exception $e) {
             DB::rollback();

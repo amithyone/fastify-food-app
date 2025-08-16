@@ -613,11 +613,17 @@ class CheckoutManager {
                 if (orderData.payment_method === 'transfer') {
                     this.initializeBankTransferPayment(data.order_id || data.order?.id, data.total || orderData.total);
                 } else {
-                    // Redirect to order confirmation
-                    const redirectUrl = isAuthenticated ? 
-                        `/orders/${data.order_number}` : 
-                        `/guest/orders/${data.order_number}`;
-                    window.location.href = redirectUrl;
+                    // Check if guest user needs email collection
+                    if (data.redirect_url) {
+                        // Redirect to email collection for guest users
+                        window.location.href = data.redirect_url;
+                    } else {
+                        // Redirect to order confirmation for authenticated users
+                        const redirectUrl = isAuthenticated ? 
+                            `/orders/${data.order_number}` : 
+                            `/guest/orders/${data.order_number}`;
+                        window.location.href = redirectUrl;
+                    }
                 }
             } else {
                 this.showNotification(data.message || 'Failed to create order', 'error');
