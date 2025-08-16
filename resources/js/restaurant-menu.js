@@ -523,14 +523,19 @@ class RestaurantMenuManager {
             ? `/restaurant/${this.getRestaurantSlug()}/menu/${this.editingMenuItemId}`
             : `/restaurant/${this.getRestaurantSlug()}/menu`;
         
+        // Add _method field for PUT requests (Laravel requirement)
+        if (isEdit) {
+            formData.append('_method', 'PUT');
+        }
+        
         submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${isEdit ? 'Updating...' : 'Saving...'}`;
         submitBtn.disabled = true;
         
         try {
-            console.log('Submitting menu item:', { url, method, isEdit });
+            console.log('Submitting menu item:', { url, method, isEdit, editingMenuItemId: this.editingMenuItemId });
             
             const response = await fetch(url, {
-                method: method,
+                method: 'POST', // Always use POST, Laravel will handle the method override
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
