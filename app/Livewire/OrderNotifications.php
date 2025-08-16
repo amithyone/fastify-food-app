@@ -16,7 +16,8 @@ class OrderNotifications extends Component
     public $showNotifications = false;
     public $lastOrderId = 0;
     
-    protected $listeners = ['orderCreated' => 'checkForNewOrders'];
+    // Use polling for real-time updates instead of events
+    public $pollingInterval = 5000; // Poll every 5 seconds
 
     public function mount($restaurantSlug = null)
     {

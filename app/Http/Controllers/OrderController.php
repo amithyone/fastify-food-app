@@ -480,17 +480,8 @@ class OrderController extends Controller
                 $order = Order::create($orderData);
                 \Log::info('Order created successfully:', ['order_id' => $order->id, 'order_number' => $order->order_number]);
                 
-                // Dispatch Livewire event for real-time notifications
-                try {
-                    \Livewire\Livewire::dispatch('orderCreated', [
-                        'restaurant_id' => $restaurantId,
-                        'order_id' => $order->id,
-                        'order_number' => $order->order_number
-                    ]);
-                    \Log::info('Livewire event dispatched for order notification');
-                } catch (\Exception $e) {
-                    \Log::warning('Failed to dispatch Livewire event:', ['error' => $e->getMessage()]);
-                }
+                // Note: Real-time notifications are handled via polling in the frontend
+                \Log::info('Order created - real-time notifications will be handled by frontend polling');
             } catch (\Exception $e) {
                 \Log::error('Failed to create order:', [
                     'error' => $e->getMessage(),
