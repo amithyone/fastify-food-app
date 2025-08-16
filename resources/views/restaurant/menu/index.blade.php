@@ -433,7 +433,9 @@
                         <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sub-Category Name</label>
                         <input type="text" id="categoryName" name="name" required
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                               placeholder="e.g., Caesar Salad, Grilled Chicken, Chocolate Cake">
+                               placeholder="e.g., Caesar Salad, Grilled Chicken, Chocolate Cake"
+                               oninvalid="this.setCustomValidity('Please enter a sub-category name')"
+                               oninput="this.setCustomValidity('')">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             <i class="fas fa-lightbulb mr-1"></i>
                             <strong>Smart Matching:</strong> We'll check if similar sub-categories exist and suggest sharing them to avoid duplication.
@@ -442,8 +444,10 @@
                     
                     <div class="mb-4">
                         <label for="newCategoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
-                        <select id="newCategoryParent" name="parent_id_new"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <select id="newCategoryParent" name="parent_id_new" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            oninvalid="this.setCustomValidity('Please select a parent category')"
+                            onchange="this.setCustomValidity('')">
                             <option value="">Select a parent category</option>
                         @foreach($globalCategories as $parentCategory)
                                 <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }} (Global)</option>
@@ -474,7 +478,8 @@
                         Cancel
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                            class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                            onclick="return validateCategoryForm()">
                         <span id="submitButtonText">Add Sub-Category</span>
                     </button>
                 </div>
@@ -717,5 +722,52 @@
     </div>
 </div>
 
+
+<script>
+function validateCategoryForm() {
+    // Get the selected category type
+    const categoryType = document.querySelector('input[name="category_type"]:checked')?.value;
+    
+    if (!categoryType) {
+        alert('Please select a category type (existing or custom)');
+        return false;
+    }
+    
+    if (categoryType === 'custom') {
+        // Validate custom category form
+        const categoryName = document.getElementById('categoryName').value.trim();
+        const parentCategory = document.getElementById('newCategoryParent').value;
+        
+        if (!categoryName) {
+            alert('Please enter a sub-category name');
+            document.getElementById('categoryName').focus();
+            return false;
+        }
+        
+        if (!parentCategory) {
+            alert('Please select a parent category');
+            document.getElementById('newCategoryParent').focus();
+            return false;
+        }
+    } else if (categoryType === 'existing') {
+        // Validate existing category form
+        const selectedCategory = document.querySelector('input[name="existing_category_id"]:checked');
+        const parentCategory = document.getElementById('categoryParent').value;
+        
+        if (!selectedCategory) {
+            alert('Please select an existing sub-category');
+            return false;
+        }
+        
+        if (!parentCategory) {
+            alert('Please select a parent category');
+            document.getElementById('categoryParent').focus();
+            return false;
+        }
+    }
+    
+    return true;
+}
+</script>
 
 @endsection 

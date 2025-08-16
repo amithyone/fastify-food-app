@@ -121,6 +121,31 @@ class RestaurantMenuManager {
         });
     }
 
+    validateVisibleFields(form) {
+        // Get all visible required fields
+        const visibleRequiredFields = form.querySelectorAll('input[required]:not([style*="display: none"]), select[required]:not([style*="display: none"]), textarea[required]:not([style*="display: none"])');
+        
+        let isValid = true;
+        
+        visibleRequiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                // Add error styling
+                field.classList.add('border-red-500');
+                field.focus();
+                isValid = false;
+            } else {
+                // Remove error styling
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            this.showNotification('Please fill in all required fields', 'error');
+        }
+        
+        return isValid;
+    }
+
     handleParentCategoryChange(event) {
         const parentId = event.target.value;
         if (!parentId) return;
@@ -232,14 +257,6 @@ class RestaurantMenuManager {
 
     async handleCategorySubmit(event) {
         event.preventDefault();
-        
-        // Remove required attributes from hidden form fields before submission
-        const categoryType = document.querySelector('input[name="category_type"]:checked')?.value;
-        if (categoryType === 'existing') {
-            this.removeRequiredFromHiddenFields(document.getElementById('customCategoryForm'));
-        } else if (categoryType === 'custom') {
-            this.removeRequiredFromHiddenFields(document.getElementById('existingCategoryForm'));
-        }
         
         const formData = new FormData(event.target);
         const submitBtn = event.target.querySelector('button[type="submit"]');
