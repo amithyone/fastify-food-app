@@ -1100,7 +1100,8 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled',
-            'status_note' => 'nullable|string|max:500'
+            'status_note' => 'nullable|string|max:500',
+            'ready_time' => 'nullable|string|max:100'
         ]);
 
         $order = Order::findOrFail($orderId);
@@ -1113,6 +1114,7 @@ class OrderController extends Controller
             'order_restaurant_id' => $order->restaurant_id,
             'new_status' => $request->status,
             'status_note' => $request->status_note,
+            'ready_time' => $request->ready_time,
         ]);
         
         // Check if user can access this restaurant
@@ -1130,16 +1132,32 @@ class OrderController extends Controller
 
         $oldStatus = $order->status;
         
+        // Prepare status note with time information
+        $statusNote = $request->status_note;
+        if ($request->ready_time && in_array($request->status, ['preparing', 'ready'])) {
+            $timeInfo = "Ready time: " . $request->ready_time;
+            $statusNote = $statusNote ? $statusNote . " | " . $timeInfo : $timeInfo;
+        }
+        
         // Update order status
         $order->update([
             'status' => $request->status,
-            'status_note' => $request->status_note,
+            'status_note' => $statusNote,
             'status_updated_at' => now(),
             'status_updated_by' => $user->id
         ]);
 
         // Handle earnings calculation based on order status change
-        $order->restaurant->handleOrderStatusChange($order, $oldStatus, $request->status);
+        try {
+            $order->restaurant->handleOrderStatusChange($order, $oldStatus, $request->status);
+        } catch (\Exception $e) {
+            \Log::warning('Error in handleOrderStatusChange', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'old_status' => $oldStatus,
+                'new_status' => $request->status,
+            ]);
+        }
 
         \Log::info('Alternative restaurant order status updated successfully', [
             'user_id' => $user->id,
@@ -1163,7 +1181,8 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,delivered,cancelled',
-            'status_note' => 'nullable|string|max:500'
+            'status_note' => 'nullable|string|max:500',
+            'ready_time' => 'nullable|string|max:100'
         ]);
 
         $restaurant = Restaurant::where('slug', $slug)->firstOrFail();
@@ -1202,16 +1221,32 @@ class OrderController extends Controller
         $oldStatus = $order->status;
         $isPayOnDelivery = $order->payment_method === 'cash';
         
+        // Prepare status note with time information
+        $statusNote = $request->status_note;
+        if ($request->ready_time && in_array($request->status, ['preparing', 'ready'])) {
+            $timeInfo = "Ready time: " . $request->ready_time;
+            $statusNote = $statusNote ? $statusNote . " | " . $timeInfo : $timeInfo;
+        }
+        
         // Update order status
         $order->update([
             'status' => $request->status,
-            'status_note' => $request->status_note,
+            'status_note' => $statusNote,
             'status_updated_at' => now(),
             'status_updated_by' => $user->id
         ]);
 
         // Handle earnings calculation based on order status change
-        $restaurant->handleOrderStatusChange($order, $oldStatus, $request->status);
+        try {
+            $restaurant->handleOrderStatusChange($order, $oldStatus, $request->status);
+        } catch (\Exception $e) {
+            \Log::warning('Error in handleOrderStatusChange', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'old_status' => $oldStatus,
+                'new_status' => $request->status,
+            ]);
+        }
 
         // Log the status change
         \Log::info('Order status updated', [

@@ -231,6 +231,50 @@
                                     <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>📦 Delivered - Order completed</option>
                                     <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled - Order cancelled</option>
                                 </select>
+                                
+                                <!-- Time Options based on Order Type -->
+                                <div id="timeOptions" class="hidden">
+                                    @if($order->order_type === 'in_restaurant')
+                                        <select id="readyTime" name="ready_time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                                            <option value="">Select ready time</option>
+                                            <option value="10 minutes">10 minutes</option>
+                                            <option value="15 minutes">15 minutes</option>
+                                            <option value="20 minutes">20 minutes</option>
+                                            <option value="25 minutes">25 minutes</option>
+                                            <option value="30 minutes">30 minutes</option>
+                                            <option value="35 minutes">35 minutes</option>
+                                            <option value="40 minutes">40 minutes</option>
+                                        </select>
+                                    @elseif($order->order_type === 'pickup')
+                                        <div class="space-y-2">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Pickup Time</label>
+                                            <div class="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                                                {{ $order->pickup_time ?? 'Not specified' }}
+                                            </div>
+                                            <select id="readyTime" name="ready_time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                                                <option value="">Select when order will be ready</option>
+                                                <option value="10 minutes before pickup">10 minutes before pickup</option>
+                                                <option value="15 minutes before pickup">15 minutes before pickup</option>
+                                                <option value="20 minutes before pickup">20 minutes before pickup</option>
+                                                <option value="30 minutes before pickup">30 minutes before pickup</option>
+                                                <option value="At pickup time">At pickup time</option>
+                                                <option value="5 minutes after pickup">5 minutes after pickup</option>
+                                            </select>
+                                        </div>
+                                    @elseif($order->order_type === 'delivery')
+                                        <select id="readyTime" name="ready_time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                                            <option value="">Select ready time</option>
+                                            <option value="10 minutes">10 minutes</option>
+                                            <option value="15 minutes">15 minutes</option>
+                                            <option value="20 minutes">20 minutes</option>
+                                            <option value="25 minutes">25 minutes</option>
+                                            <option value="30 minutes">30 minutes</option>
+                                            <option value="35 minutes">35 minutes</option>
+                                            <option value="40 minutes">40 minutes</option>
+                                        </select>
+                                    @endif
+                                </div>
+                                
                                 <textarea id="statusNote" name="status_note" rows="3" 
                                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
                                           placeholder="Add a note about this status update (e.g., 'Will be ready in 15 minutes', 'Out for delivery', etc.)">{{ $order->status_note }}</textarea>
@@ -264,6 +308,43 @@
                         <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
                     </select>
                 </div>
+                
+                <!-- Quick Time Options -->
+                <div id="quickTimeOptions" class="mb-4 hidden">
+                    @if($order->order_type === 'in_restaurant')
+                        <select id="quickReadyTime" name="ready_time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                            <option value="">Select ready time</option>
+                            <option value="10 minutes">10 minutes</option>
+                            <option value="15 minutes">15 minutes</option>
+                            <option value="20 minutes">20 minutes</option>
+                            <option value="25 minutes">25 minutes</option>
+                            <option value="30 minutes">30 minutes</option>
+                            <option value="35 minutes">35 minutes</option>
+                            <option value="40 minutes">40 minutes</option>
+                        </select>
+                    @elseif($order->order_type === 'pickup')
+                        <div class="space-y-2">
+                            <div class="text-xs text-gray-500">Pickup: {{ $order->pickup_time ?? 'Not specified' }}</div>
+                            <select id="quickReadyTime" name="ready_time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                                <option value="">Select ready time</option>
+                                <option value="10 minutes before pickup">10 min before</option>
+                                <option value="15 minutes before pickup">15 min before</option>
+                                <option value="20 minutes before pickup">20 min before</option>
+                                <option value="At pickup time">At pickup time</option>
+                            </select>
+                        </div>
+                    @elseif($order->order_type === 'delivery')
+                        <select id="quickReadyTime" name="ready_time" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white">
+                            <option value="">Select ready time</option>
+                            <option value="10 minutes">10 minutes</option>
+                            <option value="15 minutes">15 minutes</option>
+                            <option value="20 minutes">20 minutes</option>
+                            <option value="25 minutes">25 minutes</option>
+                            <option value="30 minutes">30 minutes</option>
+                        </select>
+                    @endif
+                </div>
+                
                 <div class="mb-4">
                     <label for="quickStatusNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Note (Optional)</label>
                     <textarea id="quickStatusNote" name="status_note" rows="2" 
@@ -293,6 +374,36 @@ function quickStatusUpdate() {
 function closeQuickStatusModal() {
     document.getElementById('quickStatusModal').classList.add('hidden');
 }
+
+// Show/hide time options based on status selection
+function toggleTimeOptions(statusSelect, timeOptionsDiv) {
+    const status = statusSelect.value;
+    const timeOptions = document.getElementById(timeOptionsDiv);
+    
+    if (status === 'preparing' || status === 'ready') {
+        timeOptions.classList.remove('hidden');
+    } else {
+        timeOptions.classList.add('hidden');
+    }
+}
+
+// Add event listeners for status changes
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.getElementById('status');
+    const quickStatusSelect = document.getElementById('quickStatus');
+    
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            toggleTimeOptions(this, 'timeOptions');
+        });
+    }
+    
+    if (quickStatusSelect) {
+        quickStatusSelect.addEventListener('change', function() {
+            toggleTimeOptions(this, 'quickTimeOptions');
+        });
+    }
+});
 
 document.getElementById('quickStatusForm').addEventListener('submit', function(e) {
     e.preventDefault();
