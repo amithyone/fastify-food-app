@@ -349,8 +349,10 @@
 
         <!-- Action Buttons -->
         <div class="space-y-3 pt-4">
-            <button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors">
-                Place Order
+            <button type="submit" 
+                    class="w-full py-3 px-4 rounded-lg font-semibold transition-colors {{ empty($cartItems) ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white' }}"
+                    {{ empty($cartItems) ? 'disabled' : '' }}>
+                {{ empty($cartItems) ? 'No Items in Cart' : 'Place Order' }}
             </button>
             <a href="/cart" class="block w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg font-semibold text-center hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                 Back to Cart
@@ -768,6 +770,12 @@ document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             });
         });
     });
+    
+    // Check if there are any items in the cart
+    if (orderItems.length === 0) {
+        alert('Your cart is empty. Please add some items before placing an order.');
+        return false;
+    }
     
     // Calculate totals directly to ensure accuracy
     const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₦', '').replace(',', '')) || 0;

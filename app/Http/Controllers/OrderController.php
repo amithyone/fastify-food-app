@@ -79,6 +79,18 @@ class OrderController extends Controller
             $cartItems = [];
         }
 
+        // Check if cart is empty and redirect if necessary
+        if (empty($cartItems)) {
+            \Log::warning('Checkout accessed with empty cart', [
+                'user_id' => Auth::id(),
+                'session_id' => session()->getId(),
+                'cart_data' => $cart
+            ]);
+            
+            // Redirect to home page with error message
+            return redirect()->route('home')->with('error', 'Your cart is empty. Please add some items before proceeding to checkout.');
+        }
+
         // Get QR code information from session
         $qrTableNumber = session('qr_table_number');
         $qrRestaurantId = session('qr_restaurant_id');
@@ -165,7 +177,13 @@ class OrderController extends Controller
                 'errors' => $e->errors(),
                 'request_data' => $request->all()
             ]);
-            throw $e;
+            
+            // Return a more user-friendly error response
+            return response()->json([
+                'success' => false,
+                'message' => 'Please ensure you have items in your cart before placing an order.',
+                'errors' => $e->errors()
+            ], 422);
         }
 
         // Additional validation based on order type
