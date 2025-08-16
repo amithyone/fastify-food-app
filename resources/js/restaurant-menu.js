@@ -281,6 +281,14 @@ class RestaurantMenuManager {
                 body: formData
             });
             
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const responseText = await response.text();
+                console.error('Non-JSON response received:', responseText);
+                throw new Error(`Server returned non-JSON response (${response.status}): ${responseText.substring(0, 200)}`);
+            }
+            
             const data = await response.json();
             
             if (data.success) {

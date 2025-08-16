@@ -444,7 +444,7 @@
                     
                     <div class="mb-4">
                         <label for="newCategoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
-                        <select id="newCategoryParent" name="parent_id_new" required
+                        <select id="newCategoryParent" name="parent_id" required
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                             oninvalid="this.setCustomValidity('Please select a parent category')"
                             onchange="this.setCustomValidity('')">
@@ -733,7 +733,15 @@ function validateCategoryForm() {
         return false;
     }
     
+    // Remove required attributes from hidden fields to prevent browser validation
     if (categoryType === 'custom') {
+        // Remove required from existing category form
+        const existingForm = document.getElementById('existingCategoryForm');
+        if (existingForm) {
+            const requiredFields = existingForm.querySelectorAll('[required]');
+            requiredFields.forEach(field => field.removeAttribute('required'));
+        }
+        
         // Validate custom category form
         const categoryName = document.getElementById('categoryName').value.trim();
         const parentCategory = document.getElementById('newCategoryParent').value;
@@ -750,6 +758,13 @@ function validateCategoryForm() {
             return false;
         }
     } else if (categoryType === 'existing') {
+        // Remove required from custom category form
+        const customForm = document.getElementById('customCategoryForm');
+        if (customForm) {
+            const requiredFields = customForm.querySelectorAll('[required]');
+            requiredFields.forEach(field => field.removeAttribute('required'));
+        }
+        
         // Validate existing category form
         const selectedCategory = document.querySelector('input[name="existing_category_id"]:checked');
         const parentCategory = document.getElementById('categoryParent').value;
