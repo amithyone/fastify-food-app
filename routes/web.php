@@ -469,6 +469,8 @@ Route::get('/test-image/{filename}', function ($filename) {
     }
 })->name('test.image');
 
+
+
 // Test logo display
 Route::get('/test-logo', function () {
     $restaurant = \App\Models\Restaurant::first();
@@ -624,6 +626,8 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
             'authenticated' => Auth::check()
         ]);
     })->name('restaurant.images.debug');
+    
+
     
     // Restaurant Default Image Management
     Route::get('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'index'])->name('restaurant.default-image.index');

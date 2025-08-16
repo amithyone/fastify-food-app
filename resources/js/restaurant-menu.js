@@ -609,6 +609,11 @@ class RestaurantMenuManager {
             const data = await response.json();
             console.log('Response data:', data);
             
+            // Check for authentication error
+            if (data.message === 'Unauthenticated.') {
+                throw new Error('Unauthenticated - Please log in to access image management.');
+            }
+            
             if (data.success) {
                 this.showImageSelectorModal(data.images);
             } else {
@@ -617,7 +622,13 @@ class RestaurantMenuManager {
             }
         } catch (error) {
             console.error('Error loading images:', error);
-            alert('Error loading images: ' + error.message);
+            
+            // Handle specific authentication error
+            if (error.message.includes('Unauthenticated') || error.message.includes('non-JSON response')) {
+                alert('Please log in to access image management. You need to be authenticated to use this feature.');
+            } else {
+                alert('Error loading images: ' + error.message);
+            }
         }
     }
 
