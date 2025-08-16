@@ -408,7 +408,33 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('quickStatusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const formData = new FormData(e.target);
+    // Manually collect form data to ensure all fields are captured
+    const form = e.target;
+    const formData = new FormData();
+    
+    // Add CSRF token
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}');
+    
+    // Add status field
+    const statusSelect = form.querySelector('select[name="status"]');
+    if (statusSelect) {
+        formData.append('status', statusSelect.value);
+        console.log('Status value:', statusSelect.value);
+    }
+    
+    // Add status note
+    const statusNote = form.querySelector('textarea[name="status_note"]');
+    if (statusNote) {
+        formData.append('status_note', statusNote.value);
+        console.log('Status note:', statusNote.value);
+    }
+    
+    // Add ready time if visible and selected
+    const readyTimeSelect = form.querySelector('select[name="ready_time"]');
+    if (readyTimeSelect && !readyTimeSelect.closest('.hidden')) {
+        formData.append('ready_time', readyTimeSelect.value);
+        console.log('Ready time:', readyTimeSelect.value);
+    }
     
     // Determine which route to use based on the current URL
     const currentUrl = window.location.pathname;
@@ -423,7 +449,10 @@ document.getElementById('quickStatusForm').addEventListener('submit', function(e
     }
     
     console.log('Submitting status update to:', statusUrl);
-    console.log('Form data:', Object.fromEntries(formData));
+    console.log('Form data entries:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
     
     fetch(statusUrl, {
         method: 'PUT',
@@ -465,7 +494,33 @@ document.getElementById('quickStatusForm').addEventListener('submit', function(e
 document.getElementById('statusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const formData = new FormData(e.target);
+    // Manually collect form data to ensure all fields are captured
+    const form = e.target;
+    const formData = new FormData();
+    
+    // Add CSRF token
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}');
+    
+    // Add status field
+    const statusSelect = form.querySelector('select[name="status"]');
+    if (statusSelect) {
+        formData.append('status', statusSelect.value);
+        console.log('Status value:', statusSelect.value);
+    }
+    
+    // Add status note
+    const statusNote = form.querySelector('textarea[name="status_note"]');
+    if (statusNote) {
+        formData.append('status_note', statusNote.value);
+        console.log('Status note:', statusNote.value);
+    }
+    
+    // Add ready time if visible and selected
+    const readyTimeSelect = form.querySelector('select[name="ready_time"]');
+    if (readyTimeSelect && !readyTimeSelect.closest('.hidden')) {
+        formData.append('ready_time', readyTimeSelect.value);
+        console.log('Ready time:', readyTimeSelect.value);
+    }
     
     // Determine which route to use based on the current URL
     const currentUrl = window.location.pathname;
@@ -480,7 +535,10 @@ document.getElementById('statusForm').addEventListener('submit', function(e) {
     }
     
     console.log('Submitting status update to:', statusUrl);
-    console.log('Form data:', Object.fromEntries(formData));
+    console.log('Form data entries:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
     
     fetch(statusUrl, {
         method: 'PUT',
