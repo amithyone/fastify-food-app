@@ -678,18 +678,31 @@ class MenuController extends Controller
                 'restaurant_id' => $restaurant->id
             ]);
             
-            $validated = $request->validate([
-                'name' => 'nullable|string|max:255', // Make name nullable since it's not needed for existing categories
-                'parent_id' => 'required|exists:categories,id', // Make parent_id required for managers
-                'use_existing_category' => 'nullable|boolean',
-                'existing_category_id' => 'nullable|exists:categories,id',
-                'force_create' => 'nullable|boolean', // New field to force create even if similar exists
-            ]);
+            // Determine validation rules based on whether using existing category
+            $useExisting = $request->input('use_existing_category') == '1';
+            
+            if ($useExisting) {
+                // For existing categories, we don't need name or parent_id
+                $validated = $request->validate([
+                    'use_existing_category' => 'required|boolean',
+                    'existing_category_id' => 'required|exists:categories,id',
+                ]);
+            } else {
+                // For new categories, we need name and parent_id
+                $validated = $request->validate([
+                    'name' => 'required|string|max:255',
+                    'parent_id' => 'required|exists:categories,id',
+                    'use_existing_category' => 'nullable|boolean',
+                    'existing_category_id' => 'nullable|exists:categories,id',
+                    'force_create' => 'nullable|boolean',
+                ]);
+            }
             
             // Check if user is manager (not admin) - managers can only create sub-categories
             $isManager = Auth::user() && !Auth::user()->isAdmin() && \App\Models\Manager::canAccessRestaurant(Auth::id(), $restaurant->id, 'manager');
             
-            if ($isManager && empty($validated['parent_id'])) {
+            // For managers, ensure they're working with sub-categories
+            if ($isManager && !$useExisting && empty($validated['parent_id'])) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false, 
