@@ -581,16 +581,33 @@ class RestaurantMenuManager {
     async loadRestaurantImages() {
         try {
             const restaurantSlug = this.getRestaurantSlug();
+            console.log('Loading images for restaurant:', restaurantSlug);
             
-            const response = await fetch(`/restaurant/${restaurantSlug}/images/get`);
+            const response = await fetch(`/restaurant/${restaurantSlug}/images/get`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                credentials: 'same-origin'
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
             
             // Check if response is JSON
             const contentType = response.headers.get('content-type');
+            console.log('Content-Type:', contentType);
+            
             if (!contentType || !contentType.includes('application/json')) {
+                const responseText = await response.text();
+                console.error('Non-JSON response received:', responseText.substring(0, 500));
                 throw new Error('Server returned non-JSON response. Please check authentication.');
             }
             
             const data = await response.json();
+            console.log('Response data:', data);
             
             if (data.success) {
                 this.showImageSelectorModal(data.images);

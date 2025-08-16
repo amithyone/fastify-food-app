@@ -614,6 +614,17 @@ Route::middleware(['auth'])->prefix('restaurant')->group(function () {
     Route::delete('/{slug}/images/{imageId}', [RestaurantImageController::class, 'destroy'])->name('restaurant.images.destroy');
     Route::post('/{slug}/images/{imageId}/set-default', [RestaurantImageController::class, 'setDefault'])->name('restaurant.images.set-default');
     
+    // Debug route for testing image loading
+    Route::get('/{slug}/images/debug', function($slug) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Debug route working',
+            'slug' => $slug,
+            'user_id' => Auth::id(),
+            'authenticated' => Auth::check()
+        ]);
+    })->name('restaurant.images.debug');
+    
     // Restaurant Default Image Management
     Route::get('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'index'])->name('restaurant.default-image.index');
     Route::post('/{slug}/default-image', [App\Http\Controllers\RestaurantDefaultImageController::class, 'store'])->name('restaurant.default-image.store');
