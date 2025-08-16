@@ -51,62 +51,23 @@ class RestaurantMenuManager {
     }
 
     getRestaurantSlug() {
-        // Get the restaurant slug from the current URL
-        const pathParts = window.location.pathname.split('/');
-        
-        console.log('Current URL pathname:', window.location.pathname);
-        console.log('Path parts:', pathParts);
-        console.log('Current page URL:', window.location.href);
-        console.log('Document title:', document.title);
-        
-        let restaurantSlug;
-        
-        // First, try to get from data attribute (most reliable)
+        // Simple approach: get from data attribute
         const restaurantElement = document.querySelector('[data-restaurant-slug]');
-        console.log('Restaurant element found:', restaurantElement);
         if (restaurantElement) {
-            restaurantSlug = restaurantElement.getAttribute('data-restaurant-slug');
-            console.log('Found restaurant slug from data attribute:', restaurantSlug);
-            if (restaurantSlug && restaurantSlug.trim() !== '') {
-                return restaurantSlug;
+            const slug = restaurantElement.getAttribute('data-restaurant-slug');
+            if (slug && slug.trim() !== '') {
+                return slug;
             }
         }
         
-        // Debug: Check all data attributes on the page
-        const allDataElements = document.querySelectorAll('[data-restaurant-slug]');
-        console.log('All elements with data-restaurant-slug:', allDataElements);
-        allDataElements.forEach((el, index) => {
-            console.log(`Element ${index}:`, el.getAttribute('data-restaurant-slug'));
-        });
-        
-        // If we can't get it from data attribute, try to extract from URL
-        // The URL should be /restaurant/{slug}/menu or similar
+        // Fallback: extract from URL path
+        const pathParts = window.location.pathname.split('/');
         if (pathParts[1] === 'restaurant' && pathParts[2]) {
-            // URL is /restaurant/{slug}/something
-            restaurantSlug = pathParts[2];
-            console.log('Extracted restaurant slug from URL path:', restaurantSlug);
-        } else {
-            // Fallback: try to get from the page title
-            const pageTitle = document.title;
-            console.log('Page title:', pageTitle);
-            if (pageTitle.includes(' - Dashboard')) {
-                // Extract restaurant name from title and convert to slug
-                const restaurantName = pageTitle.replace(' - Dashboard', '');
-                restaurantSlug = restaurantName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-                console.log('Extracted restaurant slug from title:', restaurantSlug);
-            } else {
-                console.error('Could not determine restaurant slug from URL or page elements:', window.location.pathname);
-                throw new Error('Restaurant slug not found');
-            }
+            return pathParts[2];
         }
         
-        if (!restaurantSlug) {
-            console.error('Could not determine restaurant slug from URL:', window.location.pathname);
-            throw new Error('Restaurant slug not found in URL');
-        }
-        
-        console.log('Final restaurant slug:', restaurantSlug);
-        return restaurantSlug;
+        // Last resort: throw error
+        throw new Error('Restaurant slug not found');
     }
 
     // Category Management Functions
@@ -266,8 +227,8 @@ class RestaurantMenuManager {
         const isEdit = this.editingCategoryId !== null;
         const method = isEdit ? 'PUT' : 'POST';
         const url = isEdit 
-            ? `/${this.getRestaurantSlug()}/categories/${this.editingCategoryId}`
-            : `/${this.getRestaurantSlug()}/categories`;
+            ? `/restaurant/${this.getRestaurantSlug()}/categories/${this.editingCategoryId}`
+            : `/restaurant/${this.getRestaurantSlug()}/categories`;
         
         submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${isEdit ? 'Updating...' : 'Creating...'}`;
         submitBtn.disabled = true;
@@ -299,11 +260,7 @@ class RestaurantMenuManager {
         }
     }
 
-    // Helper method to get restaurant slug
-    getRestaurantSlug() {
-        const pathParts = window.location.pathname.split('/');
-        return pathParts[1]; // Assuming URL is /restaurant-slug/menu
-    }
+
 
     resetCategoryForm() {
         if (this.categoryForm) {
@@ -406,8 +363,8 @@ class RestaurantMenuManager {
         const isEdit = this.editingMenuItemId !== null;
         const method = isEdit ? 'PUT' : 'POST';
         const url = isEdit 
-            ? `/${this.getRestaurantSlug()}/menu/${this.editingMenuItemId}`
-            : `/${this.getRestaurantSlug()}/menu`;
+            ? `/restaurant/${this.getRestaurantSlug()}/menu/${this.editingMenuItemId}`
+            : `/restaurant/${this.getRestaurantSlug()}/menu`;
         
         submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${isEdit ? 'Updating...' : 'Saving...'}`;
         submitBtn.disabled = true;
@@ -526,7 +483,7 @@ class RestaurantMenuManager {
                     <i class="fas fa-images text-4xl text-gray-400 mb-4"></i>
                     <p class="text-gray-500">No images available</p>
                     <p class="text-sm text-gray-400">Upload some images first</p>
-                    <a href="/${restaurantSlug}/images" class="inline-block mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    <a href="/restaurant/${restaurantSlug}/images" class="inline-block mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
                         <i class="fas fa-upload mr-2"></i>Upload Images
                     </a>
                 </div>
@@ -633,9 +590,7 @@ class RestaurantMenuManager {
         if (!confirm('Are you sure you want to delete this category?')) return;
         
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            const restaurantSlug = this.getRestaurantSlug();
             
             const response = await fetch(`/restaurant/${restaurantSlug}/categories/${categoryId}`, {
                 method: 'DELETE',
@@ -662,9 +617,7 @@ class RestaurantMenuManager {
         if (!confirm('Are you sure you want to delete this menu item?')) return;
         
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            const restaurantSlug = this.getRestaurantSlug();
             
             const response = await fetch(`/restaurant/${restaurantSlug}/menu/${itemId}`, {
                 method: 'DELETE',
@@ -689,9 +642,7 @@ class RestaurantMenuManager {
 
     async toggleItemStatus(itemId, newStatus) {
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            const restaurantSlug = this.getRestaurantSlug();
             
             const response = await fetch(`/restaurant/${restaurantSlug}/menu/${itemId}/toggle-status`, {
                 method: 'POST',
@@ -738,9 +689,7 @@ class RestaurantMenuManager {
         if (!confirm('Are you sure you want to remove this category from your restaurant?')) return;
         
         try {
-            // Get the restaurant slug from the current URL
-            const pathParts = window.location.pathname.split('/');
-            const restaurantSlug = pathParts[1]; // Assuming URL is /restaurant-slug/menu
+            const restaurantSlug = this.getRestaurantSlug();
             
             const response = await fetch(`/restaurant/${restaurantSlug}/categories/deactivate`, {
                 method: 'POST',
