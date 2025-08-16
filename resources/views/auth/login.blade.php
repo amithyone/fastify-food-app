@@ -7,7 +7,29 @@
     <!-- Header -->
     <div class="text-center mb-8">
         <div class="flex justify-between items-center mb-6">
-            <a href="/menu" class="text-gray-600 dark:text-gray-300">
+            @php
+                // Determine the current restaurant context
+                $currentRestaurant = null;
+                
+                // Check if we're on a restaurant-specific page
+                if (isset($restaurant)) {
+                    $currentRestaurant = $restaurant;
+                } elseif (request()->routeIs('menu.index') && request()->segment(2)) {
+                    // We're on a restaurant-specific menu page
+                    $currentRestaurant = \App\Models\Restaurant::where('slug', request()->segment(2))->first();
+                } elseif (session('qr_restaurant_id')) {
+                    // We're in a QR code context
+                    $currentRestaurant = \App\Models\Restaurant::find(session('qr_restaurant_id'));
+                }
+                
+                // Determine menu URL
+                if ($currentRestaurant) {
+                    $menuUrl = route('menu.index', $currentRestaurant->slug);
+                } else {
+                    $menuUrl = route('menu.index');
+                }
+            @endphp
+            <a href="{{ $menuUrl }}" class="text-gray-600 dark:text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -109,7 +131,29 @@
 
     <!-- Bottom Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50 flex justify-around items-center py-1 px-2 max-w-md mx-auto w-full">
-        <a href="/menu" class="flex flex-col items-center text-gray-400 dark:text-gray-400">
+        @php
+            // Determine the current restaurant context
+            $currentRestaurant = null;
+            
+            // Check if we're on a restaurant-specific page
+            if (isset($restaurant)) {
+                $currentRestaurant = $restaurant;
+            } elseif (request()->routeIs('menu.index') && request()->segment(2)) {
+                // We're on a restaurant-specific menu page
+                $currentRestaurant = \App\Models\Restaurant::where('slug', request()->segment(2))->first();
+            } elseif (session('qr_restaurant_id')) {
+                // We're in a QR code context
+                $currentRestaurant = \App\Models\Restaurant::find(session('qr_restaurant_id'));
+            }
+            
+            // Determine menu URL
+            if ($currentRestaurant) {
+                $menuUrl = route('menu.index', $currentRestaurant->slug);
+            } else {
+                $menuUrl = route('menu.index');
+            }
+        @endphp
+        <a href="{{ $menuUrl }}" class="flex flex-col items-center text-gray-400 dark:text-gray-400">
             <!-- Home Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6" />

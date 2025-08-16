@@ -976,7 +976,7 @@ window.stories = @json($stories);
     <!-- Menu Items -->
     <div class="p-3 space-y-3">
         <!-- Home -->
-        <a href="/menu" class="flex items-center gap-3 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition">
+        <a href="{{ route('menu.index') }}" class="flex items-center gap-3 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition">
             <i class="fas fa-home text-lg"></i>
             <span class="font-medium">Home</span>
         </a>
