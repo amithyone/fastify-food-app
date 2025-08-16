@@ -408,32 +408,55 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('quickStatusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    console.log('=== QUICK STATUS FORM SUBMISSION ===');
+    
     // Manually collect form data to ensure all fields are captured
     const form = e.target;
     const formData = new FormData();
     
+    console.log('Form element:', form);
+    console.log('Form ID:', form.id);
+    
     // Add CSRF token
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    formData.append('_token', csrfToken);
+    console.log('CSRF token:', csrfToken);
     
     // Add status field
     const statusSelect = form.querySelector('select[name="status"]');
+    console.log('Status select element:', statusSelect);
     if (statusSelect) {
-        formData.append('status', statusSelect.value);
-        console.log('Status value:', statusSelect.value);
+        const statusValue = statusSelect.value;
+        formData.append('status', statusValue);
+        console.log('Status value:', statusValue);
+        console.log('Status select name:', statusSelect.name);
+        console.log('Status select id:', statusSelect.id);
+    } else {
+        console.error('Status select not found!');
+        console.log('All select elements in form:', form.querySelectorAll('select'));
+        console.log('All elements with name="status":', form.querySelectorAll('[name="status"]'));
     }
     
     // Add status note
     const statusNote = form.querySelector('textarea[name="status_note"]');
+    console.log('Status note element:', statusNote);
     if (statusNote) {
-        formData.append('status_note', statusNote.value);
-        console.log('Status note:', statusNote.value);
+        const noteValue = statusNote.value;
+        formData.append('status_note', noteValue);
+        console.log('Status note:', noteValue);
+    } else {
+        console.error('Status note textarea not found!');
     }
     
     // Add ready time if visible and selected
     const readyTimeSelect = form.querySelector('select[name="ready_time"]');
+    console.log('Ready time select element:', readyTimeSelect);
     if (readyTimeSelect && !readyTimeSelect.closest('.hidden')) {
-        formData.append('ready_time', readyTimeSelect.value);
-        console.log('Ready time:', readyTimeSelect.value);
+        const readyTimeValue = readyTimeSelect.value;
+        formData.append('ready_time', readyTimeValue);
+        console.log('Ready time:', readyTimeValue);
+    } else {
+        console.log('Ready time select not found or hidden');
     }
     
     // Determine which route to use based on the current URL
@@ -494,32 +517,55 @@ document.getElementById('quickStatusForm').addEventListener('submit', function(e
 document.getElementById('statusForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    console.log('=== MAIN STATUS FORM SUBMISSION ===');
+    
     // Manually collect form data to ensure all fields are captured
     const form = e.target;
     const formData = new FormData();
     
+    console.log('Form element:', form);
+    console.log('Form ID:', form.id);
+    
     // Add CSRF token
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    formData.append('_token', csrfToken);
+    console.log('CSRF token:', csrfToken);
     
     // Add status field
     const statusSelect = form.querySelector('select[name="status"]');
+    console.log('Status select element:', statusSelect);
     if (statusSelect) {
-        formData.append('status', statusSelect.value);
-        console.log('Status value:', statusSelect.value);
+        const statusValue = statusSelect.value;
+        formData.append('status', statusValue);
+        console.log('Status value:', statusValue);
+        console.log('Status select name:', statusSelect.name);
+        console.log('Status select id:', statusSelect.id);
+    } else {
+        console.error('Status select not found!');
+        console.log('All select elements in form:', form.querySelectorAll('select'));
+        console.log('All elements with name="status":', form.querySelectorAll('[name="status"]'));
     }
     
     // Add status note
     const statusNote = form.querySelector('textarea[name="status_note"]');
+    console.log('Status note element:', statusNote);
     if (statusNote) {
-        formData.append('status_note', statusNote.value);
-        console.log('Status note:', statusNote.value);
+        const noteValue = statusNote.value;
+        formData.append('status_note', noteValue);
+        console.log('Status note:', noteValue);
+    } else {
+        console.error('Status note textarea not found!');
     }
     
     // Add ready time if visible and selected
     const readyTimeSelect = form.querySelector('select[name="ready_time"]');
+    console.log('Ready time select element:', readyTimeSelect);
     if (readyTimeSelect && !readyTimeSelect.closest('.hidden')) {
-        formData.append('ready_time', readyTimeSelect.value);
-        console.log('Ready time:', readyTimeSelect.value);
+        const readyTimeValue = readyTimeSelect.value;
+        formData.append('ready_time', readyTimeValue);
+        console.log('Ready time:', readyTimeValue);
+    } else {
+        console.log('Ready time select not found or hidden');
     }
     
     // Determine which route to use based on the current URL
