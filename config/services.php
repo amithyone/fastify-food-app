@@ -67,6 +67,12 @@ return [
         'api_key' => env('FOOD_RECOGNITION_API_KEY', 'demo'),
     ],
 
+    'google_gemini' => [
+        'api_key' => env('GOOGLE_GEMINI_API_KEY'),
+        'model' => env('GOOGLE_GEMINI_MODEL', 'gemini-1.5-flash'),
+        'max_tokens' => env('GOOGLE_GEMINI_MAX_TOKENS', 2048),
+    ],
+
     'payvibe' => [
         'public_key' => env('PAYVIBE_PUBLIC_KEY'),
         'secret_key' => env('PAYVIBE_SECRET_KEY'),

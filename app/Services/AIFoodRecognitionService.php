@@ -14,6 +14,8 @@ class AIFoodRecognitionService
     protected $azureEndpoint;
     protected $logmealApiKey;
     protected $logmealApiUrl = 'https://api.logmeal.es/v2/recognition/dish';
+    protected $geminiApiKey;
+    protected $geminiModel;
 
     public function __construct()
     {
@@ -21,6 +23,8 @@ class AIFoodRecognitionService
         $this->azureApiKey = config('services.azure_vision.api_key');
         $this->azureEndpoint = config('services.azure_vision.endpoint');
         $this->logmealApiKey = config('services.food_recognition.api_key', 'demo');
+        $this->geminiApiKey = config('services.google_gemini.api_key');
+        $this->geminiModel = config('services.google_gemini.model', 'gemini-1.5-flash');
     }
 
     /**
@@ -47,6 +51,7 @@ class AIFoodRecognitionService
                 'file_mime' => $image->getMimeType(),
                 'file_extension' => $image->getClientOriginalExtension(),
                 'max_size_allowed' => '1MB',
+                'gemini_api_configured' => !empty($this->geminiApiKey),
                 'google_api_configured' => !empty($this->googleApiKey),
                 'azure_api_configured' => !empty($this->azureApiKey),
                 'logmeal_api_configured' => !empty($this->logmealApiKey) && $this->logmealApiKey !== 'demo'
@@ -56,7 +61,27 @@ class AIFoodRecognitionService
             $results = [];
             $servicesAttempted = [];
             
-            // 1. Try Google Vision API (most accurate)
+            // 1. Try Google Gemini API (best for food recognition)
+            if ($this->geminiApiKey) {
+                $servicesAttempted[] = 'Google Gemini';
+                $geminiResult = $this->recognizeWithGemini($image);
+                if ($geminiResult['success']) {
+                    $results[] = $geminiResult;
+                    Log::info('Google Gemini API successful', [
+                        'food_name' => $geminiResult['food_name'],
+                        'confidence' => $geminiResult['confidence'],
+                        'model' => $geminiResult['model'] ?? $this->geminiModel
+                    ]);
+                } else {
+                    Log::warning('Google Gemini API failed', [
+                        'error' => $geminiResult['error'] ?? 'Unknown error'
+                    ]);
+                }
+            } else {
+                Log::info('Google Gemini API not configured');
+            }
+            
+            // 2. Try Google Vision API (fallback)
             if ($this->googleApiKey) {
                 $servicesAttempted[] = 'Google Vision';
                 $googleResult = $this->recognizeWithGoogleVision($image);
@@ -165,6 +190,21 @@ class AIFoodRecognitionService
             
             return $this->getErrorResponse('Unable to recognize food from image. Please try again with a smaller image (under 1MB).');
         }
+    }
+
+    /**
+     * Recognize food using Google Gemini API
+     */
+    private function recognizeWithGemini(UploadedFile $image)
+    {
+        try {
+            $geminiService = new \App\Services\GeminiFoodRecognitionService();
+            return $geminiService->recognizeFood($image);
+        } catch (\Exception $e) {
+            Log::error('Gemini API error: ' . $e->getMessage());
+        }
+
+        return ['success' => false];
     }
 
     /**
