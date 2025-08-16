@@ -33,6 +33,11 @@ class RestaurantMenuManager {
             categoryParent.addEventListener('change', (e) => this.handleParentCategoryChange(e));
         }
 
+        // Image source selection
+        document.querySelectorAll('input[name="image_source"]').forEach(radio => {
+            radio.addEventListener('change', (e) => this.handleImageSourceChange(e));
+        });
+
         // Form submissions
         if (this.categoryForm) {
             this.categoryForm.addEventListener('submit', (e) => this.handleCategorySubmit(e));
@@ -151,6 +156,24 @@ class RestaurantMenuManager {
         if (!parentId) return;
         
         this.loadExistingSubCategories(parentId);
+    }
+
+    handleImageSourceChange(event) {
+        const source = event.target.value;
+        console.log('Image source changed:', source);
+        
+        const uploadSection = document.getElementById('uploadSection');
+        const existingSection = document.getElementById('existingSection');
+        
+        if (source === 'upload') {
+            // Show upload section, hide existing section
+            if (uploadSection) uploadSection.style.display = 'block';
+            if (existingSection) existingSection.style.display = 'none';
+        } else if (source === 'existing') {
+            // Show existing section, hide upload section
+            if (uploadSection) uploadSection.style.display = 'none';
+            if (existingSection) existingSection.style.display = 'block';
+        }
     }
 
     async loadExistingSubCategories(parentId) {
@@ -389,7 +412,7 @@ class RestaurantMenuManager {
     }
 
     editMenuItem(id, name, price, description, categoryId, isAvailable, imageUrl, ingredients, allergens, isFeatured, isVegetarian, isSpicy, restaurantImageId, isDelivery, isPickup, isRestaurant) {
-        console.log('Editing menu item:', { id, name, price });
+        console.log('Editing menu item:', { id, name, price, imageUrl });
         
         // Set editing state
         this.editingMenuItemId = id;
@@ -424,13 +447,35 @@ class RestaurantMenuManager {
         if (pickupElement) pickupElement.checked = isPickup;
         if (restaurantElement) restaurantElement.checked = isRestaurant;
         
-        // Set image if exists
-        if (imageUrl && imageUrl !== 'null') {
-            const selectedImagePath = document.getElementById('selectedImagePath');
-            const selectedImageText = document.getElementById('selectedImageText');
-            if (selectedImagePath) selectedImagePath.value = imageUrl;
-            if (selectedImageText) selectedImageText.textContent = 'Current image';
+        // Handle existing image display
+        if (imageUrl && imageUrl !== 'null' && imageUrl !== '') {
+            console.log('Setting existing image:', imageUrl);
+            
+            // Set the image preview
             this.setImagePreview(imageUrl);
+            
+            // Set the selected image path for form submission
+            const selectedImagePath = document.getElementById('selectedImagePath');
+            if (selectedImagePath) {
+                selectedImagePath.value = imageUrl;
+            }
+            
+            // Update the selected image text
+            const selectedImageText = document.getElementById('selectedImageText');
+            if (selectedImageText) {
+                selectedImageText.textContent = 'Current image selected';
+            }
+            
+            // If there's a restaurant image ID, set it as well
+            if (restaurantImageId && restaurantImageId !== 'null') {
+                const selectedImageId = document.getElementById('selectedImageId');
+                if (selectedImageId) {
+                    selectedImageId.value = restaurantImageId;
+                }
+            }
+        } else {
+            // No existing image, reset the preview
+            this.resetImagePreview();
         }
         
         // Update modal title and button
@@ -514,6 +559,13 @@ class RestaurantMenuManager {
         if (selectedImagePath) selectedImagePath.value = '';
         if (selectedImageText) selectedImageText.textContent = 'Choose from uploaded images';
         this.resetImagePreview();
+        
+        // Reset image source radio buttons to "upload"
+        const uploadRadio = document.querySelector('input[name="image_source"][value="upload"]');
+        if (uploadRadio) {
+            uploadRadio.checked = true;
+            this.handleImageSourceChange({ target: { value: 'upload' } });
+        }
         
         // Reset modal title and button
         const modalTitle = document.getElementById('menuItemModalTitle');
@@ -625,6 +677,21 @@ class RestaurantMenuManager {
             preview.innerHTML = `
                 <img src="${imageUrl}" alt="Preview" class="w-full h-24 object-cover rounded-lg image-preview">
             `;
+        }
+    }
+
+    previewImage(input) {
+        const preview = document.getElementById('imagePreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (preview) {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" class="w-full h-24 object-cover rounded-lg image-preview">
+                    `;
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
@@ -926,3 +993,16 @@ window.saveQuickNote = function() {
 
 // Export for use in other modules
 export default RestaurantMenuManager;
+
+// Global functions for HTML onclick handlers
+window.previewImage = function(input) {
+    if (window.restaurantMenuManager) {
+        window.restaurantMenuManager.previewImage(input);
+    }
+};
+
+window.selectImageFromModal = function(imageUrl, imageId, imageName) {
+    if (window.restaurantMenuManager) {
+        window.restaurantMenuManager.selectImageFromModal(imageUrl, imageId, imageName);
+    }
+};
