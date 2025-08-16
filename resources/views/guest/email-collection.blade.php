@@ -98,7 +98,7 @@
                     </button>
 
                     <div class="text-center">
-                        <a href="{{ route('home') }}" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <a href="/" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             Skip for now
                         </a>
                     </div>
