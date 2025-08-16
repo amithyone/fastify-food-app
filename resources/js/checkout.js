@@ -620,7 +620,7 @@ class CheckoutManager {
                     } else {
                         // Redirect to order confirmation for authenticated users
                         const redirectUrl = isAuthenticated ? 
-                            `/orders/${data.order_number}` : 
+                            `/orders/${data.order_id}` : 
                             `/guest/orders/${data.order_number}`;
                         window.location.href = redirectUrl;
                     }
