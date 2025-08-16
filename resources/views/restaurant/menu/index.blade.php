@@ -399,7 +399,7 @@
                 <div id="existingCategoryForm">
                 <div class="mb-4">
                         <label for="categoryParent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parent Category *</label>
-                        <select id="categoryParent" name="parent_id_existing" 
+                        <select id="categoryParent" name="parent_id" 
                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                             <option value="">Select a parent category</option>
                             @foreach($globalCategories as $parentCategory)

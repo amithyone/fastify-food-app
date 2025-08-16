@@ -258,7 +258,30 @@ class RestaurantMenuManager {
     async handleCategorySubmit(event) {
         event.preventDefault();
         
+        // Prepare form data based on the selected category type
+        const categoryType = document.querySelector('input[name="category_type"]:checked')?.value;
         const formData = new FormData(event.target);
+        
+        if (categoryType === 'existing') {
+            // Set the use_existing_category flag
+            formData.set('use_existing_category', '1');
+            
+            // Get the selected existing category
+            const selectedCategory = document.querySelector('input[name="existing_category_id"]:checked');
+            if (selectedCategory) {
+                formData.set('existing_category_id', selectedCategory.value);
+            }
+            
+            // Clear the name and parent_id fields for existing category
+            formData.delete('name');
+            formData.delete('parent_id');
+        } else if (categoryType === 'custom') {
+            // Set the use_existing_category flag to false
+            formData.set('use_existing_category', '0');
+            
+            // Clear the existing category fields
+            formData.delete('existing_category_id');
+        }
         const submitBtn = event.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         
