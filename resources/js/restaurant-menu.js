@@ -6,6 +6,7 @@ class RestaurantMenuManager {
         this.initializeElements();
         this.bindEvents();
         this.initializeOnLoad();
+        this.isSubmitting = false;
     }
 
     initializeElements() {
@@ -508,6 +509,14 @@ class RestaurantMenuManager {
     async handleMenuItemSubmit(event) {
         event.preventDefault();
         
+        // Prevent double submission
+        if (this.isSubmitting) {
+            console.log('Form submission already in progress, ignoring...');
+            return;
+        }
+        
+        this.isSubmitting = true;
+        
         const formData = new FormData(event.target);
         
         // Clean up form data to prevent image duplication
@@ -533,6 +542,12 @@ class RestaurantMenuManager {
         
         try {
             console.log('Submitting menu item:', { url, method, isEdit, editingMenuItemId: this.editingMenuItemId });
+            
+            // Debug: Log form data contents
+            console.log('Form data contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
             
             const response = await fetch(url, {
                 method: 'POST', // Always use POST, Laravel will handle the method override
@@ -569,6 +584,7 @@ class RestaurantMenuManager {
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            this.isSubmitting = false;
         }
     }
 
