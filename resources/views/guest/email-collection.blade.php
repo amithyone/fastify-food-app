@@ -33,15 +33,83 @@
                             <span class="font-medium text-gray-900 dark:text-white">{{ $order->restaurant->name }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600 dark:text-gray-400">Total:</span>
-                            <span class="font-bold text-orange-600">₦{{ number_format($order->total, 2) }}</span>
+                            <span class="text-gray-600 dark:text-gray-400">Order Number:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ $order->order_number }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">₦{{ number_format($order->subtotal, 2) }}</span>
+                        </div>
+                        @if($order->service_charge > 0)
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Service Charge:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">₦{{ number_format($order->service_charge, 2) }}</span>
+                        </div>
+                        @endif
+                        @if($order->tax_amount > 0)
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Tax:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">₦{{ number_format($order->tax_amount, 2) }}</span>
+                        </div>
+                        @endif
+                        @if($order->delivery_fee > 0)
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Delivery Fee:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">₦{{ number_format($order->delivery_fee, 2) }}</span>
+                        </div>
+                        @endif
+                        @if($order->discount_amount > 0)
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Discount:</span>
+                            <span class="font-medium text-green-600">-₦{{ number_format($order->discount_amount, 2) }}</span>
+                        </div>
+                        @endif
+                        <div class="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-900 dark:text-white font-semibold">Total:</span>
+                                <span class="font-bold text-orange-600 text-lg">₦{{ number_format($order->total_amount, 2) }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                            <span class="font-medium text-gray-900 dark:text-white capitalize">{{ $order->payment_method ?? 'Not specified' }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600 dark:text-gray-400">Status:</span>
                             <span class="font-medium text-green-600">{{ ucfirst($order->status) }}</span>
                         </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Order Type:</span>
+                            <span class="font-medium text-gray-900 dark:text-white capitalize">{{ str_replace('_', ' ', $order->order_type) }}</span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Order Items -->
+                @if($order->orderItems && $order->orderItems->count() > 0)
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Order Items</h3>
+                    <div class="space-y-3">
+                        @foreach($order->orderItems as $item)
+                        <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-900 dark:text-white">
+                                    {{ $item->menuItem->name ?? 'Unknown Item' }}
+                                </div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    Qty: {{ $item->quantity }} × ₦{{ number_format($item->unit_price, 2) }}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-semibold text-gray-900 dark:text-white">
+                                    ₦{{ number_format($item->total_price, 2) }}
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 <!-- Email Collection Form -->
                 <form id="emailCollectionForm" class="space-y-4">

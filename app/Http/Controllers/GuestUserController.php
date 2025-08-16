@@ -16,7 +16,7 @@ class GuestUserController extends Controller
      */
     public function showEmailCollection(Request $request, $orderId)
     {
-        $order = Order::findOrFail($orderId);
+        $order = Order::with(['orderItems.menuItem', 'restaurant'])->findOrFail($orderId);
         
         // Check if order already has a guest user
         if ($order->guest_user_id) {
